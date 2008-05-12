@@ -1,0 +1,150 @@
+
+<style type="text/css">
+@media screen {
+	#helpContents * {
+		padding: 0;
+		margin: 0;
+		border: 0;
+	}
+	#helpContents {
+		margin: 0 auto;
+		font-family: Verdana,"Lucida Grande",sans-serif;
+		padding:15px;
+		background-color: #F7F7F7;
+		border: 1px dotted #CCC;
+		width: 700px;
+		color: #333;
+		font-size: 11px;
+		line-height:15px;
+	}
+	#helpContents p, #helpContents ul, #helpContents ol, #helpContents dl { 
+		font-size: 11px;
+		line-height: 15px; 
+		margin-bottom: 15px; 
+	}
+	#helpContents ul {
+		padding-left: 15px;
+		list-style: square;
+	}
+	#helpContents ol {
+		padding-left: 20px;
+	}
+	#helpContents a, #helpContents a.visited {
+		color: #FF7B00;
+		text-decoration: none;
+		padding-bottom: 1px;
+		border-bottom: 1px dotted #FF7B00;
+	}
+	#helpContents a:hover {
+		color: #fff;
+		background-color: #95D079;
+		border-bottom: 1px dotted #95D079;
+	}
+	#helpContents h1 {
+		font-family: Tahoma, Verdana, sans-serif;
+		font-size: 24px;
+		font-weight: bold;
+		text-decoration: none;
+		line-height: 30px;
+		margin-bottom: 15px;
+		color: #84A573;
+	}
+	#helpContents h2 {
+		font-family: Tahoma, Verdana, sans-serif;	
+		color: #95D079;
+		font-size: 18px;
+		line-height: 30px;
+		margin-bottom: 0;
+	}
+	#helpContents strong {
+
+	}
+	#helpContents code {
+		line-height: 16px;
+		font-style: italic;
+		font-family: Monaco,"Courier New", Courier, monospace;
+		font-size-adjust:none;
+		font-stretch:normal;
+		font-variant:normal;
+		font-weight:normal;
+		font-size: 12px;
+	}
+	#helpContents code.txp {
+		background-color: #FFF6A9;
+		font-family: Monaco,"Courier New", Courier, monospace;
+		line-height: 30px;
+		font-style: normal;
+		padding: 2px 0;
+	}
+	body, input, textarea, select, ul, li {
+		font-size: 11px;
+	}
+}
+@media print {
+	#helpContents {
+		font-family: Verdana,"Lucida Grande",sans-serif;
+		padding:15px;
+		color: #000;
+		font-size: 10pt;
+		line-height: 1.4em;
+	}
+	#helpContents a, #helpContents a:visited {
+		color: #333;
+	}
+}
+</style>
+
+<div id="helpContents">
+
+<h1>glz_custom_fields, limitless pimped custom fields</h1>
+
+<p>If you feel totally lost, there is a screencast showing the basics of this plugin: <a href="http://gerhardlazu.com/file_download/15" title="glz_custom_fields, Limitless Pimped Custom Fields">glz_custom_fields_unveiled.mov</a>. The post associated with this screencast is here: <a href="http://gerhardlazu.com/blog/50/glz_custom_fields-unveiled" title="glz_custom_fields unveiled">glz_custom_fields unveiled</a>.</p>
+
+<h2>Requirements</h2>
+<ul>
+<li>minimum <strong>TXP 4</strong> (TXP 4.0.5 recommended)</li>
+<li><strong>jquery.js</strong> present in <code>textpattern</code> folder</li>
+<li>preferably, a clean TXP install. If you have been using various custom fields hacks, <strong>PLEASE back-up your database</strong> before using this plugin. While it won't delete anything automatically, you can delete all your custom fields data (<strong>and I really mean all of it</strong>) if not careful.</li>
+</ul>
+
+<h2>Usage and Options</h2>
+
+<code class="txp">&lt;txp:glz_custom_fields_search_form results_page="listings" searchby="Area,City,Price" /&gt;</code>
+<p>This builds a nice search form (only selects so far) on the front-end.</p>
+<ul>
+<li><code>results_page</code> - which page (section) should the submit button take the user to (<code>default</code> by default)</li>
+<li><code>searchby (MUST BE SET)</code> - which custom fields should we search by and in what order? (<code>empty</code> by default)</li>
+</ul>
+
+<code class="txp">&lt;txp:glz_custom_fields_article limit="5" no_results="no_results" /&gt;</code>
+<p>This needs to be used instead of <code>txp:article</code> or <txp:article_custom</code> where you want the search results to appear. We need to "inject" our extra custom fields in the search query and modify it slightly. This is a straight copy of <code>article()</code> and underlying <code>parseArticle()</code> from TXP 4.0.5 (r1956).</p>
+<ul>
+<li><code>no_results</code> - if no matching results are found, this is the page (section) where the users will be redirected (<code>no_results</code> by default)</li>
+</ul>
+
+<h2>Tricks</h2>
+<p>Actually, there is a single one, but I'll let you know if I'll implement more ; ).</p>
+<p>If you want to define ranges, do the following for the range name (custom set name): <code>Price range &amp;pound;(after)</code></p>
+<ul>
+<li><code>range</code> - this is really important and <strong>must</strong> be present for the range to work correctly</li>
+<li><code>&amp;pound;</code> - don't use straight symbols (like &euro; or &pound;) but entity ones e.g. &amp;pound; &amp; &amp;euro;</li>
+<li><code>(after)</code> - don't leave any spaces after the measuring unit and (after). This basically says where to add the measuring unit - <code>(before)</code> is default. You might have &pound;10-&pound;20 but 10m<sup>3</sup>-20m<sup>3</sup></li>
+</ul>
+
+<p>Ranges are defined 10-20, 21-30 etc. (no measuring units - they get pulled from the custom set name).</p>
+
+<h2>HEEEELP!</h2>
+<p>If anything goes wrong or you discover a bug:</p>
+<ol>
+<li>stay calm : )</li>
+<li>drop a line to <a href="mailto:mail@gerhardlazu.com?Subject:glz_custom_fields needs your attention">mail@gerhardlazu.com</a></li>
+<li>wait patiently for an answer - sometimes things can get really hectic on my end as well</li>
+<li>enjoy the little things in life (like TXP)</li>
+</ol>
+
+<h2>Colophon & Limitations</h2>
+
+<p>There is no migration/importing script for taking the current data from your Textpattern install. As such, <strong>PLEASE back-up your database</strong> before using this plugin. While it won't delete anything automatically, you can delete all your custom fields data (<strong>and I really mean all of it</strong>) if not careful.</p>
+<p>If you don't have JavaScript enabled in your browser, things will blow up - GUARANTEED.</p>
+
+</div>
