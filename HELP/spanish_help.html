@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+<h1>glz_custom_fields, custom fields sin límites</h1>
+
+<p>Si te sientes totalmente perdido, existe un videotutorial que muestra las funcionalidades básicas de este pluging : <a href="http://gerhardlazu.com/file_download/15" title="glz_custom_fields, Limitless Pimped Custom Fields">glz_custom_fields_unveiled.mov</a>. El artículo asociado con este videotutorial está aquí: <a href="http://gerhardlazu.com/blog/50/glz_custom_fields-unveiled" title="glz_custom_fields unveiled">glz_custom_fields unveiled</a>.</p>
+
+<p>&nbsp;</p>
+
+<h2>Requisitos</h2>
+<ul>
+ <li>mínimo <strong>TXP 4</strong> (TXP 4.0.5 recomendado)</li>
+ <li><strong>jquery.js</strong> presente en la carpeta <code>textpattern</code></li>
+
+ <li>preferentemente ,una instalación limpia de TXP. Si has estado empleando varios &quot;hacks&quot; (retoques de una instalación básica de Textpattern) para el uso de custom fields, <strong>POR FAVOR, haz una copia de seguridad de tu base de datos</strong> antes de usar este plugin. Aunque no borrará nada automáticamente, puedes borrar todos los datos de  (<strong>y me refiero realmente a todos</strong>) si no tienes cuidado.</li>
+</ul>
+
+<p>&nbsp;</p>
+
+<h2>Uso y opciones</h2>
+
+<code>&lt;txp:glz_custom_fields_search_form results_page="listings" searchby="Area,City,Price" /&gt;</code>
+
+<p>Crea un formulario de búsqueda (solo listas desplegables) en el frontal.</p>
+<ul>
+<li><code>results_page</code> - A qué página (sección) debe redirigir al usuario el botón de enviar  (<code>default</code> por defecto)</li>
+<li><code>searchby (DEBE SER CONFIGURADO)</code> - ¿En qué custom fields debemos buscar y en qué orden? (<code>empty</code> by default)</li>
+
+</ul>
+
+<br />
+
+<code>&lt;txp:glz_custom_fields_article limit="5" no_results="no_results" /&gt;</code>
+<p>Debe emplearse en lugar de <code>txp:article</code> o <code>txp:article_custom</code> donde quieras que aparezcan los resultados de búsqueda. Necesitamos &quot;injectar&quot; nuestros custom fields extra en la cadena de búsqueda y modificarla ligeramente. Es directamente una copia de  <code>article()</code> y subyacentemente de la función <code>parseArticle()</code>de la versión 4.0.5 de Textpatttern (r1956).</p>
+
+<ul>
+<li><code>no_results</code> - si no se encuentran resultados, esta es la página (sección) a donde será redirigido el usuario (<code>no_results</code> por defecto)</li>
+</ul>
+
+<p>&nbsp;</p>
+
+<h2>Trucos</h2>
+<p>Actualmente sólo existe uno, pero os avisaré su implemento más ; ).</p>
+<p>Si quieres definir rangos, haz lo siguiente para el nombre del rango (custom set name): <code>Price range &amp;pound;(after)</code></p>
+
+<ul>
+<li><code>range</code> - es muy importante y <strong>debe estar presente </strong>para que el rango funcione correctamente.</li>
+<li><code>&amp;pound;</code> - no uses símbolos directamente (como &euro; o &pound;) sino entidades HTML (entities) en su lugar como por ej. &amp;pound; y &amp;euro;</li>
+
+<li><code>(after)</code> - no dejes ningún espacio después de la unididad de medida  (after). Básicamente indica dónde añadir la unidad de medida - <code>(before)</code> por defecto es después. Podrías tener  &pound;10-&pound;20 ó 10m<sup>3</sup>-20m<sup>3</sup></li>
+</ul>
+
+<p>Los rangos se definen como 10-20, 21-30 etc. (no usar unidades de medida - se toman del nombre del custom field).</p>
+
+<p>&nbsp;</p>
+
+<h2>AYUUUUDA!</h2>
+<p>Si algo no funciona o descubres un fallo:</p>
+<ol>
+ <li>Mantén la calma  : )</li>
+ <li>Escríbeme (<strong>sólo en inglés</strong>, el autor no entiende el español) a  <a href="mailto:mail@gerhardlazu.com?Subject:glz_custom_fields needs your attention">mail@gerhardlazu.com</a></li>
+ <li>Ten paciencia hasta que responda - a veces también tengo mis propios problemas que resolver.</li>
+
+ <li>Disfruta las pequeñas cosas de la vida (como TXP).</li>
+</ol>
+
+<p>&nbsp;</p>
+
+<h2>Colofón y limitaciones</h2>
+
+<p>No existe un script para la migración/importación de datos desde tu actual instalación de Textpattern. Así que, <strong>POR FAVOR haz copia de seguridad de tu base de datos </strong>antes de usar este plugin. Aunque no borrará nada automáticamente, puedes borrar todos los datos de  (<strong>y me refiero realmente a todos</strong>) si no tienes cuidado.</p>
+
+<p>Si no tienes JavaScript activado en tu navegador, todo volará - GARANTIZADO.</p>
+</body>
+</html>
