@@ -863,6 +863,7 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'not_specified'   => 'Ooops! {what} is not specified',
     'searchby_not_set' => '<strong>searcby</strong> cannot be left blank',
     'jquery_missing'  => 'Upgrade TXP to at least 4.0.5 or put <strong>jquery.js</strong> in your /textpattern folder. <a href="http://jquery.com" title="jQuery website">jQuery website</a>',
+    'check_path'      => 'Make sure all your paths are correct. Check <strong>config.php</strong> and the Admin tab (mainly Advanced).'
     'no_articles_found' => 'No articles with custom fields have been found.'
   );
   
@@ -1770,8 +1771,10 @@ function glz_doArticles($atts, $iscustom) {
 function glz_custom_fields_install() {
   // if jQuery is not present, die
   // improvement courtesy of Sam Weiss
-  if ( !file_exists($GLOBALS['txpcfg']['txpath'].'/jquery.js') )
-    trigger_error(glz_custom_fields_gTxt('jquery_missing'));
+  if ( !file_exists($GLOBALS['txpcfg']['txpath'].'/jquery.js') ) {
+    trigger_error(glz_custom_fields_gTxt('jquery_missing_check'));
+    trigger_error(glz_custom_fields_gTxt('check_path'));
+  }
   
   // if we don't have the custom_fields table, let's create it
   // let's also take all custom field values from `textpattern` table and populates the `custom_fields` table

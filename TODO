@@ -14,3 +14,7 @@ v1.1.4
 * Is there any way to limit the length of the multiple choice areas? I have big names on some of them and they expand the admin layout. Gonçalo Dumas - goncalo.dumas@gmail.com
 
 * custom fields with - in them have problems when being filtered. Dale - mail@dalechapman.com
+
+* Also, I am using the the_video plugin which has an one- or two-letter code for each video host option. Is it possible to have the name of the video host show up in the dropdown but output the code instead of the name when the custom field is called up? For example, a selection of "Google Video" would store and eventually output the value "G". - Alicia Lane - alicialane@gmail.com
+
+* other fields for the search form (checkbox, radio, input) - Husain Hakim - husainhk@gmail.com
