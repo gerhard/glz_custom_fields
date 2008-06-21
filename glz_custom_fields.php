@@ -171,7 +171,7 @@ if (0) {
    <li>enjoy the little things in life (like TXP)</li>
   </ol>
 
-  <h2>Colophon & Limitations</h2>
+  <h2>Colophon &amp; Limitations</h2>
   <p><strong>PLEASE back-up your database</strong> before using this plugin. It won't delete anything automatically, but if something goes wrong, you might end up deleting all your custom fields data (<strong>and I really mean all of it</strong>).</p>
   <p>If you don't have JavaScript enabled in your browser, things will blow up - GUARANTEED.</p>
 </div>
@@ -182,15 +182,14 @@ if (0) {
 
 
 # --- BEGIN PLUGIN CODE ---
-//<?php
 /**
 glz_custom_fields plugin, FROM UK WITH LOVE
 
 @author Gerhard Lazu
 @version 1.1.4
-@copyright Gerhard Lazu, 17 Apr, 2008
+@copyright Gerhard Lazu, 24 June, 2008
 @package TXP 4.0.6 (2805)
-@contributors:  Sam Weiss, redbot, Manfre, Vladimir
+@contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger
 */
 
 // checks if all tables exists and everything is setup properly
@@ -1777,7 +1776,6 @@ function glz_custom_fields_install() {
   }
   
   // if we don't have the custom_fields table, let's create it
-  // let's also take all custom field values from `textpattern` table and populates the `custom_fields` table
   if ( !getRows("SHOW TABLES LIKE '".PFX."custom_fields'") ) {
     safe_query("
       CREATE TABLE `".PFX."custom_fields` (
@@ -1786,6 +1784,14 @@ function glz_custom_fields_install() {
         INDEX (`name`)
       ) TYPE=MyISAM
     ");
+    // let's get all custom field sets from prefs
+    $arr_custom_fields = glz_custom_fields_MySQL("all");
+    
+    // select all values from custom field columns in textpattern table, one by one
+    foreach ($arr_custom_fields as $custom_field) {
+    }
+    // insert those values into custom_fields table IF they aren't over 255 characters. This hints to a textarea custom field, not suppossed to, but who knows, someone might have hacked TXP.
+    // before going to the next custom set, if there are more values for the current custom field, change it's type in the prefs table to select
     /**
       TODO Migration/importing functions
     */
@@ -1794,9 +1800,9 @@ function glz_custom_fields_install() {
 
 // -------------------------------------------------------------
 // uninstalls glz_custom_fields by doing the following things:
-// 1. removes all custom fields above 10 in txp_prefs
-// 2. changes the remaining custom fields back to input
-// 3. removes custom_fields table
+// 1. remove all custom fields above 10 in txp_prefs
+// 2. change the remaining custom fields back to input
+// 3. remove custom_fields table
 function glz_custom_fields_uninstall() {
   /**
     TODO Uninstall functions
