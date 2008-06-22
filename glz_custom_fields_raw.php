@@ -5,8 +5,9 @@ glz_custom_fields plugin, FROM UK WITH LOVE
 @author Gerhard Lazu
 @version 1.1.4
 @copyright Gerhard Lazu, 24 June, 2008
-@package TXP 4.0.6 (2805)
+@package TXP 4.0.6 (2916)
 @contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger
+@special: Randy Levine, Husain Hakim, Bodo Buttner
 */
 
 // checks if all tables exists and everything is setup properly
@@ -16,9 +17,8 @@ if (txpinterface == "admin") {
   // we need some stylesheets & JS
   ob_start("glz_custom_fields_css_js");
   
-  // we are setting some globals here, mainly repetitive SQL queries
+  // these globals have been already set in glz_custom_fields_install() which is called everytime
   global $all_custom_fields;
-  $all_custom_fields = glz_custom_fields_MySQL("all");
   
   // Custom Fields tab under Extensions
   add_privs('glz_custom_fields', '1');
@@ -80,9 +80,8 @@ function glz_custom_fields() {
       $custom_set_name = gps("custom_set_name");
       
       // if no name was specified, abort
-      if ( !$custom_set_name ) {
+      if ( !$custom_set_name )
         $message = glz_custom_fields_gTxt("no_name");
-      }
       else {
         $name_exists = glz_check_custom_set_name($all_custom_fields, $custom_set_name);
         
@@ -110,7 +109,6 @@ function glz_custom_fields() {
         // name exists, abort
         else
           $message = glz_custom_fields_gTxt("exists", array('{custom_set_name}' => $custom_set_name));
-        }
       }
     }
     
@@ -268,6 +266,10 @@ function glz_custom_fields_replace() {
   if ( is_array($arr_custom_fields) && !empty($arr_custom_fields) ) {
     // get all custom fields values for this article
     $arr_article_customs = glz_custom_fields_MySQL("article_customs", glz_get_article_id(), '', $arr_custom_fields);
+    
+    // DEBUG
+    // dmp($arr_article_customs);
+    
     if ( is_array($arr_article_customs) )
       extract($arr_article_customs);
 
@@ -324,9 +326,12 @@ function glz_custom_fields_replace() {
           $custom_class = 'glz_custom_field';
           break;
       }
-
+      
+      // DEBUG
+      // dmp($custom_set_value);
+      
       // adding addcslashes(..., '/') to $out escapes all the slashes in your jquery replace, dispelling the validation errors in the CDATA area (in Safari 3.1, Mac with no ill-effects). Thanks Julian!
-      $out .= addcslashes(graf(
+      $out .= addslashes(graf(
         "<label for=\"$custom_set\">{$custom_field['custom_set_name']}</label><br />$custom_set_value", " class=\"$custom_class\""
       ));
     }
@@ -662,25 +667,27 @@ function php4_array_combine($keys, $values) {
 // messages that will be available throughout this plugin
 function glz_custom_fields_gTxt($get, $atts = array()) {
   $lang = array(
-    'no_name'         => 'Ooops! <strong>custom set</strong> must have a name',
-    'deleted'         => '<strong>{custom_set_name}</strong> was deleted',
-    'reset'           => '<strong>{custom_set_name}</strong> was reset',
-    'created'         => '<strong>{custom_set_name}</strong> was created',
-    'updated'         => '<strong>{custom_set_name}</strong> was updated',
-    'exists'          => 'Ooops! <strong>{custom_set_name}</strong> already exists',
-    'doesnt_exist'    => 'Ooops! <strong>{custom_set_name}</strong> is not set',
-    'text_input'      => 'Text Input',
-    'select'          => 'Select',
-    'multi-select'    => 'Multi-Select',
-    'textarea'        => 'Textarea',
-    'checkbox'        => 'Checkbox',
-    'radio'           => 'Radio',
-    'no_do'           => 'Ooops! No action specified for method, abort.',
-    'not_specified'   => 'Ooops! {what} is not specified',
-    'searchby_not_set' => '<strong>searcby</strong> cannot be left blank',
-    'jquery_missing'  => 'Upgrade TXP to at least 4.0.5 or put <strong>jquery.js</strong> in your /textpattern folder. <a href="http://jquery.com" title="jQuery website">jQuery website</a>',
-    'check_path'      => 'Make sure all your paths are correct. Check <strong>config.php</strong> and the Admin tab (mainly Advanced).'
-    'no_articles_found' => 'No articles with custom fields have been found.'
+    'no_name'           => 'Ooops! <strong>custom set</strong> must have a name',
+    'deleted'           => '<strong>{custom_set_name}</strong> was deleted',
+    'reset'             => '<strong>{custom_set_name}</strong> was reset',
+    'created'           => '<strong>{custom_set_name}</strong> was created',
+    'updated'           => '<strong>{custom_set_name}</strong> was updated',
+    'exists'            => 'Ooops! <strong>{custom_set_name}</strong> already exists',
+    'doesnt_exist'      => 'Ooops! <strong>{custom_set_name}</strong> is not set',
+    'text_input'        => 'Text Input',
+    'select'            => 'Select',
+    'multi-select'      => 'Multi-Select',
+    'textarea'          => 'Textarea',
+    'checkbox'          => 'Checkbox',
+    'radio'             => 'Radio',
+    'no_do'             => 'Ooops! No action specified for method, abort.',
+    'not_specified'     => 'Ooops! {what} is not specified',
+    'searchby_not_set'  => '<strong>searcby</strong> cannot be left blank',
+    'jquery_missing'    => 'Upgrade TXP to at least 4.0.5 or put <strong>jquery.js</strong> in your /textpattern folder. <a href="http://jquery.com" title="jQuery website">jQuery website</a>',
+    'check_path'        => 'Make sure all your paths are correct. Check <strong>config.php</strong> and the Admin tab (mainly Advanced).',
+    'no_articles_found' => 'No articles with custom fields have been found.',
+    'migration_success' => 'Migrating custom fields into glz_custom_fields was successful',
+    'migration_skip'    => '<strong>custom_fields</strong> table already has data in it, migration skipped.'
   );
   
   $out = ( strstr($lang[$get], "Ooops!") ) ? // Ooops! would appear 0 in the string...
@@ -733,6 +740,10 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
         
       case 'delete':
         glz_delete_custom_field($name, $table);
+        break;
+        
+      case 'check_migration':
+        return glz_check_migration();
         break;
     }
   }
@@ -788,7 +799,13 @@ function glz_values_custom_field($name, $extra) {
 
 function glz_all_existing_custom_values($name, $extra) {
   if ( is_array($extra) ) {
-    extract($extra);
+    extract(lAtts(array(
+      'custom_set_name'   => "",
+      'status'            => 4
+    ),$extra));
+    
+    // we might want to check the custom field values for all articles - think initial migration
+    $status_condition = ($status == 0) ? "<> ''" : "= '$status'";
     
     if ( !empty($name) ) {
       $arr_values = getThings("
@@ -797,7 +814,7 @@ function glz_all_existing_custom_values($name, $extra) {
         FROM
           `".PFX."textpattern`
         WHERE
-          `Status` = '4'
+          `Status` $status_condition
         AND 
           `$name` <> ''
         ORDER BY 
@@ -810,8 +827,14 @@ function glz_all_existing_custom_values($name, $extra) {
       */
       natsort($arr_values);
       
-      // prepare our array for checking
-      $values_check = implode('::', $arr_values);
+      // DEBUG
+      // dmp($arr_values);
+      
+      // prepare our array for checking. We need a single string to check for | instances - seems quickest.
+      $values_check = join('::', $arr_values);
+      
+      // DEBUG
+      // dmp($values_check);
       
       // check if some of the values are multiple ones
       if ( strstr($values_check, '|') ) {
@@ -834,7 +857,6 @@ function glz_all_existing_custom_values($name, $extra) {
       else
         // keys and values need to be the same
         return php4_array_combine($arr_values, $arr_values);
-      
     }
   }
   else
@@ -1024,6 +1046,19 @@ function glz_delete_custom_field($name, $table) {
   }
 }
 
+// -------------------------------------------------------------
+// checks if custom_fields table has any values in it
+function glz_check_migration() {
+  $query = "
+    SELECT
+      COUNT(*)
+    FROM
+      `".PFX."custom_fields`
+  ";
+  
+  return getThing($query);
+}
+
 
 // -------------------------------------------------------------
 // we might have multiple values for custom fields, like must use grep % %
@@ -1097,7 +1132,7 @@ function glz_custom_fields_search_form($atts) {
     // build our selects
     foreach ( $arr_custom as $name => $custom ) {
       // get all existing custom values for live articles
-      $arr_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom), '', array('custom_set_name' => $name));
+      $arr_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom), '', array('custom_set_name' => $name, 'status' => 4));
       
       if ( is_array($arr_values) ) {
         // trim '_set' from $custom
@@ -1585,7 +1620,10 @@ function glz_doArticles($atts, $iscustom) {
 // -------------------------------------------------------------
 // checks if custom_fields table exists
 function glz_custom_fields_install() {
-  // if jQuery is not present, die
+  // we will be reusing these globals across the whole plugin
+  global $all_custom_fields;
+  
+  // if jQuery is not present, trigger error
   // improvement courtesy of Sam Weiss
   if ( !file_exists($GLOBALS['txpcfg']['txpath'].'/jquery.js') ) {
     trigger_error(glz_custom_fields_gTxt('jquery_missing_check'));
@@ -1601,13 +1639,59 @@ function glz_custom_fields_install() {
         INDEX (`name`)
       ) TYPE=MyISAM
     ");
+  }
+  else {
     // let's get all custom field sets from prefs
-    $arr_custom_fields = glz_custom_fields_MySQL("all");
+    // we will be assigning the result of this query in a global
+    $all_custom_fields = glz_custom_fields_MySQL("all");
+    
+    // abort the migration if there are values in custom_fields table,
+    // we don't want to overwrite anything
+    if ( glz_custom_fields_MySQL('check_migration') > 0 ) {
+      // DEBUG
+      // dmp(glz_custom_fields_MySQL('check_migration'));
+      $message = glz_custom_fields_gTxt("migration_skip");
+      return;
+    }
     
     // select all values from custom field columns in textpattern table, one by one
-    foreach ($arr_custom_fields as $custom_field) {
+    foreach ($all_custom_fields as $custom_field) {
+      // check only for custom fields that have been set
+      if ( $custom_field['custom_set_name'] ) {
+        // get all existing custom values for ALL articles
+        $all_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom_field['custom_set']), '', array('custom_set_name' => $custom_field['custom_set_name'], 'status' => 0));
+        if ( count($all_values) > 0 ) {
+          // initialize insert
+          $insert = '';
+          foreach ( $all_values as $escaped_value => $value ) {
+            // don't insert empty values or values that are over 255 characters
+            // values over 255 characters hint to a textarea custom field
+            if ( !empty($escaped_value) && strlen($escaped_value) < 255 )
+              // if this is the last value, query will have to be different
+              $insert .= ( end($all_values) != $value ) ?
+                "('{$custom_field['custom_set']}','{$escaped_value}')," :
+                "('{$custom_field['custom_set']}','{$escaped_value}')";
+          }
+          $query = "
+            INSERT INTO 
+              `".PFX."custom_fields` (`name`,`value`)
+            VALUES
+              {$insert}
+          ";
+          if ( isset($query) && !empty($query) ) {
+            // create all custom field values in custom_fields table
+            safe_query($query);
+            // update the type of this custom field to select (might want to make this user-adjustable at some point)
+            glz_custom_fields_MySQL("update", $custom_field['custom_set'], PFX."txp_prefs", array(
+              'custom_set_type'   => "select",
+              'custom_set_name'   => $custom_field['custom_set_name']
+            ));
+            $message = glz_custom_fields_gTxt("migration_success");
+          }
+        }
+      }
     }
-    // insert those values into custom_fields table IF they aren't over 255 characters. This hints to a textarea custom field, not suppossed to, but who knows, someone might have hacked TXP.
+    
     // before going to the next custom set, if there are more values for the current custom field, change it's type in the prefs table to select
     /**
       TODO Migration/importing functions
@@ -1778,6 +1862,9 @@ css;
         custom_field_value_off();
       }
     });
+    
+    // let's have Advanced Options displayed by default - why hide them in the first place?
+    $('#advanced').show();
     
     
     // ### RE-USABLE FUNCTIONS ###
