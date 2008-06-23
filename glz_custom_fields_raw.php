@@ -34,16 +34,12 @@ if (txpinterface == "admin") {
   
   // YES, finally the default custom fields are replaced by the new, pimped ones : )
   register_callback("glz_custom_fields_replace", "article");
-
 }
 
 // -------------------------------------------------------------
 // everything is happening in this function... generates the content for Extensions > Custom Fields
 function glz_custom_fields() {
-  global $event, $all_custom_fields;
-  
-  // set message to empty if no events will be present
-  $message = '';
+  global $event, $all_custom_fields, $glz_notice;
   
   // we have $_POST, let's see if there is any CRUD
   if ( $_POST ) {
@@ -62,7 +58,7 @@ function glz_custom_fields() {
       
       glz_custom_fields_MySQL("delete", glz_custom_number($custom_set), PFX."textpattern");
       
-      $message = glz_custom_fields_gTxt("deleted", array('{custom_set_name}' => $custom_set_name));
+      $glz_notice[] = glz_custom_fields_gTxt("deleted", array('{custom_set_name}' => $custom_set_name));
     }
     
     // we are resetting one of the mighty 10
@@ -72,7 +68,7 @@ function glz_custom_fields() {
 
       glz_custom_fields_MySQL("reset", glz_custom_number($custom_set), PFX."textpattern");
       
-      $message = glz_custom_fields_gTxt("reset", array('{custom_set_name}' => $custom_set_name));
+      $glz_notice[] = glz_custom_fields_gTxt("reset", array('{custom_set_name}' => $custom_set_name));
     }
     
     // we are adding a new custom field
@@ -81,7 +77,7 @@ function glz_custom_fields() {
       
       // if no name was specified, abort
       if ( !$custom_set_name )
-        $message = glz_custom_fields_gTxt("no_name");
+        $glz_notice[] = glz_custom_fields_gTxt("no_name");
       else {
         $name_exists = glz_check_custom_set_name($all_custom_fields, $custom_set_name);
         
@@ -104,11 +100,11 @@ function glz_custom_fields() {
             'value'               => $value
           ));
           
-          $message = glz_custom_fields_gTxt("created", array('{custom_set_name}' => $custom_set_name));
+          $glz_notice[] = glz_custom_fields_gTxt("created", array('{custom_set_name}' => $custom_set_name));
         }
         // name exists, abort
         else
-          $message = glz_custom_fields_gTxt("exists", array('{custom_set_name}' => $custom_set_name));
+          $glz_notice[] = glz_custom_fields_gTxt("exists", array('{custom_set_name}' => $custom_set_name));
       }
     }
     
@@ -129,14 +125,14 @@ function glz_custom_fields() {
             'value'         => $value
           ));
 
-          $message = glz_custom_fields_gTxt("updated", array('{custom_set_name}' => $custom_set_name));
+          $glz_notice[] = glz_custom_fields_gTxt("updated", array('{custom_set_name}' => $custom_set_name));
         }
         // name exists, abort
         else
-          $message = glz_custom_fields_gTxt("exists", array('{custom_set_name}' => $custom_set_name));
+          $glz_notice[] = glz_custom_fields_gTxt("exists", array('{custom_set_name}' => $custom_set_name));
       }
       else
-        $message = glz_custom_fields_gTxt('no_name');
+        $glz_notice[] = glz_custom_fields_gTxt('no_name');
     }
     
     // need to re-fetch data since things modified
@@ -144,7 +140,7 @@ function glz_custom_fields() {
 
   }
 
-  pagetop("Custom Fields", $message);
+  pagetop("Custom Fields");
   
   // the table with all custom fields follows
   echo
@@ -574,26 +570,31 @@ function glz_check_custom_set_name($arr_custom_fields, $custom_set_name, $custom
 // -------------------------------------------------------------
 // had to duplicate the default selectInput() because trimming \t and \n didn't work + some other mods
 function glz_selectInput($name = '', $arr_values = '', $custom_value = '', $blank_first = '', $multi = '') {
-  $out = array();
+  if ( is_array($arr_values) ) {
+    $out = array();
 
-  foreach ($arr_values as $key => $value) {
-    $selected = glz_selected_checked('selected', $key, $custom_value);
-    $out[] = "<option value=\"$key\"{$selected}>$value</option>";
+    foreach ($arr_values as $key => $value) {
+      $selected = glz_selected_checked('selected', $key, $custom_value);
+      $out[] = "<option value=\"$key\"{$selected}>$value</option>";
+    }
+
+    // we'll need the extra attributes as well as a name that will produce an array
+    /**
+      TODO Make this user-configurable
+    */
+    if ($multi) {
+      $multi = ' multiple="multiple" size="3"';
+      $name .= "[]";
+    }
+
+    return "<select id=\"$name\" name=\"$name\" class=\"list\"$multi>".
+      ($blank_first ? "<option value=\"\"$selected></option>" : '').
+      ( $out ? join('', $out) : '').
+      "</select>";
   }
-  
-  // we'll need the extra attributes as well as a name that will produce an array
-  /**
-    TODO Make this user-configurable
-  */
-  if ($multi) {
-    $multi = ' multiple="multiple" size="3"';
-    $name .= "[]";
+  else {
+    return glz_custom_fields_gTxt('field_problems', array('{custom_set_name}' => $name));
   }
-  
-  return "<select id=\"$name\" name=\"$name\" class=\"list\"$multi>".
-    ($blank_first ? "<option value=\"\"$selected></option>" : '').
-    ( $out ? join('', $out) : '').
-    "</select>";
 }
 
 
@@ -674,6 +675,7 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'updated'           => '<strong>{custom_set_name}</strong> was updated',
     'exists'            => 'Ooops! <strong>{custom_set_name}</strong> already exists',
     'doesnt_exist'      => 'Ooops! <strong>{custom_set_name}</strong> is not set',
+    'field_problems'    => 'Ooops! <strong>{custom_set_name}</strong> has some problems. <a href="?event=glz_custom_fields">Go fix it</a>.',
     'text_input'        => 'Text Input',
     'select'            => 'Select',
     'multi-select'      => 'Multi-Select',
@@ -686,7 +688,7 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'jquery_missing'    => 'Upgrade TXP to at least 4.0.5 or put <strong>jquery.js</strong> in your /textpattern folder. <a href="http://jquery.com" title="jQuery website">jQuery website</a>',
     'check_path'        => 'Make sure all your paths are correct. Check <strong>config.php</strong> and the Admin tab (mainly Advanced).',
     'no_articles_found' => 'No articles with custom fields have been found.',
-    'migration_success' => 'Migrating custom fields into glz_custom_fields was successful',
+    'migration_success' => 'Migrating custom fields was successful',
     'migration_skip'    => '<strong>custom_fields</strong> table already has data in it, migration skipped.'
   );
   
@@ -744,6 +746,10 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
         
       case 'check_migration':
         return glz_check_migration();
+        break;
+      
+      case 'mark_migration':
+        return glz_mark_migration();
         break;
     }
   }
@@ -1059,6 +1065,18 @@ function glz_check_migration() {
   return getThing($query);
 }
 
+// -------------------------------------------------------------
+// make a note of glz_custom_fields migration in txp_prefs
+function glz_mark_migration() {
+  $query = "
+    INSERT INTO 
+      `".PFX."txp_prefs` (`prefs_id`,`name`,`val`,`type`,`event`,`html`,`position`) 
+    VALUES 
+      ('1','glz_custom_fields_migrated','1','1','admin','text_input','0')
+  ";
+  
+  safe_query($query);
+}
 
 // -------------------------------------------------------------
 // we might have multiple values for custom fields, like must use grep % %
@@ -1621,7 +1639,7 @@ function glz_doArticles($atts, $iscustom) {
 // checks if custom_fields table exists
 function glz_custom_fields_install() {
   // we will be reusing these globals across the whole plugin
-  global $all_custom_fields;
+  global $all_custom_fields, $glz_notice, $prefs;
   
   // if jQuery is not present, trigger error
   // improvement courtesy of Sam Weiss
@@ -1629,6 +1647,9 @@ function glz_custom_fields_install() {
     trigger_error(glz_custom_fields_gTxt('jquery_missing_check'));
     trigger_error(glz_custom_fields_gTxt('check_path'));
   }
+  
+  // let's initialize our glz_notice, available throughout the entire plugin
+  $glz_notice = array();
   
   // if we don't have the custom_fields table, let's create it
   if ( !getRows("SHOW TABLES LIKE '".PFX."custom_fields'") ) {
@@ -1642,24 +1663,30 @@ function glz_custom_fields_install() {
   }
   else {
     // let's get all custom field sets from prefs
-    // we will be assigning the result of this query in a global
+    // we will be assigning the result of this query to a global
     $all_custom_fields = glz_custom_fields_MySQL("all");
     
+    // if we have definitely migrated using this function, skip everything
+    if ( isset($prefs['glz_custom_fields_migrated']) )
+      return;
     // abort the migration if there are values in custom_fields table,
     // we don't want to overwrite anything
-    if ( glz_custom_fields_MySQL('check_migration') > 0 ) {
+    else if ( glz_custom_fields_MySQL('check_migration') > 0 ) {
       // DEBUG
       // dmp(glz_custom_fields_MySQL('check_migration'));
-      $message = glz_custom_fields_gTxt("migration_skip");
+      $glz_notice[] = glz_custom_fields_gTxt("migration_skip");
+      // make a note of this migration in txp_prefs
+      glz_custom_fields_MySQL('mark_migration');
       return;
     }
     
-    // select all values from custom field columns in textpattern table, one by one
+    // go through all values in custom field columns in textpattern table one by one
     foreach ($all_custom_fields as $custom_field) {
       // check only for custom fields that have been set
       if ( $custom_field['custom_set_name'] ) {
         // get all existing custom values for ALL articles
         $all_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom_field['custom_set']), '', array('custom_set_name' => $custom_field['custom_set_name'], 'status' => 0));
+        // if we have results, let's create SQL queries that will add them to custom_fields table
         if ( count($all_values) > 0 ) {
           // initialize insert
           $insert = '';
@@ -1686,18 +1713,17 @@ function glz_custom_fields_install() {
               'custom_set_type'   => "select",
               'custom_set_name'   => $custom_field['custom_set_name']
             ));
-            $message = glz_custom_fields_gTxt("migration_success");
+            $glz_notice[] = glz_custom_fields_gTxt("migration_success");
           }
         }
       }
     }
     
-    // before going to the next custom set, if there are more values for the current custom field, change it's type in the prefs table to select
-    /**
-      TODO Migration/importing functions
-    */
+    // make a note of this migration in txp_prefs
+    glz_custom_fields_MySQL('mark_migration');
   }
 }
+
 
 // -------------------------------------------------------------
 // uninstalls glz_custom_fields by doing the following things:
@@ -1710,9 +1736,12 @@ function glz_custom_fields_uninstall() {
   */
 }
 
+
 // -------------------------------------------------------------
 // adds the css & js we need
 function glz_custom_fields_css_js($buffer) {
+  global $glz_notice;
+  
   $css =<<<css
 <style type="text/css" media="screen">
     /* - - - - - - - - - - - - - - - - - - - - -
@@ -1888,8 +1917,28 @@ css;
   </script>
 js;
   
+  // displays the notices we have gathered throughout the entire plugin
+  if ( count($glz_notice) > 0 ) {
+    // let's turn our notices into a string
+    $glz_notice = join("<br />", array_unique($glz_notice));
+
+    $noticejs = '<script type="text/javascript">
+    <!--//--><![CDATA[//><!--
+
+    $(document).ready(function() {
+      // add our notices
+      $("#nav-primary table tbody tr td:first").html(\''.$glz_notice.'\');
+    });
+    //--><!]]>
+    </script>';
+  }
+  else {
+    $noticejs = "";
+  }
+  
+  
   $find = '</head>';
-  $replace = $js.n.t.$css.n.t.$find;
+  $replace = $js.n.t.$noticejs.n.t.$css.n.t.$find;
 
   return str_replace($find, $replace, $buffer);
 }
