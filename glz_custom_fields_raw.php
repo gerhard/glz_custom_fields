@@ -6,8 +6,8 @@ glz_custom_fields plugin, FROM UK WITH LOVE
 @version 1.1.4
 @copyright Gerhard Lazu, 24 June, 2008
 @package TXP 4.0.6 (2916)
-@contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger
-@special: Randy Levine, Husain Hakim, Bodo Buttner
+@contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger, Steve Dickinson
+@special: Randy Levine, Bodo Buttner, Husain Hakim
 */
 
 // checks if all tables exists and everything is setup properly
@@ -18,7 +18,7 @@ if (txpinterface == "admin") {
   ob_start("glz_custom_fields_css_js");
   
   // these globals have been already set in glz_custom_fields_install() which is called everytime
-  global $all_custom_fields;
+  global $all_custom_sets;
   
   // Custom Fields tab under Extensions
   add_privs('glz_custom_fields', '1');
@@ -39,7 +39,7 @@ if (txpinterface == "admin") {
 // -------------------------------------------------------------
 // everything is happening in this function... generates the content for Extensions > Custom Fields
 function glz_custom_fields() {
-  global $event, $all_custom_fields, $glz_notice;
+  global $event, $all_custom_sets, $glz_notice;
   
   // we have $_POST, let's see if there is any CRUD
   if ( $_POST ) {
@@ -79,7 +79,7 @@ function glz_custom_fields() {
       if ( !$custom_set_name )
         $glz_notice[] = glz_custom_fields_gTxt("no_name");
       else {
-        $name_exists = glz_check_custom_set_name($all_custom_fields, $custom_set_name);
+        $name_exists = glz_check_custom_set_name($all_custom_sets, $custom_set_name);
         
         // if name doesn't exist
         if ( $name_exists == FALSE ) {
@@ -111,7 +111,7 @@ function glz_custom_fields() {
     // we are editing an existing custom field
     if ( gps('save') ) {
       if ( !empty($custom_set_name) ) {
-        $name_exists = glz_check_custom_set_name($all_custom_fields, $custom_set_name, $custom_set);
+        $name_exists = glz_check_custom_set_name($all_custom_sets, $custom_set_name, $custom_set);
 
         // if name doesn't exist
         if ( $name_exists == FALSE ) {
@@ -136,7 +136,7 @@ function glz_custom_fields() {
     }
     
     // need to re-fetch data since things modified
-    $all_custom_fields = glz_custom_fields_MySQL("all");
+    $all_custom_sets = glz_custom_fields_MySQL("all");
 
   }
 
@@ -154,28 +154,29 @@ function glz_custom_fields() {
     ' </thead>'.n.
     ' <tbody>'.n;
   
-  // used a for so that we didn't have to create a counter separately
-  for ( $i=0; $i < count($all_custom_fields) ; $i++ ) { 
-    extract($all_custom_fields[$i]);
-
+  // looping through all our custom fields to build the table
+  $i = 0;
+  foreach ( $all_custom_sets as $custom => $custom_set ) {
     // first 10 fields cannot be deleted, just reset
     if ( $i < 10 ) {
       // can't reset a custom field that is not set
-      $reset_delete = ( $custom_set_name ) ?
-        glz_form_buttons("reset", "Reset", $custom_set, $custom_set_name, $custom_set_type, 'return confirm(\'By proceeding you will RESET ALL data in `textpattern` and `custom_fields` tables for `'.$custom_set_name.'`. Are you sure?\');') :
+      $reset_delete = ( $custom_set['name'] ) ?
+        glz_form_buttons("reset", "Reset", $custom, $custom_set['name'], $custom_set['type'], 'return confirm(\'By proceeding you will RESET ALL data in `textpattern` and `custom_fields` tables for `'.$custom.'`. Are you sure?\');') :
         NULL;
     }
     else {
-      $reset_delete = glz_form_buttons("delete", "Delete", $custom_set, $custom_set_name, $custom_set_type, 'return confirm(\'By proceeding you will DELETE ALL data in `textpattern` and `custom_fields` tables for `'.$custom_set_name.'`. Are you sure?\');');
+      $reset_delete = glz_form_buttons("delete", "Delete", $custom, $custom_set['name'], $custom_set['type'], 'return confirm(\'By proceeding you will DELETE ALL data in `textpattern` and `custom_fields` tables for `'.$custom.'`. Are you sure?\');');
     }
-
+    
     echo 
     '   <tr>'.n.
-    '     <td class="custom_set">'.$custom_set.'</td>'.n.
-    '     <td class="custom_set_name">'.$custom_set_name.'</td>'.n.
-    '     <td class="type">'.glz_custom_fields_gTxt($custom_set_type).'</td>'.n.
-    '     <td class="events">'.$reset_delete.sp.glz_form_buttons("edit", "Edit", $custom_set, htmlspecialchars($custom_set_name), $custom_set_type).'</td>'.n.
+    '     <td class="custom_set">'.$custom.'</td>'.n.
+    '     <td class="custom_set_name">'.$custom_set['name'].'</td>'.n.
+    '     <td class="type">'.glz_custom_fields_gTxt($custom_set['type']).'</td>'.n.
+    '     <td class="events">'.$reset_delete.sp.glz_form_buttons("edit", "Edit", $custom, htmlspecialchars($custom_set['name']), $custom_set['type']).'</td>'.n.
     '   </tr>'.n;
+    
+    $i++;
   }
 
   echo
@@ -189,7 +190,7 @@ function glz_custom_fields() {
   
   $custom_field = gps('edit') ? 
     '<input name="custom_set" value="'.gps('custom_set').'" type="hidden" />' :
-    '<input name="custom_field_number" value="'.glz_custom_next($all_custom_fields).'" type="hidden" />';
+    '<input name="custom_field_number" value="'.glz_custom_next($all_custom_sets).'" type="hidden" />';
   
   $custom_set = gps('edit') ?
     gps('custom_set') :
@@ -246,22 +247,21 @@ function glz_custom_fields() {
     ' '.$action.n.
     '</fieldset>'.n.
     '</form>'.n;
-
 }
 
 // -------------------------------------------------------------
 // replaces the default custom fields under write tab
 function glz_custom_fields_replace() {
-  global $all_custom_fields;
+  global $all_custom_sets;
   // get all custom fields & keep only the ones which are set
-  $arr_custom_fields = array_filter($all_custom_fields, "glz_check_custom_set");
+  $arr_custom_fields = array_filter($all_custom_sets, "glz_check_custom_set");
   
   // DEBUG
   // dmp($arr_custom_fields);
   
   if ( is_array($arr_custom_fields) && !empty($arr_custom_fields) ) {
     // get all custom fields values for this article
-    $arr_article_customs = glz_custom_fields_MySQL("article_customs", glz_get_article_id(), '', $arr_custom_fields);
+    $arr_article_customs = glz_custom_fields_MySQL("article_customs", glz_get_article_id(), '', $arr_custom_sets);
     
     // DEBUG
     // dmp($arr_article_customs);
@@ -273,15 +273,15 @@ function glz_custom_fields_replace() {
     $out = '';
 
     // let's see which custom fields are set
-    foreach ( $arr_custom_fields as $custom_field ) {
-      // get all possible/default value(s) for this custom field from custom_fields table
-      $arr_custom_field_values = glz_custom_fields_MySQL("values", $custom_field['custom_set'], '', array('custom_set_name' => $custom_field['custom_set_name']));
+    foreach ( $arr_custom_sets as $custom => $custom_set ) {
+      // get all possible/default value(s) for this custom set from custom_fields table
+      $arr_custom_field_values = glz_custom_fields_MySQL("values", $custom, '', array('custom_set_name' => $custom_set['name']));
 
       // DEBUG
       // dmp($arr_custom_field_values);
 
       //custom_set without "_set" e.g. custom_1_set => custom_1
-      $custom_set = glz_custom_number($custom_field['custom_set']);
+      $custom_set = glz_custom_number($custom);
 
       // if current article holds no value for this custom field, make it empty
       $custom_value = ( !empty($$custom_set) ) ?
@@ -289,7 +289,7 @@ function glz_custom_fields_replace() {
         '';
 
       // the way our custom field value is going to look like
-      switch ( $custom_field['custom_set_type'] ) {
+      switch ( $custom_set['type'] ) {
         case "text_input":
           $custom_set_value = fInput("text", $custom_set, $custom_value, "edit", "", "", "22", "", $custom_set);
           $custom_class = 'glz_custom_field';
@@ -326,9 +326,9 @@ function glz_custom_fields_replace() {
       // DEBUG
       // dmp($custom_set_value);
       
-      // adding addcslashes(..., '/') to $out escapes all the slashes in your jquery replace, dispelling the validation errors in the CDATA area (in Safari 3.1, Mac with no ill-effects). Thanks Julian!
+      // adding addslashes(..., '/') to $out escapes all the slashes in your jquery replace, dispelling the validation errors in the CDATA area (in Safari 3.1, Mac with no ill-effects). Thanks Julian!
       $out .= addslashes(graf(
-        "<label for=\"$custom_set\">{$custom_field['custom_set_name']}</label><br />$custom_set_value", " class=\"$custom_class\""
+        "<label for=\"$custom_set\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\""
       ));
     }
     // DEBUG
@@ -466,12 +466,12 @@ function glz_arr_empty_values($value) {
 // -------------------------------------------------------------
 // returns the custom set from a custom set name e.g. "Rating" gives us custom_1_set
 function glz_get_custom_set($value) {
-  global $all_custom_fields;
+  global $all_custom_sets;
   
   // go through all custom fields and see if the one we're looking for exists
-  foreach ( $all_custom_fields as $custom_field ) {
-    if ( $custom_field['custom_set_name'] == $value )
-      return $custom_field['custom_set'];
+  foreach ( $all_custom_sets as $custom => $custom_set ) {
+    if ( $custom_set['name'] == $value )
+      return $custom;
   }
   // if it doesn't return error message
   trigger_error(glz_custom_fields_gTxt('doesnt_exist', array('{custom_set_name}' => $value)));
@@ -709,7 +709,7 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
   if ( !empty($do) ) {
     switch ( $do ) {
       case 'all':
-        return glz_all_custom_fields();
+        return glz_all_custom_sets();
         break;
       
       case 'values':
@@ -758,12 +758,12 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
 }
 
 
-function glz_all_custom_fields() {
-  $all_custom_fields = getRows("
+function glz_all_custom_sets() {
+  $all_custom_sets = getRows("
     SELECT 
       `name` AS custom_set,
-      `val` AS custom_set_name,
-      `html` AS custom_set_type
+      `val` AS name,
+      `html` AS type
     FROM
       `".PFX."txp_prefs`
     WHERE
@@ -771,7 +771,15 @@ function glz_all_custom_fields() {
     ORDER BY 
       `position`
   ");
-  return $all_custom_fields;
+  
+  foreach ( $all_custom_sets as $custom_set ) {
+    $out[$custom_set['custom_set']] = array(
+      'name'  => $custom_set['name'],
+      'type'  => $custom_set['type']
+    );
+  }
+  
+  return $out;
 }
 
 
@@ -896,11 +904,11 @@ function glz_article_custom_fields($name, $extra) {
 
 
 function glz_next_empty_custom() {
-  global $all_custom_fields;
+  global $all_custom_sets;
   
-  foreach ( $all_custom_fields as $custom ) {
-    if ( empty($custom['custom_set_name']) )
-      return $custom['custom_set'];
+  foreach ( $all_custom_sets as $custom => $custom_set ) {
+    if ( empty($custom_set['name']) )
+      return $custom;
   }
 }
 
@@ -1116,12 +1124,14 @@ function glz_buildCustomSql($custom,$pairs) {
 // -------------------------------------------------------------
 /**
  * DROP-DOWN SEARCH FORM
- Call it like this: <txp:glz_custom_fields_search_form results_page="listings" searchby="Area,City,Price" />
+ Call it like this: <txp:glz_custom_fields_search_form results_page="listings" searchby="Area:input,City:select,Price:radio" />
  */
 function glz_custom_fields_search_form($atts) {
+  global $all_custom_sets;
+  
   // DEBUG
-  // dmp($GLOBALS['prefs']);
-
+  // dmp($all_custom_sets);
+  
   extract(lAtts(array(
     'results_page'  => "default",
     'searchby'    => "",
@@ -1131,14 +1141,37 @@ function glz_custom_fields_search_form($atts) {
     // see which customs are searchby values associated to
     if ( strstr($searchby, ",") ) {
       // create an array from the searchby values
-      foreach ( explode(",", $searchby) as $custom ) {
-        // get the corresponding custom fields for the searchby values
-        $arr_custom[$custom] = array_search($custom, $GLOBALS['prefs']);
+      foreach ( explode(",", $searchby) as $query_custom_set ) {
+        // now we have types for our search fields
+        if ( strstr($query_custom_set, ":"))
+          list($query_custom_set, $query_custom_type) = explode(":", $query_custom_set);
+        else
+          // default is still selects
+          $query_custom_type = "select";
+        
+        $custom = array_search($query_custom_set, $GLOBALS['prefs']);
+
+        if ( $custom )
+          $arr_query_custom[$custom] = array(
+            'name'  => $query_custom_set,
+            'type'  => $query_custom_type);
       }
     }
     else
       // get the custom field for the searchby value
-      $arr_custom[$searchby] = array_search($searchby, $GLOBALS['prefs']);
+      $arr_query_custom[$searchby] = array_search($query_custom_set, $GLOBALS['prefs']);
+    
+    dmp($arr_query_custom);
+    
+    // get the corresponding custom fields for the searchby values
+    foreach ( $all_custom_sets as $custom => $custom_set ) {
+       // = array_search();
+    }
+     // = array_search($custom, $GLOBALS['prefs']);
+    
+    // we might want to overwrite the default values
+    // if ($custom_type)
+    //   $arr_custom[$custom][];
     
     // DEBUG
     // dmp($arr_custom);
@@ -1510,7 +1543,7 @@ function glz_doArticles($atts, $iscustom) {
   if (!is_numeric($status))
     $status = getStatusNum($status);
     
-  $custom = '';
+  $custom_sql = '';
   
   // DEBUG
   // dmp($customFields);
@@ -1539,7 +1572,7 @@ function glz_doArticles($atts, $iscustom) {
     // dmp($customPairs);
     
     if(!empty($customPairs))
-      $custom =  glz_buildCustomSql($customFields,$customPairs);
+      $custom_sql =  glz_buildCustomSql($customFields,$customPairs);
   }
 
   //Allow keywords for no-custom articles. That tagging mode, you know
@@ -1559,7 +1592,7 @@ function glz_doArticles($atts, $iscustom) {
     $statusq = ' and Status = '.intval($status);
   
   $where = "1=1" . $statusq. $time.
-    $search . $id . $category . $section . $excerpted . $month . $author . $keywords . $custom . $frontpage;
+    $search . $id . $category . $section . $excerpted . $month . $author . $keywords . $custom_sql . $frontpage;
   // DEBUG
   // dmp($where);
   
@@ -1639,7 +1672,7 @@ function glz_doArticles($atts, $iscustom) {
 // checks if custom_fields table exists
 function glz_custom_fields_install() {
   // we will be reusing these globals across the whole plugin
-  global $all_custom_fields, $glz_notice, $prefs;
+  global $all_custom_sets, $glz_notice, $prefs;
   
   // if jQuery is not present, trigger error
   // improvement courtesy of Sam Weiss
@@ -1664,7 +1697,7 @@ function glz_custom_fields_install() {
   else {
     // let's get all custom field sets from prefs
     // we will be assigning the result of this query to a global
-    $all_custom_fields = glz_custom_fields_MySQL("all");
+    $all_custom_sets = glz_custom_fields_MySQL("all");
     
     // if we have definitely migrated using this function, skip everything
     if ( isset($prefs['glz_custom_fields_migrated']) )
@@ -1681,11 +1714,11 @@ function glz_custom_fields_install() {
     }
     
     // go through all values in custom field columns in textpattern table one by one
-    foreach ($all_custom_fields as $custom_field) {
+    foreach ($all_custom_sets as $custom => $custom_set) {
       // check only for custom fields that have been set
-      if ( $custom_field['custom_set_name'] ) {
+      if ( $custom_set['name'] ) {
         // get all existing custom values for ALL articles
-        $all_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom_field['custom_set']), '', array('custom_set_name' => $custom_field['custom_set_name'], 'status' => 0));
+        $all_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom), '', array('custom_set_name' => $custom_set['name'], 'status' => 0));
         // if we have results, let's create SQL queries that will add them to custom_fields table
         if ( count($all_values) > 0 ) {
           // initialize insert
@@ -1696,8 +1729,8 @@ function glz_custom_fields_install() {
             if ( !empty($escaped_value) && strlen($escaped_value) < 255 )
               // if this is the last value, query will have to be different
               $insert .= ( end($all_values) != $value ) ?
-                "('{$custom_field['custom_set']}','{$escaped_value}')," :
-                "('{$custom_field['custom_set']}','{$escaped_value}')";
+                "('{$custom}','{$escaped_value}')," :
+                "('{$custom}','{$escaped_value}')";
           }
           $query = "
             INSERT INTO 
@@ -1709,9 +1742,9 @@ function glz_custom_fields_install() {
             // create all custom field values in custom_fields table
             safe_query($query);
             // update the type of this custom field to select (might want to make this user-adjustable at some point)
-            glz_custom_fields_MySQL("update", $custom_field['custom_set'], PFX."txp_prefs", array(
+            glz_custom_fields_MySQL("update", $custom, PFX."txp_prefs", array(
               'custom_set_type'   => "select",
-              'custom_set_name'   => $custom_field['custom_set_name']
+              'custom_set_name'   => $custom_set['name']
             ));
             $glz_notice[] = glz_custom_fields_gTxt("migration_success");
           }
