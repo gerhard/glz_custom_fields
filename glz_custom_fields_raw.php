@@ -21,19 +21,24 @@ if (txpinterface == "admin") {
   global $all_custom_sets;
   
   // Custom Fields tab under Extensions
-  add_privs('glz_custom_fields', '1');
-  register_tab("extensions", "glz_custom_fields", "Custom Fields");
-  register_callback("glz_custom_fields", "glz_custom_fields");
+  add_privs('glz_custom_fields', "1");
+  register_tab("extensions", 'glz_custom_fields', "Custom Fields");
+  register_callback('glz_custom_fields', "glz_custom_fields");
   
   // we need to make sure that all custom field values will be converted to strings first - think checkboxes & multi-selects
-  if ( (gps("step") == "edit") || (gps("step") == "create") )
-    register_callback("glz_custom_fields_before_save", "article", '', 1);
+  if ( (gps("step") == "edit") || (gps("step") == "create") ) {
+    add_privs('glz_custom_fields_before_save', "1");
+    register_callback('glz_custom_fields_before_save', "article", '', 1);
+  }
   // if we edit or create a new article, save our extra custom fields (> 10)
-  if ( (gps("step") == "edit") || (gps("step") == "create") )
-    register_callback("glz_custom_fields_save", "article");
+  if ( (gps("step") == "edit") || (gps("step") == "create") ) {
+    add_privs('glz_custom_fields_save', "1");
+    register_callback('glz_custom_fields_save', "article");
+  }
   
   // YES, finally the default custom fields are replaced by the new, pimped ones : )
-  register_callback("glz_custom_fields_replace", "article");
+  add_privs('glz_custom_fields_replace', "1");
+  register_callback('glz_custom_fields_replace', "article");
 }
 
 // -------------------------------------------------------------
@@ -261,7 +266,7 @@ function glz_custom_fields_replace() {
   
   if ( is_array($arr_custom_fields) && !empty($arr_custom_fields) ) {
     // get all custom fields values for this article
-    $arr_article_customs = glz_custom_fields_MySQL("article_customs", glz_get_article_id(), '', $arr_custom_sets);
+    $arr_article_customs = glz_custom_fields_MySQL("article_customs", glz_get_article_id(), '', $arr_custom_fields);
     
     // DEBUG
     // dmp($arr_article_customs);
@@ -271,9 +276,9 @@ function glz_custom_fields_replace() {
 
     // let's initialize our output
     $out = '';
-
+    
     // let's see which custom fields are set
-    foreach ( $arr_custom_sets as $custom => $custom_set ) {
+    foreach ( $arr_custom_fields as $custom => $custom_set ) {
       // get all possible/default value(s) for this custom set from custom_fields table
       $arr_custom_field_values = glz_custom_fields_MySQL("values", $custom, '', array('custom_set_name' => $custom_set['name']));
 
@@ -281,37 +286,37 @@ function glz_custom_fields_replace() {
       // dmp($arr_custom_field_values);
 
       //custom_set without "_set" e.g. custom_1_set => custom_1
-      $custom_set = glz_custom_number($custom);
+      $custom = glz_custom_number($custom);
 
       // if current article holds no value for this custom field, make it empty
-      $custom_value = ( !empty($$custom_set) ) ?
-        $$custom_set :
+      $custom_value = ( !empty($$custom) ) ?
+        $$custom :
         '';
 
       // the way our custom field value is going to look like
       switch ( $custom_set['type'] ) {
         case "text_input":
-          $custom_set_value = fInput("text", $custom_set, $custom_value, "edit", "", "", "22", "", $custom_set);
+          $custom_set_value = fInput("text", $custom, $custom_value, "edit", "", "", "22", "", $custom);
           $custom_class = 'glz_custom_field';
           break;
 
         case "select":
-          $custom_set_value = glz_selectInput($custom_set, $arr_custom_field_values, $custom_value, 1);
+          $custom_set_value = glz_selectInput($custom, $arr_custom_field_values, $custom_value, 1);
           $custom_class = 'glz_custom_select_field';
           break;
         
         case "multi-select":
-          $custom_set_value = glz_selectInput($custom_set, $arr_custom_field_values, $custom_value, '', 1);
+          $custom_set_value = glz_selectInput($custom, $arr_custom_field_values, $custom_value, '', 1);
           $custom_class = 'glz_custom_multi-select_field';
           break;
 
         case "checkbox":
-            $custom_set_value = glz_checkbox($custom_set, $arr_custom_field_values, $custom_value);
+            $custom_set_value = glz_checkbox($custom, $arr_custom_field_values, $custom_value);
             $custom_class = 'glz_custom_checkbox_field';
           break;
 
         case "radio":
-          $custom_set_value = glz_radio($custom_set, $arr_custom_field_values, $custom_value);
+          $custom_set_value = glz_radio($custom, $arr_custom_field_values, $custom_value);
           $custom_class = 'glz_custom_radio_field';
           break;
 
@@ -342,6 +347,22 @@ function glz_custom_fields_replace() {
       // removes all existing custom fields
       $("p:has(label[for*=custom-])").remove();
       $("p:has(label[@for=override-form])").after(\''.$out.'\');
+      
+      // add a reset link to all radio custom fields
+      $(".glz_custom_radio_field").each(function() {
+        custom_field_to_reset = $(this).find("input:first").attr("name");
+        $(this).find("label:first").after(" <span class=\"small\">[<a href=\"#\" class=\"glz_custom_field_reset\" name=\"" + custom_field_to_reset +"\">Reset</a>]</span>");
+      });
+      
+      // catch the reset action for the above link
+      $(".glz_custom_field_reset").click(function() {
+        custom_field_to_reset = $(this).attr("name");
+        // reset our radio input
+        $("input[name=" + custom_field_to_reset + "]").attr("checked", false);
+        // add an empty value with the same ID so that it saves the value as empty in the db
+        $(this).after("<input type=\"hidden\" value=\"\" name=\""+ custom_field_to_reset +"\" />");
+        return false;
+      });
     });
     //--><!]]>
     </script>';
@@ -376,7 +397,7 @@ function glz_custom_fields_save() {
       if (strstr($key, 'custom_')) {
         list($rubbish, $digit) = explode("_", $key);
         // keep only the values that are above 10
-        if ( $digit > 10 ) $set[] = "`$key`='$value'";
+        if ( $digit > 10 ) $set[] = "`$key`='".addslashes(trim($value))."'";
       }
     }
     // anything worthy saving?
@@ -430,7 +451,7 @@ function glz_custom_set_types() {
 // -------------------------------------------------------------
 // outputs only custom fields that have been set, i.e. have a name assigned to them
 function glz_check_custom_set($var) {
-  return !empty($var['custom_set_name']);
+  return !empty($var['name']);
 }
 
 
@@ -493,7 +514,6 @@ function glz_format_ranges($arr_values, $custom_set_name) {
   //initialize $out
   $out = '';
   foreach ( $arr_values as $key => $value ) {
-    $key = $value;
     $out[$key] = ( strstr($custom_set_name, 'range') ) ?
       glz_custom_fields_range($value, $custom_set_name) :
       $value;
@@ -526,7 +546,7 @@ function glz_custom_fields_range($custom_value, $custom_set_name) {
         $nomenclature.number_format($value) :
         number_format($value).$nomenclature;
     }
-    return implode('-',$out);
+    return implode('-', $out);
   }
   // our range is a single value
   else {
@@ -539,18 +559,27 @@ function glz_custom_fields_range($custom_value, $custom_set_name) {
 
 
 // -------------------------------------------------------------
-// returns the next available number for custom field
-function glz_custom_next($arr_custom_fields) {
-  // our custom field cannot be < 10
-  for ( $i=9; $i < count($arr_custom_fields)+1; $i++ ) {
-    if ( !isset($arr_custom_fields[$i]) )
-      return intval($i+1);
+// returns the next available number for custom set
+function glz_custom_next($arr_custom_sets) {
+  // if the array is exactly 10, our next custom field is 11
+  if ( count($arr_custom_sets) == 10 ) {
+    return 11;
+  }
+  // if not, slice the array with an offset of 10 (we don't want to look in custom fields < 10)
+  else {
+    $arr_extra_custom_sets = array();
+    foreach ( array_keys(array_slice($arr_custom_sets, 10)) as $extra_custom_set) {
+      // strip on _ and keep only the digit e.g. custom_11_set
+      $digit = split("_", $extra_custom_set);
+      $arr_extra_custom_sets[] = $digit['1'];
+    }
+    // order the array
+    sort($arr_extra_custom_sets);
     
-    extract($arr_custom_fields[$i]);
-    $arr_custom = explode('_', $custom_set);
-    
-    if ( intval($i+1) < intval($arr_custom['1']) )
-      return intval($i+1);
+    foreach ( $arr_extra_custom_sets as $extra_custom_set ) {
+      if (!in_array($extra_custom_set+1, $arr_extra_custom_sets))
+        return $extra_custom_set+1;
+    }
   }
 }
 
@@ -558,8 +587,8 @@ function glz_custom_next($arr_custom_fields) {
 // -------------------------------------------------------------
 // checks if the custom field name isn't already taken
 function glz_check_custom_set_name($arr_custom_fields, $custom_set_name, $custom_set='') {
-  foreach ( $arr_custom_fields as $arr_custom_set ) {
-    if ( ($custom_set_name == $arr_custom_set['custom_set_name']) && (!empty($custom_set) && $custom_set != $arr_custom_set['custom_set']) )
+  foreach ( $arr_custom_fields as $custom => $arr_custom_set ) {
+    if ( ($custom_set_name == $arr_custom_set['name']) && (!empty($custom_set) && $custom_set != $custom) )
       return TRUE;
   }
   
@@ -572,7 +601,7 @@ function glz_check_custom_set_name($arr_custom_fields, $custom_set_name, $custom
 function glz_selectInput($name = '', $arr_values = '', $custom_value = '', $blank_first = '', $multi = '') {
   if ( is_array($arr_values) ) {
     $out = array();
-
+    
     foreach ($arr_values as $key => $value) {
       $selected = glz_selected_checked('selected', $key, $custom_value);
       $out[] = "<option value=\"$key\"{$selected}>$value</option>";
@@ -606,7 +635,6 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
   foreach ( $arr_values as $key => $value ) {
     $checked = glz_selected_checked('checked', $key, $custom_value);
     
-    $value = htmlspecialchars($value);
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
     $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"$key\"{$checked} /><label for=\"$key\">$value</label></span><br />";
   }
@@ -624,11 +652,10 @@ function glz_radio($name = '', $arr_values = '', $custom_value = '') {
   $out = array();
   
   foreach ( $arr_values as $key => $value ) {
-    $checked = glz_selected_checked('checked', $key, $custom_value);
+    $checked = glz_selected_checked('checked', $key, htmlspecialchars($custom_value));
     
-    $value = htmlspecialchars($value);
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
-    $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"$name-$key\"{$checked} /><label for=\"$name-$key\">$value</label></span><br />";
+    $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"$name-".glz_idify($key)."\"{$checked} /><label for=\"$name-".glz_idify($key)."\">$value</label></span><br />";
   }
 
   return join('', $out);
@@ -661,6 +688,14 @@ function php4_array_combine($keys, $values) {
   }
 
   return $result;
+}
+
+
+// -------------------------------------------------------------
+// converts all values into id safe ones
+function glz_idify($value) {
+  // replace all non-word characters
+  return preg_replace("/\W/", "", $value);
 }
 
 
@@ -798,12 +833,18 @@ function glz_values_custom_field($name, $extra) {
         ORDER BY
           `value`
       ");
-    
-      // have our values nicely sorted
-      natsort($arr_values);
       
-      // if this is a range, format ranges accordingly
-      return glz_format_ranges($arr_values, $custom_set_name);
+      if ( count($arr_values) > 0 ) {
+        // have our values nicely sorted
+        natsort($arr_values);
+        
+        // decode all special characters e.g. ", & etc. and use them for keys
+        foreach ( $arr_values as $key => $value )
+          $arr_values_formatted[htmlspecialchars($value)] = $value;
+
+        // if this is a range, format ranges accordingly
+        return glz_format_ranges($arr_values_formatted, $custom_set_name);
+      }
     }
   }
   else
@@ -840,6 +881,10 @@ function glz_all_existing_custom_values($name, $extra) {
         TODO User-configurable. Some folks didn't like this order.
       */
       natsort($arr_values);
+      
+      // trim all values
+      foreach ( $arr_values as $key => $value )
+        $arr_values[$key] = trim($value);
       
       // DEBUG
       // dmp($arr_values);
@@ -881,9 +926,9 @@ function glz_all_existing_custom_values($name, $extra) {
 function glz_article_custom_fields($name, $extra) {
   if ( is_array($extra) ) {
     // see what custom fields we need to query for
-    foreach ( $extra as $custom_set ) {
-      $select[] = glz_custom_number($custom_set['custom_set']);
-    }
+    foreach ( $extra as $custom => $custom_set )
+      $select[] = glz_custom_number($custom);
+
     // prepare the select elements
     $select = implode(',', $select);
     
@@ -955,9 +1000,11 @@ function glz_new_custom_field($name, $table, $extra) {
         foreach ( $arr_values as $value ) {
           // don't insert empty values
           if ( !empty($value) )
+            // make sure special characters are escaped before inserting them in the database
+            $value = addslashes(trim($value));
             // if this is the last value, query will have to be different
-            $insert .= ( end($arr_values) != $value ) ?
-              "('{$custom_set}','{$value}')," :
+            $insert .= ( addslashes(end($arr_values)) != $value ) ?
+              "('{$custom_set}','{$value}'), " :
               "('{$custom_set}','{$value}')";
         }
         $query = "
@@ -1177,8 +1224,8 @@ function glz_custom_fields_search_form($atts) {
     // dmp($arr_custom);
 
     // start our form
-    $out[] = "<form method=\"post\" action=\"".hu."$results_page\">".n
-         .hInput("glz_custom_fields_search", 1).n;
+    $out[] = '<form method="post" action="'.hu.$results_page.'">'.n
+      .'<fieldset>'.n;
 
     // build our selects
     foreach ( $arr_custom as $name => $custom ) {
@@ -1208,7 +1255,8 @@ function glz_custom_fields_search_form($atts) {
     }
 
     // end our form
-    $out[] = fInput("submit", "submit", "Submit").n
+    $out[] = fButton("submit", "submit", "Submit", "glz_custom_fields_search").n
+         ."</fieldset>".n
          ."</form>".n.n;
     // DEBUG
     // dmp(join($out));

@@ -1,20 +1,25 @@
-v1.1.4
+== v1.1.4 ==
+
+* split custom fields with a custom delimiter, not only |
+
+* Is there any way to limit the length of the multiple choice areas? I have big names on some of them and they expand the admin layout. Gonçalo Dumas - goncalo.dumas@gmail.com
+
+* Also, I am using the the_video plugin which has an one- or two-letter code for each video host option. Is it possible to have the name of the video host show up in the dropdown but output the code instead of the name when the custom field is called up? For example, a selection of "Google Video" would store and eventually output the value "G". - Alicia Lane - alicialane@gmail.com
+
+* other fields for the search form (checkbox, radio, input) - Husain Hakim - husainhk@gmail.com
+
+
+
+== DONE ==
+
 * input values filter before values are saved, exclude ' " from filtering:
   I just want to point out that there still is a problem with ' character (single quote). I can substitute it with apostrophe ', and that work fine, so there is a workaround. But for a client this could be a difficult thing to remember (the keyboard doesn't offer a stroke for that).
 
 * search form needs a fieldset to validate
 
 * more versatile search button for the filtering form
-
+ 
 * I installed and everything is working fine, with one exception. It seems like I can't enter values with spaces inside (i.e., Moggio Torinese, as a single value for checkboxes). Similar problem for special characthers like '. I can use "Moggio Torinese" (with quotes), but then the whole string, " included, are shown in the content interface.
   I'm sure there is a way to have these character stored in the db without sql syntax problem, but I don't know what it is! :). Maurizio - maurizio.boscarol@gmail.com
 
-* split custom fields with a custom delimiter, not only |
-
-* Is there any way to limit the length of the multiple choice areas? I have big names on some of them and they expand the admin layout. Gonçalo Dumas - goncalo.dumas@gmail.com
-
 * custom fields with - in them have problems when being filtered. Dale - mail@dalechapman.com
-
-* Also, I am using the the_video plugin which has an one- or two-letter code for each video host option. Is it possible to have the name of the video host show up in the dropdown but output the code instead of the name when the custom field is called up? For example, a selection of "Google Video" would store and eventually output the value "G". - Alicia Lane - alicialane@gmail.com
-
-* other fields for the search form (checkbox, radio, input) - Husain Hakim - husainhk@gmail.com
