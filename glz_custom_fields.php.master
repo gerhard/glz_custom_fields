@@ -19,7 +19,7 @@ $plugin['type'] = 1; // 0 for regular plugin; 1 if it includes admin-side code
 $plugin['allow_html_help'] = 1;
 
 if (!defined('txpinterface'))
-  @include_once('zem_tpl.php');
+  @include_once('.txp_plugin_template/zem_tpl.php');
 
 if (0) {
 ?>
@@ -1390,6 +1390,8 @@ function glz_custom_fields_search_form($atts) {
     if ( strstr($searchby, ",") ) {
       // go through values 1 by 1 and add them to the above array
       foreach ( explode(",", $searchby) as $query_custom_set ) {
+        // strip whitespace from the beginning and ending of this custom set
+        $query_custom_set = trim($query_custom_set);
         // now we have types for our search fields
         // they are separated by :
         if ( strstr($query_custom_set, ":"))
@@ -2215,6 +2217,7 @@ js;
 
   return str_replace($find, $replace, $buffer);
 }
+
 # --- END PLUGIN CODE ---
 
 ?>
