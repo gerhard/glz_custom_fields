@@ -3,11 +3,11 @@
 glz_custom_fields plugin, FROM UK WITH LOVE
 
 @author Gerhard Lazu
-@version 1.1.4
-@copyright Gerhard Lazu, 24 June, 2008
+@version 1.2
+@copyright Gerhard Lazu, 4 July, 2008
 @package TXP 4.0.6 (2916)
 @contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger, Steve Dickinson
-@special: Randy Levine, Bodo Buttner, Husain Hakim
+@special: Randy Levine, Husain Hakim
 */
 
 // checks if all tables exists and everything is setup properly
