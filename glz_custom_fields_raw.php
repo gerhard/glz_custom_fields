@@ -284,7 +284,9 @@ function glz_custom_fields_replace() {
 
       // DEBUG
       // dmp($arr_custom_field_values);
-
+      
+      //custom_set formatted for id e.g. custom_1_set => custom-1 - don't ask...
+      $custom_id = glz_custom_number($custom, "-");
       //custom_set without "_set" e.g. custom_1_set => custom_1
       $custom = glz_custom_number($custom);
 
@@ -294,46 +296,14 @@ function glz_custom_fields_replace() {
         '';
 
       // the way our custom field value is going to look like
-      switch ( $custom_set['type'] ) {
-        case "text_input":
-          $custom_set_value = fInput("text", $custom, $custom_value, "edit", "", "", "22", "", $custom);
-          $custom_class = 'glz_custom_field';
-          break;
-
-        case "select":
-          $custom_set_value = glz_selectInput($custom, $arr_custom_field_values, $custom_value, 1);
-          $custom_class = 'glz_custom_select_field';
-          break;
-        
-        case "multi-select":
-          $custom_set_value = glz_selectInput($custom, $arr_custom_field_values, $custom_value, '', 1);
-          $custom_class = 'glz_custom_multi-select_field';
-          break;
-
-        case "checkbox":
-            $custom_set_value = glz_checkbox($custom, $arr_custom_field_values, $custom_value);
-            $custom_class = 'glz_custom_checkbox_field';
-          break;
-
-        case "radio":
-          $custom_set_value = glz_radio($custom, $arr_custom_field_values, $custom_value);
-          $custom_class = 'glz_custom_radio_field';
-          break;
-
-        // if none of the custom_set_types fit - WHICH HINTS TO A BUG - text input is default
-        default:
-          // $custom_set_value = fInput("text", $custom_set, $$custom_set, "edit", "", "", "22", "", $custom_set);
-          $custom_set_value = 'Type not supported yet.';
-          $custom_class = 'glz_custom_field';
-          break;
-      }
+      list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values, $custom_value);
       
       // DEBUG
       // dmp($custom_set_value);
       
       // adding addslashes(..., '/') to $out escapes all the slashes in your jquery replace, dispelling the validation errors in the CDATA area (in Safari 3.1, Mac with no ill-effects). Thanks Julian!
       $out .= addslashes(graf(
-        "<label for=\"$custom_set\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\""
+        "<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\""
       ));
     }
     // DEBUG
@@ -460,8 +430,9 @@ function glz_check_custom_set($var) {
 // or custom set formatted for IDs e.g. custom-1
 function glz_custom_number($custom_set, $delimiter="_") {
   $custom_field = substr($custom_set, 0, -4);
+  
   if ($delimiter != "_")
-    $custom_field = strstr($custom_field, "_", "-");
+    $custom_field = str_replace("_", $delimiter, $custom_field);
   
   return $custom_field;
 }
@@ -597,8 +568,52 @@ function glz_check_custom_set_name($arr_custom_fields, $custom_set_name, $custom
 
 
 // -------------------------------------------------------------
+// formats the custom set output based on its type
+function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $arr_custom_field_values, $custom_value = "") {
+  switch ( $custom_set_type ) {
+    case "text_input":
+      return array(
+        fInput("text", $custom, $custom_value, "edit", "", "", "22", "", $custom_id),
+        'glz_custom_field'
+      );
+
+    case "select":
+      return array(
+        glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, 1),
+        'glz_custom_select_field'
+      );
+    
+    case "multi-select":
+      return array(
+        glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, '', 1),
+        'glz_custom_multi-select_field'
+      );
+
+    case "checkbox":
+      return array(
+        glz_checkbox($custom, $arr_custom_field_values, $custom_value),
+        'glz_custom_checkbox_field'
+      );
+
+    case "radio":
+      return array(
+        glz_radio($custom, $custom_id, $arr_custom_field_values, $custom_value),
+        'glz_custom_radio_field'
+      );
+
+    // a type has been passed that is not supported yet
+    default:
+      return array(
+        glz_custom_fields_gTxt('type_not_supported'),
+        'glz_custom_field'
+      );
+  }
+}
+
+
+// -------------------------------------------------------------
 // had to duplicate the default selectInput() because trimming \t and \n didn't work + some other mods
-function glz_selectInput($name = '', $arr_values = '', $custom_value = '', $blank_first = '', $multi = '') {
+function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value = '', $blank_first = '', $multi = '') {
   if ( is_array($arr_values) ) {
     $out = array();
     
@@ -616,7 +631,7 @@ function glz_selectInput($name = '', $arr_values = '', $custom_value = '', $blan
       $name .= "[]";
     }
 
-    return "<select id=\"$name\" name=\"$name\" class=\"list\"$multi>".
+    return "<select id=\"$id\" name=\"$name\" class=\"list\"$multi>".
       ($blank_first ? "<option value=\"\"$selected></option>" : '').
       ( $out ? join('', $out) : '').
       "</select>";
@@ -634,7 +649,7 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
   
   foreach ( $arr_values as $key => $value ) {
     $checked = glz_selected_checked('checked', $key, $custom_value);
-    
+
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
     $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"$key\"{$checked} /><label for=\"$key\">$value</label></span><br />";
   }
@@ -648,14 +663,14 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
 /**
   TODO How do we reset radio fields?
 */
-function glz_radio($name = '', $arr_values = '', $custom_value = '') {
+function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '') {
   $out = array();
   
   foreach ( $arr_values as $key => $value ) {
     $checked = glz_selected_checked('checked', $key, htmlspecialchars($custom_value));
     
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
-    $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"$name-".glz_idify($key)."\"{$checked} /><label for=\"$name-".glz_idify($key)."\">$value</label></span><br />";
+    $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"{$id}_".glz_idify($key)."\"{$checked} /><label for=\"{$id}_".glz_idify($key)."\">$value</label></span><br />";
   }
 
   return join('', $out);
@@ -717,6 +732,7 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'textarea'          => 'Textarea',
     'checkbox'          => 'Checkbox',
     'radio'             => 'Radio',
+    'type_not_supported'=> 'Type not supported',
     'no_do'             => 'Ooops! No action specified for method, abort.',
     'not_specified'     => 'Ooops! {what} is not specified',
     'searchby_not_set'  => '<strong>searcby</strong> cannot be left blank',
@@ -1180,75 +1196,70 @@ function glz_custom_fields_search_form($atts) {
   // dmp($all_custom_sets);
   
   extract(lAtts(array(
-    'results_page'  => "default",
+    'results_page'=> "default",
     'searchby'    => "",
+    'labels'      => 1
   ),$atts));
   
   if ( !empty($searchby) ) {
-    // see which customs are searchby values associated to
+    // initialize our custom sets search array
+    $arr_query_custom = array();
+    
+    // see which custom sets are searchby values associated to
     if ( strstr($searchby, ",") ) {
-      // create an array from the searchby values
+      // go through values 1 by 1 and add them to the above array
       foreach ( explode(",", $searchby) as $query_custom_set ) {
         // now we have types for our search fields
+        // they are separated by :
         if ( strstr($query_custom_set, ":"))
           list($query_custom_set, $query_custom_type) = explode(":", $query_custom_set);
-        else
-          // default is still selects
-          $query_custom_type = "select";
         
+        // get the values we have in our Prefs for this custom set
         $custom = array_search($query_custom_set, $GLOBALS['prefs']);
-
-        if ( $custom )
+        
+        if ( $custom ) {
+          // let's make sure we have a custom set type before building our custom sets search array
+          if (!isset($query_custom_type))
+            list($query_custom_set, $query_custom_type) = array_values($all_custom_sets[$custom]);
+          // add this custom set to our search array
           $arr_query_custom[$custom] = array(
             'name'  => $query_custom_set,
             'type'  => $query_custom_type);
+        }
+        // otherwise discard it silently
       }
     }
     else
-      // get the custom field for the searchby value
+      // we are searching for a single custom set, add it to our custom sets search array
       $arr_query_custom[$searchby] = array_search($query_custom_set, $GLOBALS['prefs']);
     
-    dmp($arr_query_custom);
-    
-    // get the corresponding custom fields for the searchby values
-    foreach ( $all_custom_sets as $custom => $custom_set ) {
-       // = array_search();
-    }
-     // = array_search($custom, $GLOBALS['prefs']);
-    
-    // we might want to overwrite the default values
-    // if ($custom_type)
-    //   $arr_custom[$custom][];
-    
     // DEBUG
-    // dmp($arr_custom);
+    // dmp($arr_query_custom);
 
     // start our form
     $out[] = '<form method="post" action="'.hu.$results_page.'">'.n
       .'<fieldset>'.n;
 
     // build our selects
-    foreach ( $arr_custom as $name => $custom ) {
-      // get all existing custom values for live articles
-      $arr_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom), '', array('custom_set_name' => $name, 'status' => 4));
+    foreach ( $arr_query_custom as $custom => $custom_set ) {
+      // custom_x_set needs to be custom-x for ids - don't ask...
+      $custom_id = glz_custom_number($custom, "-");
+      // custom_x_set now becomes custom_x
+      $custom = glz_custom_number($custom);
       
-      if ( is_array($arr_values) ) {
-        // trim '_set' from $custom
-        $custom = substr($custom, 0, -4);
+      // get all existing custom values for live articles
+      $arr_custom_field_values = glz_custom_fields_MySQL('all_values', $custom, '', array('custom_set_name' => $custom_set['name'], 'status' => 4));
+      
+      if ( is_array($arr_custom_field_values) ) {
+        // the way our custom field value is going to look like
+        list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values);
+        
+        // DEBUG
+        // dmp($custom_set_value);
 
-        // we are ready to start building the select
-        //"<label for=\"$custom\">$name</label>".n.
-        $out[] = "<select name=\"$custom\">".n;
-
-        // first value is select name
-        $out[] = "  <option value=\"$custom\">Select $name</option>".n;
-        // now let's go through the values in $arr_values
-        foreach ( $arr_values as $key => $value ) {
-          $out[] = "  <option value=\"$key\">$value</option>".n;
-        }
-
-        // end this select
-        $out[] = "</select>".n;
+        $out[] = ($labels) ?
+          graf("<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\"") :
+          graf("$custom_set_value", " class=\"$custom_class\"");
       }
       else
         return '<p>'.glz_custom_fields_gTxt('no_articles_found').'</p></form>';
@@ -1486,7 +1497,7 @@ function glz_doArticles($atts, $iscustom) {
   extract($prefs);
   $customFields = glz_getCustomFields();
   $customlAtts = array_null(array_flip($customFields));
-  
+  // dmp($customFields);
   //getting attributes
   $theAtts = lAtts(array(
     'form'      => 'default',
