@@ -874,6 +874,33 @@ function glz_selected_checked($nomenclature, $value, $custom_value = '') {
 }
 
 
+//-------------------------------------------------------------
+// button gets more consistent styling across browsers rather than input type="submit"
+// included in this plugin until in makes it into TXP - if that ever happens...
+function glz_fButton($type,               // form button
+        $name,
+        $contents='Submit',
+        $value,
+        $class='',
+        $id='',
+        $title='',
+        $onClick='',
+        $disabled = false)
+{
+  $o  = '<button type="'.$type.'" name="'.$name.'"';
+  $o .= ' value="'.htmlspecialchars($value).'"';
+  $o .= ($class)    ? ' class="'.$class.'"' : '';
+  $o .= ($id)       ? ' id="'.$id.'"' : '';
+  $o .= ($title)    ? ' title="'.$title.'"' : '';
+  $o .= ($onClick)  ? ' onclick="'.$onClick.'"' : '';
+  $o .= ($disabled) ? ' disabled="disabled"' : '';
+  $o .= '>';
+  $o .= $contents;
+  $o .= '</button>';
+  return $o;
+}
+
+
 // -------------------------------------------------------------
 // PHP4 doesn't come with array_combine... Thank you redbot!
 function php4_array_combine($keys, $values) {
@@ -1449,7 +1476,7 @@ function glz_custom_fields_search_form($atts) {
     }
 
     // end our form
-    $out[] = fButton("submit", "submit", "Submit", "glz_custom_fields_search").n
+    $out[] = glz_fButton("submit", "submit", "Submit", "glz_custom_fields_search").n
          ."</fieldset>".n
          ."</form>".n.n;
     // DEBUG
