@@ -1393,6 +1393,14 @@ function glz_if_custom_field($atts, $thing) {
  * DEALS WITH ARTICLES - PROPERTIES - LISTS, SLIGHTLY ALTERED TO USE OUR CUSTOM SEARCH VALUES WHEN FILTERING & DISPLAY CUSTOM FIELDS > 10
 Call it like you would article()
 http://textpattern.net/wiki/index.php?title=Txp:article_/
+
+* no_results
+The section to display when no articles match the search query by glz_custom_fields_search_form.
+Points to no_results section by default.
+* no_results_redirect
+Controls redirection if there are no results.
+On by default.
+To turn re-direction off when there are no results, do e.g. <txp:glz_article_custom no_results_redirect="0" />
  */
 function glz_article($atts) {
   global $is_article_body, $has_article_tag;
@@ -1409,6 +1417,14 @@ function glz_article($atts) {
  * DEALS WITH ARTICLES - PROPERTIES - LISTS, SLIGHTLY ALTERED TO USE OUR CUSTOM SEARCH VALUES WHEN FILTERING & DISPLAY CUSTOM FIELDS > 10
 Call it like you would article_cutom()
 http://textpattern.net/wiki/index.php?title=Txp:article_custom/
+
+* no_results
+The section to display when no articles match the search query by glz_custom_fields_search_form.
+Points to no_results section by default.
+* no_results_redirect
+Controls redirection if there are no results.
+On by default.
+To turn re-direction off when there are no results, do e.g. <txp:glz_article_custom no_results_redirect="0" />
  */
 function glz_article_custom($atts) {
   return glz_parseArticles($atts, '1');
@@ -1552,7 +1568,8 @@ function glz_doArticles($atts, $iscustom) {
     'searchsticky' => 0,
     'allowoverride' => (!$q and !$iscustom),
     'offset'    => 0,
-    'no_results' => 'no_results'
+    'no_results' => 'no_results',
+    'no_results_redirect'  => 1
   )+$customlAtts,$atts);
 
   // if an article ID is specified, treat it as a custom list
@@ -1743,7 +1760,7 @@ function glz_doArticles($atts, $iscustom) {
       unset($GLOBALS['thisarticle']);
 
     }
-    if ( count($articles) == "0" )
+    if ( count($articles) == "0" && $no_results_redirect )
       header('Location: '.hu.$no_results);
     else
       return join('',$articles);
