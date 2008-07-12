@@ -1236,12 +1236,16 @@ function glz_custom_fields_search_form($atts) {
     if ( strstr($searchby, ",") ) {
       // go through values 1 by 1 and add them to the above array
       foreach ( explode(",", $searchby) as $query_custom_set ) {
+        
         // strip whitespace from the beginning and ending of this custom set
         $query_custom_set = trim($query_custom_set);
         // now we have types for our search fields
         // they are separated by :
         if ( strstr($query_custom_set, ":"))
           list($query_custom_set, $query_custom_type) = explode(":", $query_custom_set);
+        else
+          // if we don't unset this, it will use the one from the previous custom set
+          unset($query_custom_type);
         
         // get the values we have in our Prefs for this custom set
         $custom = array_search($query_custom_set, $GLOBALS['prefs']);
