@@ -1,4 +1,4 @@
-== v1.1.4 ==
+== v1.2 ==
 
 * split custom fields with a custom delimiter, not only |
 
@@ -8,6 +8,11 @@
 
 * other fields for the search form (checkbox, radio, input) - Husain Hakim - husainhk@gmail.com
 
+* I have found a slight bug when needing to get result according to just a category within a section your |<txp:glz_article /> tag does not return the proper results it just returns everything in the section.
+<txp:category name="some_category" title="1"  section="house-plans" >
+<txp:thumbnail id="a_image_id" />
+Text
+</txp:category> - Dayne Larsen - dayne@barracudaproductions.com
 
 
 == DONE ==

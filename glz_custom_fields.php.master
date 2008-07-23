@@ -128,10 +128,10 @@ if (0) {
   <code class="txp">&lt;txp:glz_custom_field name="Rating" /></code>
   <p>This is similar to <code>&lt;txp:custom_field /&gt;</code> so please refer to the <a href="#">TextBook</a> for documentation. The only difference is that this tag will look past custom_10.</p>
 
-  <code class="txp">&lt;txp:glz_custom_fields_search_form results_page="listings" searchby="Area,City,Price" /></code>
+  <code class="txp">&lt;txp:glz_custom_fields_search_form results_page="search" searchby="Area,City,Price" /></code>
   <p>This builds a nice search form on the front-end (only selects so far).</p>
   <ul>
-  <li><code>results_page</code> - which page (section) should the submit button take the user to (<code>default</code> by default)</li>
+  <li><code>results_page</code> - which page should the submit button take the user to (<code>search</code> by default)</li>
   <li><code>searchby (MUST BE SET)</code> - which custom fields should we search by and in what order? (<code>empty</code> by default)</li>
   </ul>
 

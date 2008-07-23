@@ -1187,15 +1187,15 @@ function glz_buildCustomSql($custom,$pairs) {
         $arr_values = explode(",",$v);
         if ( is_array($arr_values) ) {
           if ( count($arr_values) > 1 ) {
-            $custom_query = "AND (custom_{$no[0]} LIKE '%{$arr_values[0]}%'";
+            $custom_query = "AND (custom_{$no[0]} LIKE '{$arr_values[0]}'";
             for ( $i=1; $i < count($arr_values); $i++ ) { 
-              $custom_query .= " OR custom_{$no[0]} LIKE '%{$arr_values[$i]}%'";
+              $custom_query .= " OR custom_{$no[0]} LIKE '{$arr_values[$i]}'";
             }
             $custom_query .= ")";
             $out[] = $custom_query;
           }
           else
-            $out[] = "AND custom_{$no[0]} LIKE '%{$arr_values[0]}%'";
+            $out[] = "AND custom_{$no[0]} LIKE '{$arr_values[0]}'";
         }
       }
     }
@@ -1214,7 +1214,7 @@ function glz_buildCustomSql($custom,$pairs) {
 // -------------------------------------------------------------
 /**
  * DROP-DOWN SEARCH FORM
- Call it like this: <txp:glz_custom_fields_search_form results_page="listings" searchby="Area:input,City:select,Price:radio" />
+ Call it like this: <txp:glz_custom_fields_search_form results_page="search" searchby="Area:input,City:select,Price:radio" />
  */
 function glz_custom_fields_search_form($atts) {
   global $all_custom_sets;
@@ -1222,44 +1222,58 @@ function glz_custom_fields_search_form($atts) {
   // DEBUG
   // dmp($all_custom_sets);
   
+  // we have $_POST, let's see if it comes from glz_custom_fields_search
+  if ( $_POST AND in_array("glz_custom_fields_search", $_POST) )
+    $incoming = stripPost();
+  else
+    // need to create an empty array if this page isn't generated frin glz_custom_fields_search
+    $incoming = array();
+  
+  // DEBUG
+  // dmp($incoming);
+  
   extract(lAtts(array(
-    'results_page'=> "default",
+    'results_page'=> "search",
     'searchby'    => "",
     'labels'      => 1
   ),$atts));
   
   if ( !empty($searchby) ) {
-    // initialize our custom sets search array
+    // initialize our custom search array
     $arr_query_custom = array();
     
-    // see which custom sets are searchby values associated to
+    // see which custom sets are searchby values associated to - if any
     if ( strstr($searchby, ",") ) {
       // go through values 1 by 1 and add them to the above array
-      foreach ( explode(",", $searchby) as $query_custom_set ) {
-        
-        // strip whitespace from the beginning and ending of this custom set
-        $query_custom_set = trim($query_custom_set);
+      foreach ( explode(",", $searchby) as $query_custom ) {
+        // strip whitespace from the beginning and end
+        $query_custom = trim($query_custom);
         // now we have types for our search fields
         // they are separated by :
-        if ( strstr($query_custom_set, ":"))
-          list($query_custom_set, $query_custom_type) = explode(":", $query_custom_set);
+        if ( strstr($query_custom, ":"))
+          list($query_custom, $query_custom_type) = explode(":", $query_custom);
         else
-          // if we don't unset this, it will use the one from the previous custom set
+          // if we don't unset this, it will use the one from the previous searchby value
           unset($query_custom_type);
         
-        // get the values we have in our Prefs for this custom set
-        $custom = array_search($query_custom_set, $GLOBALS['prefs']);
+        // get the values we have in our Prefs for this custom set - we might not get anything back
+        $custom = array_search($query_custom, $GLOBALS['prefs']);
         
         if ( $custom ) {
           // let's make sure we have a custom set type before building our custom sets search array
           if (!isset($query_custom_type))
-            list($query_custom_set, $query_custom_type) = array_values($all_custom_sets[$custom]);
-          // add this custom set to our search array
-          $arr_query_custom[$custom] = array(
-            'name'  => $query_custom_set,
-            'type'  => $query_custom_type);
+            list($query_custom, $query_custom_type) = array_values($all_custom_sets[$custom]);
         }
-        // otherwise discard it silently
+        // otherwise we're dealing with a section, category or search input
+        else {
+          if (!isset($query_custom_type))
+            // our searchby values default to text_input if they're not custom sets
+            $query_custom_type = "text_input";
+        }
+        // add this custom set to our search array
+        $arr_query_custom[$custom] = array(
+          'name'  => $query_custom,
+          'type'  => $query_custom_type);
       }
     }
     else
@@ -1274,25 +1288,39 @@ function glz_custom_fields_search_form($atts) {
       .'<fieldset>'.n;
 
     // build our selects
-    foreach ( $arr_query_custom as $custom => $custom_set ) {
-      // custom_x_set needs to be custom-x for ids - don't ask...
-      $custom_id = glz_custom_number($custom, "-");
-      // custom_x_set now becomes custom_x
-      $custom = glz_custom_number($custom);
+    foreach ( $arr_query_custom as $custom => $custom_search ) {
+      // if it's the key is an integer, we're dealing with a section, category or search input
+      if ( !is_int($custom) ) {
+        // custom_x_set needs to be custom-x for ids - don't ask... (legacy stuff)
+        $custom_id = glz_custom_number($custom, "-");
+        // custom_x_set now becomes custom_x
+        $custom = glz_custom_number($custom);
+      }
+      else {
+        // set both the id and name to e.g. section or category
+        $custom_id = strtolower($custom_search['name']);
+        $custom = $custom_id;
+      }
       
-      // get all existing custom values for live articles
-      $arr_custom_field_values = glz_custom_fields_MySQL('all_values', $custom, '', array('custom_set_name' => $custom_set['name'], 'status' => 4));
+      // get all existing values for live articles
+      $arr_custom_values = glz_custom_fields_MySQL('all_values', $custom, '', array('custom_set_name' => $custom_search['name'], 'status' => 4));
+      // DEBUG
+      // dmp($arr_custom_values);
       
-      if ( is_array($arr_custom_field_values) ) {
+      if ( is_array($arr_custom_values) ) {
+        $checked_value = (isset($incoming[$custom])) ? $incoming[$custom] : '';
+        // join the values if they are multiple ones e.g. coming in an array
+        if (is_array($checked_value))
+          $checked_value = join("|", $checked_value);
         // the way our custom field value is going to look like
-        list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values);
+        list($custom_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_search['type'], $arr_custom_values, $checked_value);
         
         // DEBUG
         // dmp($custom_set_value);
 
         $out[] = ($labels) ?
-          graf("<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\"") :
-          graf("$custom_set_value", " class=\"$custom_class\"");
+          graf("<label for=\"$custom_id\">{$custom_search['name']}</label><br />$custom_value", " class=\"$custom_class\"") :
+          graf("$custom_value", " class=\"$custom_class\"");
       }
       else
         return '<p>'.glz_custom_fields_gTxt('no_articles_found').'</p></form>';
@@ -1397,14 +1425,6 @@ function glz_if_custom_field($atts, $thing) {
  * DEALS WITH ARTICLES - PROPERTIES - LISTS, SLIGHTLY ALTERED TO USE OUR CUSTOM SEARCH VALUES WHEN FILTERING & DISPLAY CUSTOM FIELDS > 10
 Call it like you would article()
 http://textpattern.net/wiki/index.php?title=Txp:article_/
-
-* no_results
-The section to display when no articles match the search query by glz_custom_fields_search_form.
-Points to no_results section by default.
-* no_results_redirect
-Controls redirection if there are no results.
-On by default.
-To turn re-direction off when there are no results, do e.g. <txp:glz_article_custom no_results_redirect="0" />
  */
 function glz_article($atts) {
   global $is_article_body, $has_article_tag;
@@ -1421,14 +1441,6 @@ function glz_article($atts) {
  * DEALS WITH ARTICLES - PROPERTIES - LISTS, SLIGHTLY ALTERED TO USE OUR CUSTOM SEARCH VALUES WHEN FILTERING & DISPLAY CUSTOM FIELDS > 10
 Call it like you would article_cutom()
 http://textpattern.net/wiki/index.php?title=Txp:article_custom/
-
-* no_results
-The section to display when no articles match the search query by glz_custom_fields_search_form.
-Points to no_results section by default.
-* no_results_redirect
-Controls redirection if there are no results.
-On by default.
-To turn re-direction off when there are no results, do e.g. <txp:glz_article_custom no_results_redirect="0" />
  */
 function glz_article_custom($atts) {
   return glz_parseArticles($atts, '1');
@@ -1542,6 +1554,8 @@ function glz_doArticle($atts) {
 // using this to "inject" our custom search values
 function glz_doArticles($atts, $iscustom) {
   global $pretext, $prefs, $txpcfg;
+  // DEBUG
+  // dmp($atts);
   extract($pretext);
   extract($prefs);
   $customFields = glz_getCustomFields();
@@ -1572,8 +1586,6 @@ function glz_doArticles($atts, $iscustom) {
     'searchsticky' => 0,
     'allowoverride' => (!$q and !$iscustom),
     'offset'    => 0,
-    'no_results' => 'no_results',
-    'no_results_redirect'  => 1
   )+$customlAtts,$atts);
 
   // if an article ID is specified, treat it as a custom list
@@ -1764,10 +1776,7 @@ function glz_doArticles($atts, $iscustom) {
       unset($GLOBALS['thisarticle']);
 
     }
-    if ( count($articles) == "0" && $no_results_redirect )
-      header('Location: '.hu.$no_results);
-    else
-      return join('',$articles);
+    return join('',$articles);
   }
 }
 
