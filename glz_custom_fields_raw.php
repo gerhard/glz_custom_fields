@@ -294,7 +294,9 @@ function glz_custom_fields_replace() {
       $custom_value = ( !empty($$custom) ) ?
         $$custom :
         '';
-
+      // DEBUG
+      // dmp($custom_value);
+      
       // the way our custom field value is going to look like
       list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values, $custom_value);
       
@@ -340,7 +342,7 @@ function glz_custom_fields_replace() {
 }
 
 // -------------------------------------------------------------
-// prep our custom fields for the db (watch out for checkboxes, they might have multiple values)
+// prep our custom fields for the db (watch out for multi-selects, checkboxes & radios, they might have multiple values)
 function glz_custom_fields_before_save() {
   // keep only the custom fields
   foreach ($_POST as $key => $value) {
@@ -649,7 +651,7 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
   
   foreach ( $arr_values as $key => $value ) {
     $checked = glz_selected_checked('checked', $key, $custom_value);
-
+    
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
     $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"$key\"{$checked} /><label for=\"$key\">$value</label></span><br />";
   }
@@ -660,14 +662,12 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
 
 // -------------------------------------------------------------
 // had to duplicate the default radio() to keep the looping in here and check against existing value
-/**
-  TODO How do we reset radio fields?
-*/
 function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '') {
   $out = array();
-  
+  dmp($arr_values);
+  dmp($custom_value);
   foreach ( $arr_values as $key => $value ) {
-    $checked = glz_selected_checked('checked', $key, htmlspecialchars($custom_value));
+    $checked = glz_selected_checked('checked', $key, $custom_value);
     
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
     $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"{$id}_".glz_idify($key)."\"{$checked} /><label for=\"{$id}_".glz_idify($key)."\">$value</label></span><br />";
@@ -680,9 +680,17 @@ function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '') {
 // -------------------------------------------------------------
 // checking if this custom field has selected or checked values
 function glz_selected_checked($nomenclature, $value, $custom_value = '') {
+  // we're comparing against a key which is a "clean" value
+  // $custom_value = htmlspecialchars($custom_value);
+  
   // make an array if $custom_value contains multiple values
-  if ( strstr($custom_value, '|') )
+  if ( strpos($custom_value, '|') )
     $arr_custom_value = explode('|', $custom_value);
+  
+  if ( $nomenclature == "checked" ) {
+    dmp($value);
+    dmp($custom_value);
+  }
   
   if ( isset($arr_custom_value) )
     $out = ( in_array($value, $arr_custom_value) ) ? " $nomenclature=\"$nomenclature\"" : "";
@@ -1059,7 +1067,7 @@ function glz_new_custom_field($name, $table, $extra) {
       }
     }
     if ( isset($query) && !empty($query) )
-      safe_query($query);
+      safe_query($query,1);
   }
   else
     trigger_error(glz_custom_fields_gTxt('not_specified', array('{what}' => "extra attributes")));
