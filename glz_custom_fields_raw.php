@@ -369,7 +369,7 @@ function glz_custom_fields_save() {
       if (strstr($key, 'custom_')) {
         list($rubbish, $digit) = explode("_", $key);
         // keep only the values that are above 10
-        if ( $digit > 10 ) $set[] = "`$key`='".addslashes(trim($value))."'";
+        if ( $digit > 10 ) $set[] = "`$key`='".trim($value)."'";
       }
     }
     // anything worthy saving?
@@ -681,16 +681,11 @@ function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '') {
 // checking if this custom field has selected or checked values
 function glz_selected_checked($nomenclature, $value, $custom_value = '') {
   // we're comparing against a key which is a "clean" value
-  // $custom_value = htmlspecialchars($custom_value);
+  $custom_value = htmlspecialchars($custom_value);
   
   // make an array if $custom_value contains multiple values
   if ( strpos($custom_value, '|') )
     $arr_custom_value = explode('|', $custom_value);
-  
-  if ( $nomenclature == "checked" ) {
-    dmp($value);
-    dmp($custom_value);
-  }
   
   if ( isset($arr_custom_value) )
     $out = ( in_array($value, $arr_custom_value) ) ? " $nomenclature=\"$nomenclature\"" : "";
@@ -887,12 +882,15 @@ function glz_values_custom_field($name, $extra) {
       
       if ( count($arr_values) > 0 ) {
         // have our values nicely sorted
+        /**
+          TODO User-configurable. Some folks didn't like this order.
+        */
         natsort($arr_values);
         
         // decode all special characters e.g. ", & etc. and use them for keys
         foreach ( $arr_values as $key => $value )
-          $arr_values_formatted[htmlspecialchars($value)] = $value;
-
+          $arr_values_formatted[htmlspecialchars($value)] = stripslashes($value);
+        
         // if this is a range, format ranges accordingly
         return glz_format_ranges($arr_values_formatted, $custom_set_name);
       }
@@ -926,7 +924,7 @@ function glz_all_existing_custom_values($name, $extra) {
         ORDER BY 
           `$name`
         ");
-  
+      
       // have our values nicely sorted
       /**
         TODO User-configurable. Some folks didn't like this order.
@@ -958,15 +956,23 @@ function glz_all_existing_custom_values($name, $extra) {
         // keep only the unique ones
         $out = array_unique($out);
         // keys and values need to be the same
-        return php4_array_combine($out, $out);
+        $out = php4_array_combine($out, $out);
       }
+      
       // check if this is a range
       else if ( strstr($values_check, '-') && strstr($custom_set_name, 'range') )
         // keys won't have the unit ($, £, m<sup>3</sup>, etc.) values will
-        return glz_format_ranges($arr_values, $custom_set_name);
+        $out = glz_format_ranges($arr_values, $custom_set_name);
       else
         // keys and values need to be the same
-        return php4_array_combine($arr_values, $arr_values);
+        $out = php4_array_combine($arr_values, $arr_values);
+      
+      // this would ideally be put in a function, e.g. glz_strip_custom_values()
+      // that would be able to do this both ways
+      foreach ($out as $key => $value)
+        $out[$key] = stripslashes($value);
+        
+      return $out;
     }
   }
   else
@@ -1052,9 +1058,9 @@ function glz_new_custom_field($name, $table, $extra) {
           // don't insert empty values
           if ( !empty($value) )
             // make sure special characters are escaped before inserting them in the database
-            $value = addslashes(trim($value));
+            $value = addslashes(addslashes(trim($value)));
             // if this is the last value, query will have to be different
-            $insert .= ( addslashes(end($arr_values)) != $value ) ?
+            $insert .= (addslashes(addslashes(end($arr_values))) != $value ) ?
               "('{$custom_set}','{$value}'), " :
               "('{$custom_set}','{$value}')";
         }
@@ -1067,7 +1073,7 @@ function glz_new_custom_field($name, $table, $extra) {
       }
     }
     if ( isset($query) && !empty($query) )
-      safe_query($query,1);
+      safe_query($query);
   }
   else
     trigger_error(glz_custom_fields_gTxt('not_specified', array('{what}' => "extra attributes")));
@@ -1324,7 +1330,8 @@ function glz_custom_fields_search_form($atts) {
         list($custom_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_search['type'], $arr_custom_values, $checked_value);
         
         // DEBUG
-        // dmp($custom_set_value);
+        // dmp($custom_value);
+        // dmp($custom_search);
 
         $out[] = ($labels) ?
           graf("<label for=\"$custom_id\">{$custom_search['name']}</label><br />$custom_value", " class=\"$custom_class\"") :
