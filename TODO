@@ -18,7 +18,7 @@ Text
 == DONE ==
 
 * input values filter before values are saved, exclude ' " from filtering:
-  I just want to point out that there still is a problem with ' character (single quote). I can substitute it with apostrophe ', and that work fine, so there is a workaround. But for a client this could be a difficult thing to remember (the keyboard doesn't offer a stroke for that).
+  I just want to point out that there still is a problem with ' character (single quote). I can substitute it with apostrophe ', and that works fine, so there is a workaround. But for a client this could be a difficult thing to remember (the keyboard doesn't offer a stroke for that).
 
 * search form needs a fieldset to validate
 
