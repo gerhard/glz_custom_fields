@@ -1,0 +1,1344 @@
+From 6501f3eb030d2cbc8fb4bec1509d801ffec639b0 Mon Sep 17 00:00:00 2001
+From: gerhardl <gerhard.lazu@jgp.co.uk>
+Date: Tue, 20 Jan 2009 10:30:54 +0000
+Subject: [PATCH] Extracted most of the functions I've been duplicating in glz_custom_fields.
+
+Some formatting modifications, not relevant.
+---
+ textpattern/publish.php             |  188 ++++++++------
+ textpattern/publish/taghandlers.php |  496 ++++++++++++++++++-----------------
+ 2 files changed, 361 insertions(+), 323 deletions(-)
+
+diff --git a/textpattern/publish.php b/textpattern/publish.php
+index a2db316..6ca1bc9 100644
+--- a/textpattern/publish.php
++++ b/textpattern/publish.php
+@@ -44,8 +44,8 @@ $LastChangedRevision$
+ 	$microstart = getmicrotime();
+ 
+ 		// initialize parse trace globals
+-	$txptrace        = array();
+-	$txptracelevel   = '';
++	$txptrace				 = array();
++	$txptracelevel	 = '';
+ 	$txp_current_tag = '';
+ 
+ 		// get all prefs as an array
+@@ -219,7 +219,7 @@ $LastChangedRevision$
+ 			exit(atom());
+ 		}
+ 			// set messy variables
+-		$out =  makeOut('id','s','c','q','pg','p','month','author');
++		$out =	makeOut('id','s','c','q','pg','p','month','author');
+ 
+ 			// some useful vars for taghandlers, plugins
+ 		$out['request_uri'] = preg_replace("|^https?://[^/]+|i","",serverSet('REQUEST_URI'));
+@@ -439,9 +439,9 @@ $LastChangedRevision$
+ 		if(is_numeric($id) and !$is_404) {
+ 			$a = safe_row('*, unix_timestamp(Posted) as uPosted, unix_timestamp(Expires) as uExpires, unix_timestamp(LastMod) as uLastMod', 'textpattern', 'ID='.intval($id).(gps('txpreview') ? '' : ' and Status in (4,5)'));
+ 			if ($a) {
+-				$Posted             = $a['Posted'];
++				$Posted							= $a['Posted'];
+ 				$out['id_keywords'] = $a['Keywords'];
+-				$out['id_author']   = $a['AuthorID'];
++				$out['id_author']		= $a['AuthorID'];
+ 				populateArticleData($a);
+ 				
+ 				$uExpires = $a['uExpires'];
+@@ -455,11 +455,11 @@ $LastChangedRevision$
+ 		}
+ 
+ 		$out['path_from_root'] = rhu; // these are deprecated as of 1.0
+-		$out['pfr']            = rhu; // leaving them here for plugin compat
++		$out['pfr']						 = rhu; // leaving them here for plugin compat
+ 
+-		$out['path_to_site']   = $path_to_site;
+-		$out['permlink_mode']  = $permlink_mode;
+-		$out['sitename']       = $sitename;
++		$out['path_to_site']	 = $path_to_site;
++		$out['permlink_mode']	 = $permlink_mode;
++		$out['sitename']			 = $sitename;
+ 
+ 		return $out;
+ 
+@@ -509,7 +509,7 @@ $LastChangedRevision$
+ 
+ 		if (in_array($production_status, array('debug', 'testing'))) {
+ 			$microdiff = (getmicrotime() - $microstart);
+-			echo n,comment('Runtime:    '.substr($microdiff,0,6));
++			echo n,comment('Runtime:		'.substr($microdiff,0,6));
+ 			echo n,comment('Query time: '.sprintf('%02.6f', $qtime));
+ 			echo n,comment('Queries: '.$qcount);
+ 			echo maxMemUsage('end of textpattern()',1);
+@@ -561,30 +561,30 @@ $LastChangedRevision$
+ 
+ 		//getting attributes
+ 		$theAtts = lAtts(array(
+-			'form'      => 'default',
+-			'listform'  => '',
++			'form'			=> 'default',
++			'listform'	=> '',
+ 			'searchform'=> '',
+-			'limit'     => 10,
+-			'pageby'    => '',
+-			'category'  => '',
+-			'section'   => '',
++			'limit'			=> 10,
++			'pageby'		=> '',
++			'category'	=> '',
++			'section'		=> '',
+ 			'excerpted' => '',
+-			'author'    => '',
+-			'sort'      => '',
+-			'sortby'    => '',
+-			'sortdir'   => '',
+-			'month'     => '',
+-			'keywords'  => '',
++			'author'		=> '',
++			'sort'			=> '',
++			'sortby'		=> '',
++			'sortdir'		=> '',
++			'month'			=> '',
++			'keywords'	=> '',
+ 			'frontpage' => '',
+-			'id'        => '',
+-			'time'      => 'past',
+-			'status'    => '4',
+-			'pgonly'    => 0,
++			'id'				=> '',
++			'time'			=> 'past',
++			'status'		=> '4',
++			'pgonly'		=> 0,
+ 			'searchall' => 1,
+ 			'searchsticky' => 0,
+ 			'allowoverride' => (!$q and !$iscustom),
+-			'offset'    => 0,
+-			'wraptag'	=> '',
++			'offset'		=> 0,
++			'wraptag' => '',
+ 			'break'		=> '',
+ 			'label'		=> '',
+ 			'labeltag'	=> '',
+@@ -624,8 +624,8 @@ $LastChangedRevision$
+ 			$s_filter = ($searchall ? filterSearch() : '');
+ 			$q = doSlash($q);
+ 
+-            		// searchable article fields are limited to the columns of 
+-            		// the textpattern table and a matching fulltext index must exist.
++								// searchable article fields are limited to the columns of 
++								// the textpattern table and a matching fulltext index must exist.
+ 			$cols = do_list($searchable_article_fields);
+ 			if (empty($cols) or $cols[0] == '') $cols = array('Title', 'Body');
+ 
+@@ -665,13 +665,13 @@ $LastChangedRevision$
+ 
+ 		//Building query parts
+ 		$frontpage = ($frontpage and (!$q or $issticky)) ? filterFrontPage() : '';
+-		$category  = join("','", doSlash(do_list($category)));
+-		$category  = (!$category)  ? '' : " and (Category1 IN ('".$category."') or Category2 IN ('".$category."'))";
+-		$section   = (!$section)   ? '' : " and Section IN ('".join("','", doSlash(do_list($section)))."')";
+-		$excerpted = ($excerpted=='y')  ? " and Excerpt !=''" : '';
+-		$author    = (!$author)    ? '' : " and AuthorID IN ('".join("','", doSlash(do_list($author)))."')";
+-		$month     = (!$month)     ? '' : " and Posted like '".doSlash($month)."%'";
+-		$id        = (!$id)        ? '' : " and ID IN (".join(',', array_map('intval', do_list($id))).")";
++		$category	 = join("','", doSlash(do_list($category)));
++		$category	 = (!$category)	 ? '' : " and (Category1 IN ('".$category."') or Category2 IN ('".$category."'))";
++		$section	 = (!$section)	 ? '' : " and Section IN ('".join("','", doSlash(do_list($section)))."')";
++		$excerpted = ($excerpted=='y')	? " and Excerpt !=''" : '';
++		$author		 = (!$author)		 ? '' : " and AuthorID IN ('".join("','", doSlash(do_list($author)))."')";
++		$month		 = (!$month)		 ? '' : " and Posted like '".doSlash($month)."%'";
++		$id				 = (!$id)				 ? '' : " and ID IN (".join(',', array_map('intval', do_list($id))).")";
+ 		switch ($time) {
+ 			case 'any':
+ 				$time = ""; break;
+@@ -685,15 +685,29 @@ $LastChangedRevision$
+ 		}
+ 
+ 		$custom = '';
+-
++		
+ 		if ($customFields) {
+ 			foreach($customFields as $cField) {
+ 				if (isset($atts[$cField]))
+ 					$customPairs[$cField] = $atts[$cField];
+ 			}
+-			if(!empty($customPairs)) {
+-				$custom = buildCustomSql($customFields,$customPairs);
++
++			$arr_post_custom = preg_grep("(^custom_\d+$)", array_keys($_POST));
++
++			foreach ( $arr_post_custom as $custom ) { 
++				// skip if values are the same - users have left the default
++				if ( ps($custom) == $custom )
++					continue;
++				// if there is a value, add it for the query
++				if ( ps($custom) ) {
++					// need the digit to find out the custom field name
++					list($rubbish, $digit) = explode("_", $custom);
++					$customPairs[$prefs['custom_'.$digit.'_set']] = ps($custom);
++				}
+ 			}
++
++			if(!empty($customPairs))
++				$custom_sql =	 buildCustomSql($customFields,$customPairs);
+ 		}
+ 
+ 		//Allow keywords for no-custom articles. That tagging mode, you know
+@@ -724,12 +738,12 @@ $LastChangedRevision$
+ 			$pg = (!$pg) ? 1 : $pg;
+ 			$pgoffset = $offset + (($pg - 1) * $pageby);
+ 			// send paging info to txp:newer and txp:older
+-			$pageout['pg']       = $pg;
++			$pageout['pg']			 = $pg;
+ 			$pageout['numPages'] = $numPages;
+-			$pageout['s']        = $s;
+-			$pageout['c']        = $c;
++			$pageout['s']				 = $s;
++			$pageout['c']				 = $c;
+ 			$pageout['grand_total'] = $grand_total;
+-			$pageout['total']    = $total;
++			$pageout['total']		 = $total;
+ 
+ 			global $thispage;
+ 			if (empty($thispage))
+@@ -818,8 +832,8 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'allowoverride' => '1',
+-			'form'          => 'default',
+-			'status'        => '4',
++			'form'					=> 'default',
++			'status'				=> '4',
+ 		),$atts, 0));
+ 
+ 		// if a form is specified, $thing is for doArticles() - hence ignore $thing here.
+@@ -901,25 +915,25 @@ $LastChangedRevision$
+ 		extract($rs);
+ 
+ 		trace_add("[".gTxt('Article')." $ID]");
+-		$thisarticle['thisid']          = $ID;
+-		$thisarticle['posted']          = $uPosted;
+-		$thisarticle['expires']         = $uExpires;
++		$thisarticle['thisid']					= $ID;
++		$thisarticle['posted']					= $uPosted;
++		$thisarticle['expires']					= $uExpires;
+ 		$thisarticle['modified']		= $uLastMod;
+-		$thisarticle['annotate']        = $Annotate;
++		$thisarticle['annotate']				= $Annotate;
+ 		$thisarticle['comments_invite'] = $AnnotateInvite;
+-		$thisarticle['authorid']        = $AuthorID;
+-		$thisarticle['title']           = $Title;
+-		$thisarticle['url_title']       = $url_title;
+-		$thisarticle['category1']       = $Category1;
+-		$thisarticle['category2']       = $Category2;
+-		$thisarticle['section']         = $Section;
+-		$thisarticle['keywords']        = $Keywords;
+-		$thisarticle['article_image']   = $Image;
+-		$thisarticle['comments_count']  = $comments_count;
+-		$thisarticle['body']            = $Body_html;
+-		$thisarticle['excerpt']         = $Excerpt_html;
+-		$thisarticle['override_form']   = $override_form;
+-		$thisarticle['status']          = $Status;
++		$thisarticle['authorid']				= $AuthorID;
++		$thisarticle['title']						= $Title;
++		$thisarticle['url_title']				= $url_title;
++		$thisarticle['category1']				= $Category1;
++		$thisarticle['category2']				= $Category2;
++		$thisarticle['section']					= $Section;
++		$thisarticle['keywords']				= $Keywords;
++		$thisarticle['article_image']		= $Image;
++		$thisarticle['comments_count']	= $comments_count;
++		$thisarticle['body']						= $Body_html;
++		$thisarticle['excerpt']					= $Excerpt_html;
++		$thisarticle['override_form']		= $override_form;
++		$thisarticle['status']					= $Status;
+ 
+ 		$custom = getCustomFields();
+ 		if ($custom) {
+@@ -958,16 +972,16 @@ $LastChangedRevision$
+ 		if (@isset($cache[$next[$id]]))
+ 			$thenext = $cache[$next[$id]];
+ 		else
+-			$thenext            = getNeighbour($Posted,$s,'>');
++			$thenext						= getNeighbour($Posted,$s,'>');
+ 
+-		$out['next_id']     = ($thenext) ? $thenext['ID'] : '';
+-		$out['next_title']  = ($thenext) ? $thenext['Title'] : '';
++		$out['next_id']			= ($thenext) ? $thenext['ID'] : '';
++		$out['next_title']	= ($thenext) ? $thenext['Title'] : '';
+ 		$out['next_utitle'] = ($thenext) ? $thenext['url_title'] : '';
+ 		$out['next_posted'] = ($thenext) ? $thenext['uposted'] : '';
+ 
+-		$theprev            = getNeighbour($Posted,$s,'<');
+-		$out['prev_id']     = ($theprev) ? $theprev['ID'] : '';
+-		$out['prev_title']  = ($theprev) ? $theprev['Title'] : '';
++		$theprev						= getNeighbour($Posted,$s,'<');
++		$out['prev_id']			= ($theprev) ? $theprev['ID'] : '';
++		$out['prev_title']	= ($theprev) ? $theprev['Title'] : '';
+ 		$out['prev_utitle'] = ($theprev) ? $theprev['url_title'] : '';
+ 		$out['prev_posted'] = ($theprev) ? $theprev['uposted'] : '';
+ 
+@@ -994,10 +1008,10 @@ $LastChangedRevision$
+ 
+ 		$parsed = preg_split($f, $thing, -1, PREG_SPLIT_DELIM_CAPTURE);
+ 
+-		$level  = 0;
+-		$out    = '';
++		$level	= 0;
++		$out		= '';
+ 		$inside = '';
+-		$istag  = FALSE;
++		$istag	= FALSE;
+ 
+ 		foreach ($parsed as $chunk)
+ 		{
+@@ -1022,7 +1036,7 @@ $LastChangedRevision$
+ 					{ # closing
+ 						if (--$level === 0)
+ 						{
+-							$out  .= processTags($tag[1], $tag[2], $inside);
++							$out	.= processTags($tag[1], $tag[2], $inside);
+ 							$inside = '';
+ 						}
+ 						else
+@@ -1158,19 +1172,31 @@ $LastChangedRevision$
+ 	}
+ 
+ // -------------------------------------------------------------
+-	function buildCustomSql($custom,$pairs)
+-	{
++	function glz_buildCustomSql($custom,$pairs) {
+ 		if ($pairs) {
+ 			$pairs = doSlash($pairs);
+-			foreach($pairs as $k => $v) {
+-				if(in_array($k,$custom)) {
+-					$no = array_keys($custom,$k);
+-					# nb - use 'like' here to allow substring matches
+-					$out[] = "and custom_".$no[0]." like '$v'";
++			foreach( $pairs as $k => $v ) {
++				if ( in_array(strtolower($k),$custom) ) {
++					$no = array_keys($custom,strtolower($k));
++					$arr_values = explode(",",$v);
++					if ( is_array($arr_values) ) {
++						if ( count($arr_values) > 1 ) {
++							$custom_query = "AND (custom_{$no[0]} LIKE '{$arr_values[0]}'";
++							for ( $i=1; $i < count($arr_values); $i++ ) { 
++								$custom_query .= " OR custom_{$no[0]} LIKE '{$arr_values[$i]}'";
++							}
++							$custom_query .= ")";
++							$out[] = $custom_query;
++						}
++						else
++							$out[] = "AND custom_{$no[0]} LIKE '{$arr_values[0]}'";
++					}
+ 				}
+ 			}
+ 		}
+-		return (!empty($out)) ? ' '.join(' ',$out).' ' : false;
++		return (!empty($out)) ?
++			' '.join(' ',$out).' ' :
++			FALSE; 
+ 	}
+ 
+ // -------------------------------------------------------------
+diff --git a/textpattern/publish/taghandlers.php b/textpattern/publish/taghandlers.php
+index 029207b..b07b3e4 100644
+--- a/textpattern/publish/taghandlers.php
++++ b/textpattern/publish/taghandlers.php
+@@ -51,10 +51,10 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'format' => 'url',
+-			'media'  => 'screen',
+-			'n'      => $css,
+-			'rel'    => 'stylesheet',
+-			'title'  => '',
++			'media'	 => 'screen',
++			'n'			 => $css,
++			'rel'		 => 'stylesheet',
++			'title'	 => '',
+ 		), $atts));
+ 
+ 		if (empty($n)) $n = 'default';
+@@ -160,17 +160,17 @@ $LastChangedRevision$
+ 		global $img_dir;
+ 
+ 		extract(lAtts(array(
+-			'align'     => '', // remove in crockery
+-			'class'     => '',
+-			'escape'    => 'html',
+-			'html_id'   => '',
+-			'id'        => '',
+-			'link'      => 0,
+-			'link_rel'  => '',
+-			'name'      => '',
+-			'poplink'   => 0, // remove in crockery
+-			'style'     => '', // remove in crockery
+-			'wraptag'   => ''
++			'align'			=> '', // remove in crockery
++			'class'			=> '',
++			'escape'		=> 'html',
++			'html_id'		=> '',
++			'id'				=> '',
++			'link'			=> 0,
++			'link_rel'	=> '',
++			'name'			=> '',
++			'poplink'		=> 0, // remove in crockery
++			'style'			=> '', // remove in crockery
++			'wraptag'		=> ''
+ 		), $atts));
+ 
+ 		if ($name)
+@@ -255,20 +255,20 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'category' => $c,
+-			'flavor'   => 'rss',
+-			'format'   => 'a',
+-			'label'    => '',
+-			'limit'    => '',
+-			'section'  => ( $s == 'default' ? '' : $s),
+-			'title'    => gTxt('rss_feed_title'),
+-			'wraptag'  => '',
++			'flavor'	 => 'rss',
++			'format'	 => 'a',
++			'label'		 => '',
++			'limit'		 => '',
++			'section'	 => ( $s == 'default' ? '' : $s),
++			'title'		 => gTxt('rss_feed_title'),
++			'wraptag'	 => '',
+ 		), $atts));
+ 
+ 		$url = pagelinkurl(array(
+-			$flavor    => '1',
+-			'section'  => $section,
++			$flavor		 => '1',
++			'section'	 => $section,
+ 			'category' => $category,
+-			'limit'    => $limit
++			'limit'		 => $limit
+ 		));
+ 
+ 		if ($flavor == 'atom')
+@@ -299,17 +299,17 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'category' => $c,
+-			'flavor'   => 'rss',
+-			'format'   => 'a',
+-			'label'    => '',
+-			'title'    => gTxt('rss_feed_title'),
+-			'wraptag'  => '',
++			'flavor'	 => 'rss',
++			'format'	 => 'a',
++			'label'		 => '',
++			'title'		 => gTxt('rss_feed_title'),
++			'wraptag'	 => '',
+ 		), $atts));
+ 
+ 		$url = pagelinkurl(array(
+ 			$flavor => '1',
+-			'area'  =>'link',
+-			'c'     => $category
++			'area'	=>'link',
++			'c'			=> $category
+ 		));
+ 
+ 		if ($flavor == 'atom')
+@@ -338,16 +338,16 @@ $LastChangedRevision$
+ 		global $thislink;
+ 
+ 		extract(lAtts(array(
+-			'break'    => '',
++			'break'		 => '',
+ 			'category' => '',
+-			'class'    => __FUNCTION__,
+-			'form'     => 'plainlinks',
+-			'label'    => '',
++			'class'		 => __FUNCTION__,
++			'form'		 => 'plainlinks',
++			'label'		 => '',
+ 			'labeltag' => '',
+-			'limit'    => 0,
+-			'offset'   => 0,
+-			'sort'     => 'linksort asc',
+-			'wraptag'  => '',
++			'limit'		 => 0,
++			'offset'	 => 0,
++			'sort'		 => 'linksort asc',
++			'wraptag'	 => '',
+ 		), $atts));
+ 
+ 		$qparts = array(
+@@ -367,12 +367,12 @@ $LastChangedRevision$
+ 				extract($a);
+ 
+ 				$thislink = array(
+-					'id'          => $id,
+-					'linkname'    => $linkname,
+-					'url'         => $url,
++					'id'					=> $id,
++					'linkname'		=> $linkname,
++					'url'					=> $url,
+ 					'description' => $description,
+-					'date'        => $uDate,
+-					'category'    => $category,
++					'date'				=> $uDate,
++					'category'		=> $category,
+ 				);
+ 
+ 				$out[] = ($thing) ? parse($thing) : parse_form($form);
+@@ -463,11 +463,11 @@ $LastChangedRevision$
+ 		assert_link();
+ 
+ 		extract(lAtts(array(
+-			'class'    => '',
+-			'escape'   => 'html',
+-			'label'    => '',
++			'class'		 => '',
++			'escape'	 => 'html',
++			'label'		 => '',
+ 			'labeltag' => '',
+-			'wraptag'  => '',
++			'wraptag'	 => '',
+ 		), $atts));
+ 
+ 		if ($thislink['description'])
+@@ -489,8 +489,8 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'format' => $dateformat,
+-			'gmt'    => '',
+-			'lang'   => '',
++			'gmt'		 => '',
++			'lang'	 => '',
+ 		), $atts));
+ 
+ 		return safe_strftime($format, $thislink['date'], $gmt, $lang);
+@@ -504,11 +504,11 @@ $LastChangedRevision$
+ 		assert_link();
+ 
+ 		extract(lAtts(array(
+-			'class'    => '',
+-			'label'    => '',
++			'class'		 => '',
++			'label'		 => '',
+ 			'labeltag' => '',
+-			'title'    => 0,
+-			'wraptag'  => '',
++			'title'		 => 0,
++			'wraptag'	 => '',
+ 		), $atts));
+ 
+ 		if ($thislink['category'])
+@@ -534,13 +534,13 @@ $LastChangedRevision$
+ 	function email($atts, $thing = NULL)
+ 	{
+ 		extract(lAtts(array(
+-			'email'    => '',
++			'email'		 => '',
+ 			'linktext' => gTxt('contact'),
+-			'title'    => '',
++			'title'		 => '',
+ 		),$atts));
+ 
+ 		if($email) {
+-			$out  = array(
++			$out	= array(
+ 				'<a href="'.eE('mailto:'.$email).'"',
+ 				($title) ? ' title="'.$title.'"' : '',
+ 				'>',
+@@ -559,7 +559,7 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'login' => '',
+-			'pass'  => '',
++			'pass'	=> '',
+ 		),$atts));
+ 
+ 		$au = serverSet('PHP_AUTH_USER');
+@@ -583,17 +583,17 @@ $LastChangedRevision$
+ 	{
+ 		global $prefs;
+ 		extract(lAtts(array(
+-			'break'    => br,
++			'break'		 => br,
+ 			'category' => '',
+-			'class'    => __FUNCTION__,
+-			'label'    => gTxt('recent_articles'),
++			'class'		 => __FUNCTION__,
++			'label'		 => gTxt('recent_articles'),
+ 			'labeltag' => '',
+-			'limit'    => 10,
+-			'section'  => '',
+-			'sort'     => 'Posted desc',
+-			'sortby'   => '',
+-			'sortdir'  => '',
+-			'wraptag'  => '',
++			'limit'		 => 10,
++			'section'	 => '',
++			'sort'		 => 'Posted desc',
++			'sortby'	 => '',
++			'sortdir'	 => '',
++			'wraptag'	 => '',
+ 			'no_widow' => @$prefs['title_no_widow'],
+ 		), $atts));
+ 
+@@ -614,7 +614,7 @@ $LastChangedRevision$
+ 			$sort = "Posted $sortdir";
+ 		}
+ 
+-		$category   = join("','", doSlash(do_list($category)));
++		$category		= join("','", doSlash(do_list($category)));
+ 		$categories = ($category) ? "and (Category1 IN ('".$category."') or Category2 IN ('".$category."'))" : '';
+ 		$section = ($section) ? " and Section IN ('".join("','", doSlash(do_list($section)))."')" : '';
+ 		$expired = ($prefs['publish_expired_articles']) ? '' : ' and (now() <= Expires or Expires = '.NULLDATETIME.') ';
+@@ -649,15 +649,15 @@ $LastChangedRevision$
+ 		global $prefs;
+ 		global $thisarticle, $thiscomment;
+ 		extract(lAtts(array(
+-			'break'    => br,
+-			'class'    => __FUNCTION__,
+-			'form'     => '',
+-			'label'    => '',
++			'break'		 => br,
++			'class'		 => __FUNCTION__,
++			'form'		 => '',
++			'label'		 => '',
+ 			'labeltag' => '',
+-			'limit'    => 10,
+-			'offset'   => 0,
+-			'sort'     => 'posted desc',
+-			'wraptag'  => '',
++			'limit'		 => 10,
++			'offset'	 => 0,
++			'sort'		 => 'posted desc',
++			'wraptag'	 => '',
+ 		), $atts));
+ 
+ 		$sort = preg_replace('/\bposted\b/', 'd.posted', $sort);
+@@ -720,17 +720,17 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'break'    => br,
+-			'class'    => __FUNCTION__,
+-			'form'	   => '',
+-			'label'    => '',
++			'break'		 => br,
++			'class'		 => __FUNCTION__,
++			'form'		 => '',
++			'label'		 => '',
+ 			'labeltag' => '',
+-			'limit'    => 10,
+-			'match'    => 'Category1,Category2',
++			'limit'		 => 10,
++			'match'		 => 'Category1,Category2',
+ 			'no_widow' => @$prefs['title_no_widow'],
+-			'section'  => '',
+-			'sort'     => 'Posted desc',
+-			'wraptag'  => '',
++			'section'	 => '',
++			'sort'		 => 'Posted desc',
++			'wraptag'	 => '',
+ 		), $atts));
+ 
+ 		if (empty($thisarticle['category1']) and empty($thisarticle['category2']))
+@@ -779,7 +779,7 @@ $LastChangedRevision$
+ 
+ 		$expired = ($prefs['publish_expired_articles']) ? '' : ' and (now() <= Expires or Expires = '.NULLDATETIME.') ';
+ 		$rs = safe_rows_start('*, unix_timestamp(Posted) as posted, unix_timestamp(LastMod) as uLastMod, unix_timestamp(Expires) as uExpires', 'textpattern',
+-			'ID != '.intval($id)." and Status = 4 $expired  and Posted <= now() $categories $section order by ".doSlash($sort).' limit 0,'.intval($limit));
++			'ID != '.intval($id)." and Status = 4 $expired	and Posted <= now() $categories $section order by ".doSlash($sort).' limit 0,'.intval($limit));
+ 
+ 		if ($rs)
+ 		{
+@@ -798,7 +798,7 @@ $LastChangedRevision$
+ 				else
+ 				{
+ 					populateArticleData($a);
+-					$out[] = ($thing) ?  parse($thing) : parse_form($form);
++					$out[] = ($thing) ?	 parse($thing) : parse_form($form);
+ 				}
+ 			}
+ 			$thisarticle = $old_article;
+@@ -819,11 +819,11 @@ $LastChangedRevision$
+ 		global $s, $c;
+ 
+ 		extract(lAtts(array(
+-			'label'        => gTxt('browse'),
+-			'wraptag'      => '',
+-			'section'      => '',
++			'label'				 => gTxt('browse'),
++			'wraptag'			 => '',
++			'section'			 => '',
+ 			'this_section' => 0,
+-			'type'         => 'c',
++			'type'				 => 'c',
+ 		), $atts));
+ 
+ 		if ($type == 's')
+@@ -899,20 +899,20 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'active_class' => '',
+-			'break'        => br,
+-			'categories'   => '',
+-			'class'        => __FUNCTION__,
+-			'exclude'      => '',
+-			'form'         => '',
+-			'label'        => '',
+-			'labeltag'     => '',
+-			'parent'       => '',
+-			'section'      => '',
+-			'children'     => '1',
+-			'sort'         => '',
++			'break'				 => br,
++			'categories'	 => '',
++			'class'				 => __FUNCTION__,
++			'exclude'			 => '',
++			'form'				 => '',
++			'label'				 => '',
++			'labeltag'		 => '',
++			'parent'			 => '',
++			'section'			 => '',
++			'children'		 => '1',
++			'sort'				 => '',
+ 			'this_section' => 0,
+-			'type'         => 'article',
+-			'wraptag'      => '',
++			'type'				 => 'article',
++			'wraptag'			 => '',
+ 		), $atts));
+ 
+ 		$sort = doSlash($sort);
+@@ -1016,18 +1016,18 @@ $LastChangedRevision$
+ 		global $sitename, $s, $thissection;
+ 
+ 		extract(lAtts(array(
+-			'active_class'    => '',
+-			'break'           => br,
+-			'class'           => __FUNCTION__,
+-			'default_title'   => $sitename,
+-			'exclude'         => '',
+-			'form'            => '',
++			'active_class'		=> '',
++			'break'						=> br,
++			'class'						=> __FUNCTION__,
++			'default_title'		=> $sitename,
++			'exclude'					=> '',
++			'form'						=> '',
+ 			'include_default' => '',
+-			'label'           => '',
+-			'labeltag'        => '',
+-			'sections'        => '',
+-			'sort'            => '',
+-			'wraptag'         => '',
++			'label'						=> '',
++			'labeltag'				=> '',
++			'sections'				=> '',
++			'sort'						=> '',
++			'wraptag'					=> '',
+ 		), $atts));
+ 
+ 		$sort = doSlash($sort);
+@@ -1106,12 +1106,12 @@ $LastChangedRevision$
+ 	{
+ 		global $q, $permlink_mode;
+ 		extract(lAtts(array(
+-			'form'    => 'search_input',
++			'form'		=> 'search_input',
+ 			'wraptag' => 'p',
+-			'size'    => '15',
++			'size'		=> '15',
+ 			'html_id' => '',
+-			'label'   => gTxt('search'),
+-			'button'  => '',
++			'label'		=> gTxt('search'),
++			'button'	=> '',
+ 			'section' => '',
+ 		),$atts));
+ 
+@@ -1123,7 +1123,7 @@ $LastChangedRevision$
+ 		}
+ 
+ 		$sub = (!empty($button)) ? '<input type="submit" value="'.$button.'" />' : '';
+-		$id =  (!empty($html_id)) ? ' id="'.$html_id.'"' : '';
++		$id =	 (!empty($html_id)) ? ' id="'.$html_id.'"' : '';
+ 		$out = fInput('text','q',$q,'','','',$size);
+ 		$out = (!empty($label)) ? $label.br.$out.$sub : $out.$sub;
+ 		$out = ($wraptag) ? tag($out,$wraptag) : $out;
+@@ -1317,11 +1317,11 @@ $LastChangedRevision$
+ 			}
+ 
+ 			$url = pagelinkurl(array(
+-				'month'  => @$pretext['month'],
+-				'pg'     => $nextpg,
+-				's'      => @$pretext['s'],
+-				'c'      => @$pretext['c'],
+-				'q'      => @$pretext['q'],
++				'month'	 => @$pretext['month'],
++				'pg'		 => $nextpg,
++				's'			 => @$pretext['s'],
++				'c'			 => @$pretext['c'],
++				'q'			 => @$pretext['q'],
+ 				'author' => $author
+ 			));
+ 
+@@ -1363,11 +1363,11 @@ $LastChangedRevision$
+ 			}
+ 
+ 			$url = pagelinkurl(array(
+-				'month'  => @$pretext['month'],
+-				'pg'     => $nextpg,
+-				's'      => @$pretext['s'],
+-				'c'      => @$pretext['c'],
+-				'q'      => @$pretext['q'],
++				'month'	 => @$pretext['month'],
++				'pg'		 => $nextpg,
++				's'			 => @$pretext['s'],
++				'c'			 => @$pretext['c'],
++				'q'			 => @$pretext['q'],
+ 				'author' => $author
+ 			));
+ 
+@@ -1442,10 +1442,10 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'class'   => '',
+-			'format'  => '',
+-			'gmt'     => '',
+-			'lang'    => '',
++			'class'		=> '',
++			'format'	=> '',
++			'gmt'			=> '',
++			'lang'		=> '',
+ 			'wraptag' => ''
+ 		), $atts));
+ 
+@@ -1484,10 +1484,10 @@ $LastChangedRevision$
+ 		}
+ 
+ 		extract(lAtts(array(
+-			'class'   => '',
+-			'format'  => '',
+-			'gmt'     => '',
+-			'lang'    => '',
++			'class'		=> '',
++			'format'	=> '',
++			'gmt'			=> '',
++			'lang'		=> '',
+ 			'wraptag' => '',
+ 		), $atts));
+ 
+@@ -1540,9 +1540,9 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'format'  => '',
+-			'gmt'     => '',
+-			'lang'    => ''
++			'format'	=> '',
++			'gmt'			=> '',
++			'lang'		=> ''
+ 		), $atts));
+ 
+ 		if ($format)
+@@ -1590,16 +1590,16 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'class'		=> __FUNCTION__,
+-			'showcount'	=> true,
++			'showcount' => true,
+ 			'textonly'	=> false,
+-			'showalways'=> false,  //FIXME in crockery. This is only for BC.
+-			'wraptag'   => '',
++			'showalways'=> false,	 //FIXME in crockery. This is only for BC.
++			'wraptag'		=> '',
+ 		), $atts));
+ 
+ 		$invite_return = '';
+ 		if (($annotate or $comments_count) && ($showalways or $is_article_list) ) {
+ 
+-			$ccount = ($comments_count && $showcount) ?  ' ['.$comments_count.']' : '';
++			$ccount = ($comments_count && $showcount) ?	 ' ['.$comments_count.']' : '';
+ 			if ($textonly)
+ 				$invite_return = $comments_invite.$ccount;
+ 			else
+@@ -1622,14 +1622,14 @@ $LastChangedRevision$
+ 		global $thisarticle, $has_comments_preview;
+ 
+ 		extract(lAtts(array(
+-			'class'        => __FUNCTION__,
+-			'form'         => 'comment_form',
+-			'isize'        => '25',
+-			'msgcols'      => '25',
+-			'msgrows'      => '5',
+-			'msgstyle'     => '',
++			'class'				 => __FUNCTION__,
++			'form'				 => 'comment_form',
++			'isize'				 => '25',
++			'msgcols'			 => '25',
++			'msgrows'			 => '5',
++			'msgstyle'		 => '',
+ 			'show_preview' => empty($has_comments_preview),
+-			'wraptag'      => '',
++			'wraptag'			 => '',
+ 		), $atts));
+ 
+ 		assert_article();
+@@ -1668,7 +1668,7 @@ $LastChangedRevision$
+ 		extract(lAtts(array(
+ 			'break'		=> 'br',
+ 			'class'		=> __FUNCTION__,
+-			'wraptag'	=> 'div',
++			'wraptag' => 'div',
+ 		), $atts));
+ 
+ 		$evaluator =& get_comment_evaluator();
+@@ -1700,7 +1700,7 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'class'		=> __FUNCTION__,
+-			'wraptag'	=> 'h3',
++			'wraptag' => 'h3',
+ 		),$atts));
+ 
+ 		assert_article();
+@@ -1727,14 +1727,14 @@ $LastChangedRevision$
+ 		extract($prefs);
+ 
+ 		extract(lAtts(array(
+-			'form'       => 'comments',
+-			'wraptag'    => ($comments_are_ol ? 'ol' : ''),
+-			'break'      => ($comments_are_ol ? 'li' : 'div'),
+-			'class'      => __FUNCTION__,
++			'form'			 => 'comments',
++			'wraptag'		 => ($comments_are_ol ? 'ol' : ''),
++			'break'			 => ($comments_are_ol ? 'li' : 'div'),
++			'class'			 => __FUNCTION__,
+ 			'breakclass' => '',
+-			'limit'      => 0,
+-			'offset'     => 0,
+-			'sort'       => 'posted ASC',
++			'limit'			 => 0,
++			'offset'		 => 0,
++			'sort'			 => 'posted ASC',
+ 		),$atts));
+ 
+ 		assert_article();
+@@ -1778,7 +1778,7 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'form'		=> 'comments',
+-			'wraptag'	=> '',
++			'wraptag' => '',
+ 			'class'		=> __FUNCTION__,
+ 		),$atts));
+ 
+@@ -1866,7 +1866,7 @@ $LastChangedRevision$
+ 
+ 		if ($link)
+ 		{
+-			$web      = str_replace('http://', '', $web);
++			$web			= str_replace('http://', '', $web);
+ 			$nofollow = (@$comment_nofollow ? ' rel="nofollow"' : '');
+ 
+ 			if ($web)
+@@ -1913,8 +1913,8 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'format' => $comments_dateformat,
+-			'gmt'    => '',
+-			'lang'   => '',
++			'gmt'		 => '',
++			'lang'	 => '',
+ 		), $atts));
+ 
+ 		return safe_strftime($format, $thiscomment['time'], $gmt, $lang);
+@@ -1959,8 +1959,8 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'link'         => '',
+-			'section'      => '',
++			'link'				 => '',
++			'section'			 => '',
+ 			'this_section' => 0,
+ 		), $atts));
+ 
+@@ -2062,12 +2062,12 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'class'        => '',
+-			'link'         => 0,
+-			'title'        => 0,
+-			'section'      => '',
++			'class'				 => '',
++			'link'				 => 0,
++			'title'				 => 0,
++			'section'			 => '',
+ 			'this_section' => 0,
+-			'wraptag'      => '',
++			'wraptag'			 => '',
+ 		), $atts));
+ 
+ 		if ($thisarticle['category1'])
+@@ -2112,12 +2112,12 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'class'        => '',
+-			'link'         => 0,
+-			'title'        => 0,
+-			'section'      => '',
++			'class'				 => '',
++			'link'				 => 0,
++			'title'				 => 0,
++			'section'			 => '',
+ 			'this_section' => 0,
+-			'wraptag'      => '',
++			'wraptag'			 => '',
+ 		), $atts));
+ 
+ 		if ($thisarticle['category2'])
+@@ -2160,15 +2160,15 @@ $LastChangedRevision$
+ 		global $s, $c, $thiscategory;
+ 
+ 		extract(lAtts(array(
+-			'class'        => '',
+-			'link'         => 0,
+-			'name'         => '',
+-			'section'      => $s, // fixme in crockery
++			'class'				 => '',
++			'link'				 => 0,
++			'name'				 => '',
++			'section'			 => $s, // fixme in crockery
+ 			'this_section' => 0,
+-			'title'        => 0,
+-			'type'         => 'article',
+-			'url'          => 0,
+-			'wraptag'      => '',
++			'title'				 => 0,
++			'type'				 => 'article',
++			'url'					 => 0,
++			'wraptag'			 => '',
+ 		), $atts));
+ 
+ 		if ($name)
+@@ -2228,7 +2228,7 @@ $LastChangedRevision$
+ 		global $thisarticle, $s, $thissection;
+ 
+ 		extract(lAtts(array(
+-			'class'   => '',
++			'class'		=> '',
+ 			'link'		=> 0,
+ 			'name'		=> '',
+ 			'title'		=> 0,
+@@ -2323,13 +2323,13 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'align'     => '', // remove in crockery
+-			'class'     => '',
+-			'escape'    => 'html',
+-			'html_id'   => '',
+-			'style'     => '', // remove in crockery?
++			'align'			=> '', // remove in crockery
++			'class'			=> '',
++			'escape'		=> 'html',
++			'html_id'		=> '',
++			'style'			=> '', // remove in crockery?
+ 			'thumbnail' => 0,
+-			'wraptag'   => '',
++			'wraptag'		=> '',
+ 		), $atts));
+ 
+ 		if ($thisarticle['article_image'])
+@@ -2429,9 +2429,9 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'break'   => ' &#8230;',
++			'break'		=> ' &#8230;',
+ 			'hilight' => 'strong',
+-			'limit'   => 5,
++			'limit'		=> 5,
+ 		), $atts));
+ 
+ 		$q = $pretext['q'];
+@@ -2475,7 +2475,7 @@ $LastChangedRevision$
+ 		global $thispage;
+ 		$t = @$thispage['grand_total'];
+ 		extract(lAtts(array(
+-			'text'     => ($t == 1 ? gTxt('article_found') : gTxt('articles_found')),
++			'text'		 => ($t == 1 ? gTxt('article_found') : gTxt('articles_found')),
+ 		),$atts));
+ 
+ 		return $t . ($text ? ' ' . $text : '');
+@@ -2486,15 +2486,15 @@ $LastChangedRevision$
+ 	{
+ 		global $s,$c,$p,$img_dir,$path_to_site;
+ 		extract(lAtts(array(
+-			'label'    => '',
+-			'break'    => br,
+-			'wraptag'  => '',
+-			'class'    => __FUNCTION__,
++			'label'		 => '',
++			'break'		 => br,
++			'wraptag'	 => '',
++			'class'		 => __FUNCTION__,
+ 			'labeltag' => '',
+-			'c'        => $c, // Keep the option to override categories due to backward compatiblity
+-			'limit'    => 0,
+-			'offset'   => 0,
+-			'sort'     => 'name ASC',
++			'c'				 => $c, // Keep the option to override categories due to backward compatiblity
++			'limit'		 => 0,
++			'offset'	 => 0,
++			'sort'		 => 'name ASC',
+ 		),$atts));
+ 
+ 		$qparts = array(
+@@ -2503,7 +2503,7 @@ $LastChangedRevision$
+ 			($limit) ? 'limit '.intval($offset).', '.intval($limit) : ''
+ 		);
+ 
+-		$rs = safe_rows_start('*', 'txp_image',  join(' ', $qparts));
++		$rs = safe_rows_start('*', 'txp_image',	 join(' ', $qparts));
+ 
+ 		if ($rs) {
+ 			$out = array();
+@@ -2586,8 +2586,8 @@ $LastChangedRevision$
+ 	{
+ 		global $id_keywords;
+ 		return ($id_keywords)
+-		?	'<meta name="keywords" content="'.htmlspecialchars($id_keywords).'" />'
+-		:	'';
++		? '<meta name="keywords" content="'.htmlspecialchars($id_keywords).'" />'
++		: '';
+ 	}
+ 
+ // -------------------------------------------------------------
+@@ -2595,8 +2595,8 @@ $LastChangedRevision$
+ 	{
+ 		global $id_author;
+ 		return ($id_author)
+-		?	'<meta name="author" content="'.htmlspecialchars($id_author).'" />'
+-		:	'';
++		? '<meta name="author" content="'.htmlspecialchars($id_author).'" />'
++		: '';
+ 	}
+ 
+ // -------------------------------------------------------------
+@@ -2631,7 +2631,7 @@ $LastChangedRevision$
+ 				$break = "<$break $breakatts/>".n;
+ 			}
+ 
+-			return ($wraptag) ?	tag(join($break, $list), $wraptag, $atts) :	join($break, $list);
++			return ($wraptag) ? tag(join($break, $list), $wraptag, $atts) : join($break, $list);
+ 		}
+ 
+ 		// enclosing breaks should be specified by name only, no '<' or '>'
+@@ -2735,8 +2735,8 @@ $LastChangedRevision$
+ 		global $permlink_mode, $prefs, $permlinks;
+ 
+ 		if (isset($prefs['custom_url_func'])
+-		    and is_callable($prefs['custom_url_func'])
+-		    and ($url = call_user_func($prefs['custom_url_func'], $article_array, PERMLINKURL)) !== FALSE)
++				and is_callable($prefs['custom_url_func'])
++				and ($url = call_user_func($prefs['custom_url_func'], $article_array, PERMLINKURL)) !== FALSE)
+ 		{
+ 			return $url;
+ 		}
+@@ -2768,7 +2768,7 @@ $LastChangedRevision$
+ 				break;
+ 			case 'year_month_day_title':
+ 				list($y,$m,$d) = explode("-",date("Y-m-d",$posted));
+-				$out =  hu."$y/$m/$d/$url_title";
++				$out =	hu."$y/$m/$d/$url_title";
+ 				break;
+ 			case 'id_title':
+ 				if ($prefs['attach_titles_to_permalinks'])
+@@ -2816,7 +2816,7 @@ $LastChangedRevision$
+ 
+ 		$dc = safe_count('txp_discuss','parentid='.intval($ID).' and visible='.VISIBLE);
+ 
+-		$ccount = ($dc) ?  '['.$dc.']' : '';
++		$ccount = ($dc) ?	 '['.$dc.']' : '';
+ 		if (!$comments_mode) {
+ 			return '<a href="'.permlinkurl_id($ID).'/#'.gTxt('comment').
+ 				'">'.$AnnotateInvite.'</a>'. $ccount;
+@@ -2846,8 +2846,8 @@ $LastChangedRevision$
+ 
+ 		$conTitle = ($url_title) ? $url_title : stripSpace($Title);
+ 		return ($GLOBALS['url_mode'])
+-		?	tag($Title,'a',' href="'.hu.$Section.'/'.$ID.'/'.$conTitle.'"')
+-		:	tag($Title,'a',' href="'.hu.'index.php?id='.$ID.'"');
++		? tag($Title,'a',' href="'.hu.$Section.'/'.$ID.'/'.$conTitle.'"')
++		: tag($Title,'a',' href="'.hu.'index.php?id='.$ID.'"');
+ 	}
+ 
+ // -------------------------------------------------------------
+@@ -2976,7 +2976,7 @@ $LastChangedRevision$
+ 		assert_article();
+ 
+ 		extract(lAtts(array(
+-			'name'   => '',
++			'name'	 => '',
+ 			'number' => '',
+ 		), $atts));
+ 
+@@ -3109,8 +3109,20 @@ $LastChangedRevision$
+ 		),$atts));
+ 
+ 		$name = strtolower($name);
+-		if (!empty($thisarticle[$name]))
+-			$out = $thisarticle[$name];
++		if (!empty($thisarticle[$name])) {
++			// if this custom field contains |, we need to compare against all the values
++			if ( strstr($thisarticle[$name], '|') ) {
++				/**
++					TODO Using a loop here because later on I might want to output a list of values in a specific format (wrap, break etc.)
++				*/
++				foreach ( explode('|', $thisarticle[$name]) as $value ) {
++					$arr_values[] = $value;
++				}
++				$out = join(", ", $arr_values);
++			}
++			else
++				$out = $thisarticle[$name];
++		}
+ 		else
+ 			$out = $default;
+ 
+@@ -3235,8 +3247,8 @@ $LastChangedRevision$
+ 	{
+ 		global $plugins, $plugins_ver;
+ 		extract(lAtts(array(
+-			'name'    => '',
+-			'ver'     => '',
++			'name'		=> '',
++			'ver'			=> '',
+ 		),$atts));
+ 
+ 		return parse(EvalElse($thing, @in_array($name, $plugins) and (!$ver or version_compare($plugins_ver[$name], $ver) >= 0)));
+@@ -3249,17 +3261,17 @@ $LastChangedRevision$
+ 		global $thisfile;
+ 
+ 		extract(lAtts(array(
+-			'break'    => br,
++			'break'		 => br,
+ 			'category' => '',
+-			'class'    => __FUNCTION__,
+-			'form'     => 'files',
+-			'label'    => '',
++			'class'		 => __FUNCTION__,
++			'form'		 => 'files',
++			'label'		 => '',
+ 			'labeltag' => '',
+-			'limit'    => 10,
+-			'offset'   => 0,
+-			'sort'     => 'filename asc',
+-			'wraptag'  => '',
+-			'status'   => '4',
++			'limit'		 => 10,
++			'offset'	 => 0,
++			'sort'		 => 'filename asc',
++			'wraptag'	 => '',
++			'status'	 => '4',
+ 		), $atts));
+ 
+ 		if (!is_numeric($status))
+@@ -3305,8 +3317,8 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'filename' => '',
+-			'form'     => 'files',
+-			'id'       => '',
++			'form'		 => 'files',
++			'id'			 => '',
+ 		), $atts));
+ 
+ 		$from_form = false;
+@@ -3351,7 +3363,7 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'filename' => '',
+-			'id'       => '',
++			'id'			 => '',
+ 		), $atts));
+ 
+ 		$from_form = false;
+@@ -3425,7 +3437,7 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'decimals' => 2,
+-			'format'   => '',
++			'format'	 => '',
+ 		), $atts));
+ 
+ 		if (is_numeric($decimals) and $decimals >= 0)
+@@ -3525,7 +3537,7 @@ $LastChangedRevision$
+ 
+ 		if ($thisfile['created']) {
+ 			return fileDownloadFormatTime(array(
+-				'ftime'  => $thisfile['created'],
++				'ftime'	 => $thisfile['created'],
+ 				'format' => $format
+ 			));
+ 		}
+@@ -3544,7 +3556,7 @@ $LastChangedRevision$
+ 
+ 		if ($thisfile['modified']) {
+ 			return fileDownloadFormatTime(array(
+-				'ftime'  => $thisfile['modified'],
++				'ftime'	 => $thisfile['modified'],
+ 				'format' => $format
+ 			));
+ 		}
+@@ -3594,8 +3606,8 @@ $LastChangedRevision$
+ 		assert_file();
+ 
+ 		extract(lAtts(array(
+-			'class'   => '',
+-			'title'   => 0,
++			'class'		=> '',
++			'title'		=> 0,
+ 			'wraptag' => '',
+ 		), $atts));
+ 
+@@ -3626,8 +3638,8 @@ $LastChangedRevision$
+ 		assert_file();
+ 
+ 		extract(lAtts(array(
+-			'class'   => '',
+-			'escape'  => 'html',
++			'class'		=> '',
++			'escape'	=> 'html',
+ 			'wraptag' => '',
+ 		), $atts));
+ 
+@@ -3663,7 +3675,7 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'name'	=> '',
+-			'value'	=> parse($thing)
++			'value' => parse($thing)
+ 		), $atts));
+ 
+ 		if (empty($name))
+@@ -3690,7 +3702,7 @@ $LastChangedRevision$
+ 
+ 		extract(lAtts(array(
+ 			'name'	=> '',
+-			'value'	=> ''
++			'value' => ''
+ 		), $atts));
+ 
+ 		if (empty($name))
+-- 
+1.5.6.5
+

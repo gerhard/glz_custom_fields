@@ -185,20 +185,22 @@ glz_custom_fields plugin, FROM UK WITH LOVE
 
 @author Gerhard Lazu
 @version 1.2
-@copyright Gerhard Lazu, 4 July, 2008
-@package TXP 4.0.6 (2916)
+@copyright Gerhard Lazu, 21 January, 2009
+@package TXP 4.0.8 (r3078)
 @contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger, Steve Dickinson
 @special: Randy Levine, Husain Hakim
 */
 
-// checks if all tables exists and everything is setup properly
-glz_custom_fields_install();
+before_glz_custom_fields();
 
 if (txpinterface == "admin") {
+  // checks if all tables exist and everything is setup properly
+  glz_custom_fields_install();
+  
   // we need some stylesheets & JS
   ob_start("glz_custom_fields_css_js");
   
-  // these globals have been already set in glz_custom_fields_install() which is called everytime
+  // these globals have been already set in before_glz_custom_fields() which is called everytime
   global $all_custom_sets;
   
   // Custom Fields tab under Extensions
@@ -475,7 +477,9 @@ function glz_custom_fields_replace() {
       $custom_value = ( !empty($$custom) ) ?
         $$custom :
         '';
-
+      // DEBUG
+      // dmp($custom_value);
+      
       // the way our custom field value is going to look like
       list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values, $custom_value);
       
@@ -521,7 +525,7 @@ function glz_custom_fields_replace() {
 }
 
 // -------------------------------------------------------------
-// prep our custom fields for the db (watch out for checkboxes, they might have multiple values)
+// prep our custom fields for the db (watch out for multi-selects, checkboxes & radios, they might have multiple values)
 function glz_custom_fields_before_save() {
   // keep only the custom fields
   foreach ($_POST as $key => $value) {
@@ -548,7 +552,7 @@ function glz_custom_fields_save() {
       if (strstr($key, 'custom_')) {
         list($rubbish, $digit) = explode("_", $key);
         // keep only the values that are above 10
-        if ( $digit > 10 ) $set[] = "`$key`='".addslashes(trim($value))."'";
+        if ( $digit > 10 ) $set[] = "`$key`='".trim($value)."'";
       }
     }
     // anything worthy saving?
@@ -592,7 +596,7 @@ function glz_custom_set_types() {
     'text_input',
     'select',
     'multi-select',
-//    'textarea', // scheduled for v1.2
+//    'textarea', // planned for v1.2.x
     'checkbox',
     'radio'
   );
@@ -646,7 +650,7 @@ function glz_get_custom_set($value) {
     if ( $custom_set['name'] == $value )
       return $custom;
   }
-  // if it doesn't return error message
+  // if it doesn't, return error message
   trigger_error(glz_custom_fields_gTxt('doesnt_exist', array('{custom_set_name}' => $value)));
 }
 
@@ -751,6 +755,8 @@ function glz_check_custom_set_name($arr_custom_fields, $custom_set_name, $custom
 // -------------------------------------------------------------
 // formats the custom set output based on its type
 function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $arr_custom_field_values, $custom_value = "") {
+  $arr_custom_field_values = array_map('glz_array_stripslashes', $arr_custom_field_values);
+  
   switch ( $custom_set_type ) {
     case "text_input":
       return array(
@@ -830,7 +836,7 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
   
   foreach ( $arr_values as $key => $value ) {
     $checked = glz_selected_checked('checked', $key, $custom_value);
-
+    
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
     $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"$key\"{$checked} /><label for=\"$key\">$value</label></span><br />";
   }
@@ -841,14 +847,11 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
 
 // -------------------------------------------------------------
 // had to duplicate the default radio() to keep the looping in here and check against existing value
-/**
-  TODO How do we reset radio fields?
-*/
 function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '') {
   $out = array();
   
   foreach ( $arr_values as $key => $value ) {
-    $checked = glz_selected_checked('checked', $key, htmlspecialchars($custom_value));
+    $checked = glz_selected_checked('checked', $key, $custom_value);
     
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
     $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"{$id}_".glz_idify($key)."\"{$checked} /><label for=\"{$id}_".glz_idify($key)."\">$value</label></span><br />";
@@ -861,8 +864,11 @@ function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '') {
 // -------------------------------------------------------------
 // checking if this custom field has selected or checked values
 function glz_selected_checked($nomenclature, $value, $custom_value = '') {
+  // we're comparing against a key which is a "clean" value
+  $custom_value = htmlspecialchars($custom_value);
+  
   // make an array if $custom_value contains multiple values
-  if ( strstr($custom_value, '|') )
+  if ( strpos($custom_value, '|') )
     $arr_custom_value = explode('|', $custom_value);
   
   if ( isset($arr_custom_value) )
@@ -877,16 +883,7 @@ function glz_selected_checked($nomenclature, $value, $custom_value = '') {
 //-------------------------------------------------------------
 // button gets more consistent styling across browsers rather than input type="submit"
 // included in this plugin until in makes it into TXP - if that ever happens...
-function glz_fButton($type,               // form button
-        $name,
-        $contents='Submit',
-        $value,
-        $class='',
-        $id='',
-        $title='',
-        $onClick='',
-        $disabled = false)
-{
+function glz_fButton($type, $name, $contents='Submit', $value, $class='', $id='', $title='', $onClick='', $disabled = false) {
   $o  = '<button type="'.$type.'" name="'.$name.'"';
   $o .= ' value="'.htmlspecialchars($value).'"';
   $o .= ($class)    ? ' class="'.$class.'"' : '';
@@ -922,6 +919,10 @@ function glz_idify($value) {
 }
 
 
+function glz_array_stripslashes(&$value) {
+  return stripslashes($value);
+}
+
 // -------------------------------------------------------------
 // messages that will be available throughout this plugin
 function glz_custom_fields_gTxt($get, $atts = array()) {
@@ -948,7 +949,10 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'check_path'        => 'Make sure all your paths are correct. Check <strong>config.php</strong> and the Admin tab (mainly Advanced).',
     'no_articles_found' => 'No articles with custom fields have been found.',
     'migration_success' => 'Migrating custom fields was successful',
-    'migration_skip'    => '<strong>custom_fields</strong> table already has data in it, migration skipped.'
+    'migration_skip'    => '<strong>custom_fields</strong> table already has data in it, migration skipped.',
+    'search_section_created'  => '<strong>search</strong> section has been created',
+    'custom_sets_all_input'   => 'All custom sets have been set back to input',
+    'custom_fields_removed'   => 'custom_fields table has been removed'
   );
   
   $out = ( strstr($lang[$get], "Ooops!") ) ? // Ooops! would appear 0 in the string...
@@ -1060,12 +1064,15 @@ function glz_values_custom_field($name, $extra) {
       
       if ( count($arr_values) > 0 ) {
         // have our values nicely sorted
+        /**
+          TODO User-configurable. Some folks didn't like this order.
+        */
         natsort($arr_values);
         
         // decode all special characters e.g. ", & etc. and use them for keys
         foreach ( $arr_values as $key => $value )
-          $arr_values_formatted[htmlspecialchars($value)] = $value;
-
+          $arr_values_formatted[htmlspecialchars($value)] = stripslashes($value);
+        
         // if this is a range, format ranges accordingly
         return glz_format_ranges($arr_values_formatted, $custom_set_name);
       }
@@ -1099,7 +1106,7 @@ function glz_all_existing_custom_values($name, $extra) {
         ORDER BY 
           `$name`
         ");
-  
+      
       // have our values nicely sorted
       /**
         TODO User-configurable. Some folks didn't like this order.
@@ -1131,15 +1138,21 @@ function glz_all_existing_custom_values($name, $extra) {
         // keep only the unique ones
         $out = array_unique($out);
         // keys and values need to be the same
-        return php4_array_combine($out, $out);
+        $out = php4_array_combine($out, $out);
       }
+      
       // check if this is a range
       else if ( strstr($values_check, '-') && strstr($custom_set_name, 'range') )
         // keys won't have the unit ($, £, m<sup>3</sup>, etc.) values will
-        return glz_format_ranges($arr_values, $custom_set_name);
+        $out = glz_format_ranges($arr_values, $custom_set_name);
       else
         // keys and values need to be the same
-        return php4_array_combine($arr_values, $arr_values);
+        $out = php4_array_combine($arr_values, $arr_values);
+      
+      // calling stripslashes on all array values
+      array_map('glz_array_stripslashes', $out);
+      
+      return $out;
     }
   }
   else
@@ -1225,9 +1238,9 @@ function glz_new_custom_field($name, $table, $extra) {
           // don't insert empty values
           if ( !empty($value) )
             // make sure special characters are escaped before inserting them in the database
-            $value = addslashes(trim($value));
+            $value = addslashes(addslashes(trim($value)));
             // if this is the last value, query will have to be different
-            $insert .= ( addslashes(end($arr_values)) != $value ) ?
+            $insert .= (addslashes(addslashes(end($arr_values))) != $value ) ?
               "('{$custom_set}','{$value}'), " :
               "('{$custom_set}','{$value}')";
         }
@@ -1357,35 +1370,6 @@ function glz_mark_migration() {
   safe_query($query);
 }
 
-// -------------------------------------------------------------
-// we might have multiple values for custom fields, like must use grep % %
-function glz_buildCustomSql($custom,$pairs) {
-  if ($pairs) {
-    $pairs = doSlash($pairs);
-    foreach( $pairs as $k => $v ) {
-      if ( in_array(strtolower($k),$custom) ) {
-        $no = array_keys($custom,strtolower($k));
-        $arr_values = explode(",",$v);
-        if ( is_array($arr_values) ) {
-          if ( count($arr_values) > 1 ) {
-            $custom_query = "AND (custom_{$no[0]} LIKE '%{$arr_values[0]}%'";
-            for ( $i=1; $i < count($arr_values); $i++ ) { 
-              $custom_query .= " OR custom_{$no[0]} LIKE '%{$arr_values[$i]}%'";
-            }
-            $custom_query .= ")";
-            $out[] = $custom_query;
-          }
-          else
-            $out[] = "AND custom_{$no[0]} LIKE '%{$arr_values[0]}%'";
-        }
-      }
-    }
-  }
-  return (!empty($out)) ?
-    ' '.join(' ',$out).' ' :
-    FALSE; 
-}
-
 
 
 #####################
@@ -1395,7 +1379,7 @@ function glz_buildCustomSql($custom,$pairs) {
 // -------------------------------------------------------------
 /**
  * DROP-DOWN SEARCH FORM
- Call it like this: <txp:glz_custom_fields_search_form results_page="listings" searchby="Area:input,City:select,Price:radio" />
+ Call it like this: <txp:glz_custom_fields_search_form results_page="search" searchby="Area:input,City:select,Price:radio" />
  */
 function glz_custom_fields_search_form($atts) {
   global $all_custom_sets;
@@ -1403,40 +1387,61 @@ function glz_custom_fields_search_form($atts) {
   // DEBUG
   // dmp($all_custom_sets);
   
+  // we have $_POST, let's see if it comes from glz_custom_fields_search
+  if ( $_POST AND in_array("glz_custom_fields_search", $_POST) ) {
+    // stripPost() doesn't know how to handle arrays
+    foreach ($_POST as $key => $value)
+      $_POST[$key] = (is_array($value)) ? stripslashes(join("|", $value)) : stripslashes($value);
+  }
+  else
+    // need to create an empty array if this page isn't generated from glz_custom_fields_search
+    $incoming = array();
+  
+  // DEBUG
+  // dmp($incoming);
+  
   extract(lAtts(array(
-    'results_page'=> "default",
+    'results_page'=> "search",
     'searchby'    => "",
     'labels'      => 1
   ),$atts));
   
   if ( !empty($searchby) ) {
-    // initialize our custom sets search array
+    // initialize our custom search array
     $arr_query_custom = array();
     
-    // see which custom sets are searchby values associated to
+    // see which custom sets are searchby values associated to - if any
     if ( strstr($searchby, ",") ) {
       // go through values 1 by 1 and add them to the above array
-      foreach ( explode(",", $searchby) as $query_custom_set ) {
-        // strip whitespace from the beginning and ending of this custom set
-        $query_custom_set = trim($query_custom_set);
+      foreach ( explode(",", $searchby) as $query_custom ) {
+        // strip whitespace from the beginning and end
+        $query_custom = trim($query_custom);
         // now we have types for our search fields
         // they are separated by :
-        if ( strstr($query_custom_set, ":"))
-          list($query_custom_set, $query_custom_type) = explode(":", $query_custom_set);
+        if ( strstr($query_custom, ":") )
+          list($query_custom, $query_custom_type) = explode(":", $query_custom);
+        else
+          // if we don't unset this, it will use the one from the previous searchby value
+          unset($query_custom_type);
         
-        // get the values we have in our Prefs for this custom set
-        $custom = array_search($query_custom_set, $GLOBALS['prefs']);
+        // get the values we have in our Prefs for this custom set - we might not get anything back
+        $custom = array_search($query_custom, $GLOBALS['prefs']);
         
         if ( $custom ) {
           // let's make sure we have a custom set type before building our custom sets search array
           if (!isset($query_custom_type))
-            list($query_custom_set, $query_custom_type) = array_values($all_custom_sets[$custom]);
-          // add this custom set to our search array
-          $arr_query_custom[$custom] = array(
-            'name'  => $query_custom_set,
-            'type'  => $query_custom_type);
+            list($query_custom, $query_custom_type) = array_values($all_custom_sets[$custom]);
         }
-        // otherwise discard it silently
+        // otherwise we're dealing with a section, category or search input
+        else {
+          if ( !isset($query_custom_type) )
+            // our searchby values default to text_input if they're not custom sets
+            $query_custom_type = "text_input";
+        }
+        // add this custom set to our search array
+        $arr_query_custom[$custom] = array(
+          'name'  => $query_custom,
+          'type'  => $query_custom_type);
       }
     }
     else
@@ -1451,25 +1456,40 @@ function glz_custom_fields_search_form($atts) {
       .'<fieldset>'.n;
 
     // build our selects
-    foreach ( $arr_query_custom as $custom => $custom_set ) {
-      // custom_x_set needs to be custom-x for ids - don't ask...
-      $custom_id = glz_custom_number($custom, "-");
-      // custom_x_set now becomes custom_x
-      $custom = glz_custom_number($custom);
+    foreach ( $arr_query_custom as $custom => $custom_search ) {
+      // if the key is an integer, we're dealing with a section, category or search input
+      if ( !is_int($custom) ) {
+        // custom_x_set needs to be custom-x for ids - don't ask... (legacy stuff)
+        $custom_id = glz_custom_number($custom, "-");
+        // custom_x_set now becomes custom_x
+        $custom = glz_custom_number($custom);
+      }
+      else {
+        // set both the id and name to e.g. section or category
+        $custom_id = strtolower($custom_search['name']);
+        $custom = $custom_id;
+      }
       
-      // get all existing custom values for live articles
-      $arr_custom_field_values = glz_custom_fields_MySQL('all_values', $custom, '', array('custom_set_name' => $custom_set['name'], 'status' => 4));
+      // get all existing values for live articles
+      $arr_custom_values = glz_custom_fields_MySQL('all_values', $custom, '', array('custom_set_name' => $custom_search['name'], 'status' => 4));
+      // DEBUG
+      // dmp($arr_custom_values);
       
-      if ( is_array($arr_custom_field_values) ) {
+      if ( is_array($arr_custom_values) ) {
+        $checked_value = (isset($incoming[$custom])) ? $incoming[$custom] : '';
+        // join the values if they are multiple ones e.g. coming in an array
+        if ( is_array($checked_value) )
+          $checked_value = join("|", $checked_value);
         // the way our custom field value is going to look like
-        list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values);
+        list($custom_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_search['type'], $arr_custom_values, $checked_value);
         
         // DEBUG
-        // dmp($custom_set_value);
+        // dmp($custom_value);
+        // dmp($custom_search);
 
         $out[] = ($labels) ?
-          graf("<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\"") :
-          graf("$custom_set_value", " class=\"$custom_class\"");
+          graf("<label for=\"$custom_id\">{$custom_search['name']}</label><br />$custom_value", " class=\"$custom_class\"") :
+          graf("$custom_value", " class=\"$custom_class\"");
       }
       else
         return '<p>'.glz_custom_fields_gTxt('no_articles_found').'</p></form>';
@@ -1489,475 +1509,28 @@ function glz_custom_fields_search_form($atts) {
 }
 
 
-// -------------------------------------------------------------
-// Slightly altered getCustomFields (that silly 10 hard limit...). Internal, no need to call it.
-// There is a TXP patch available for this, as well as this: http://github.com/gerhard/textpattern-4-0/tree/txp-gerhard
-function glz_getCustomFields() {
-  global $prefs;
-  $out = array();
-  $i = 0;
-  $custom_fields_num = count(preg_grep("(^custom_\d+_set$)", array_keys($prefs)));
-  while ($i < $custom_fields_num) {
-    $i++;
-    if (!empty($prefs['custom_'.$i.'_set']))
-      $out[$i] = strtolower($prefs['custom_'.$i.'_set']);
-  }
-  return $out;
-}
-
-
-// -------------------------------------------------------------
-// Slightly altered custom_field - multiple values custom fields
-function glz_custom_field($atts) {
-  global $thisarticle, $prefs;
-  assert_article();
-  
-  extract(lAtts(array(
-    'name' => @$prefs['custom_1_set'],
-    'escape' => '',
-    'default' => '',
-  ),$atts));
-
-  $name = strtolower($name);
-  if (!empty($thisarticle[$name])) {
-    // if this custom field contains |, we need to compare against all the values
-    if ( strstr($thisarticle[$name], '|') ) {
-      /**
-        TODO Using a loop here because later on I might want to output a list of values in a specific format (wrap, break etc.)
-      */
-      foreach ( explode('|', $thisarticle[$name]) as $value ) {
-        $arr_values[] = $value;
-      }
-      $out = join(", ", $arr_values);
-    }
-    else
-      $out = $thisarticle[$name];
-  }
-  else
-    $out = $default;
-
-  return ($escape == 'html' ? escape_output($out) : $out);
-}
-
-
-// -------------------------------------------------------------
-// Slightly altered if_custom_field to deal with custom fields > 10 & multiple values
-function glz_if_custom_field($atts, $thing) {
-  global $thisarticle, $prefs;
-  assert_article();
-  extract(lAtts(array(
-    'name' => @$prefs['custom_1_set'],
-    'val' => NULL,
-  ),$atts));
-  $name = strtolower($name);
-  
-  if ($val !== NULL) {
-    $cond = (@$thisarticle[$name] == $val);
-    // if this custom field contains |, we need to compare against all set values
-    if ( strstr($thisarticle[$name], '|') ) {
-      foreach ( explode('|', $thisarticle[$name]) as $value ) {
-        if ( $val == $value ) {
-          $cond = TRUE;
-          break;
-        }
-      }
-    }
-  }
-  else
-    $cond = !empty($thisarticle[$name]);
-  
-  return parse(EvalElse($thing, $cond));
-}
-
-// -------------------------------------------------------------
-/**
- * DEALS WITH ARTICLES - PROPERTIES - LISTS, SLIGHTLY ALTERED TO USE OUR CUSTOM SEARCH VALUES WHEN FILTERING & DISPLAY CUSTOM FIELDS > 10
-Call it like you would article()
-http://textpattern.net/wiki/index.php?title=Txp:article_/
-
-* no_results
-The section to display when no articles match the search query by glz_custom_fields_search_form.
-Points to no_results section by default.
-* no_results_redirect
-Controls redirection if there are no results.
-On by default.
-To turn re-direction off when there are no results, do e.g. <txp:glz_article_custom no_results_redirect="0" />
- */
-function glz_article($atts) {
-  global $is_article_body, $has_article_tag;
-  if ($is_article_body) {
-    trigger_error(gTxt('article_tag_illegal_body'));
-    return '';
-  }
-  $has_article_tag = true;
-  return glz_parseArticles($atts);
-}
-
-// -------------------------------------------------------------
-/**
- * DEALS WITH ARTICLES - PROPERTIES - LISTS, SLIGHTLY ALTERED TO USE OUR CUSTOM SEARCH VALUES WHEN FILTERING & DISPLAY CUSTOM FIELDS > 10
-Call it like you would article_cutom()
-http://textpattern.net/wiki/index.php?title=Txp:article_custom/
-
-* no_results
-The section to display when no articles match the search query by glz_custom_fields_search_form.
-Points to no_results section by default.
-* no_results_redirect
-Controls redirection if there are no results.
-On by default.
-To turn re-direction off when there are no results, do e.g. <txp:glz_article_custom no_results_redirect="0" />
- */
-function glz_article_custom($atts) {
-  return glz_parseArticles($atts, '1');
-}
-
-// -------------------------------------------------------------
-// this decides what needs to be called, doArticle or doArticles. Using this to call our modified glz_doArticles & glz_doArticle
-function glz_parseArticles($atts, $iscustom = '') {
-  global $pretext, $is_article_list;
-  $old_ial = $is_article_list;
-  $is_article_list = ($pretext['id'] && !$iscustom)? false : true;
-  article_push();
-  $r = ($is_article_list) ?
-    glz_doArticles($atts, $iscustom) :
-    glz_doArticle($atts);
-  article_pop();
-  $is_article_list = $old_ial;
-
-  return $r;
-}
-
-
-// -------------------------------------------------------------
-// Slightly altered populateArticleData - needed to call glz_getCustomFields instead
-function glz_populateArticleData($rs) {
-  extract($rs);
-
-  trace_add("[".gTxt('Article')." $ID]");
-  $out['thisid']          = $ID;
-  $out['posted']          = $uPosted;
-  $out['modified']        = $LastMod;
-  $out['annotate']        = $Annotate;
-  $out['comments_invite'] = $AnnotateInvite;
-  $out['authorid']        = $AuthorID;
-  $out['title']           = $Title;
-  $out['url_title']       = $url_title;
-  $out['category1']       = $Category1;
-  $out['category2']       = $Category2;
-  $out['section']         = $Section;
-  $out['keywords']        = $Keywords;
-  $out['article_image']   = $Image;
-  $out['comments_count']  = $comments_count;
-  $out['body']            = $Body_html;
-  $out['excerpt']         = $Excerpt_html;
-  $out['override_form']   = $override_form;
-  $out['status']          = $Status;
-
-  $custom = glz_getCustomFields();
-  if ($custom) {
-    foreach ($custom as $i => $name)
-      $out[$name] = $rs['custom_' . $i];
-  }
-  
-  global $thisarticle;
-  $thisarticle = $out;
-}
-
-
-// -------------------------------------------------------------
-// using this to "inject" our custom search values
-function glz_doArticle($atts) {
-  global $pretext, $prefs, $thisarticle;
-  extract($prefs);
-  extract($pretext);
-
-  extract(gpsa(array('parentid', 'preview')));
-
-  extract(lAtts(array(
-    'allowoverride' => '1',
-    'form'          => 'default',
-    'status'        => '4',
-  ), $atts, 0));
-
-  if ($status and !is_numeric($status))
-    $status = getStatusNum($status);
-
-  if (empty($thisarticle) or $thisarticle['thisid'] != $id) {
-    $thisarticle = NULL;
-
-    $q_status = ($status ? 'and Status = '.intval($status) : 'and Status in (4,5)');
-
-    $rs = safe_row("*, unix_timestamp(Posted) as uPosted",
-        "textpattern", 'ID = '.intval($id)." $q_status limit 1");
-
-    if ($rs) {
-      extract($rs);
-      glz_populateArticleData($rs);
-    }
-  }
-
-  if ( !empty($thisarticle) and $thisarticle['status'] == $status ) {
-    extract($thisarticle);
-    $thisarticle['is_first'] = 1;
-    $thisarticle['is_last'] = 1;
-
-    $form = ($allowoverride and $override_form) ? $override_form : $form;
-
-    $article = parse_form($form);
-
-    if ( $use_comments and $comments_auto_append )
-      $article .= parse_form('comments_display');
-
-    unset($GLOBALS['thisarticle']);
-
-    return $article;
-  }
-}
-
-
-// -------------------------------------------------------------
-// using this to "inject" our custom search values
-function glz_doArticles($atts, $iscustom) {
-  global $pretext, $prefs, $txpcfg;
-  extract($pretext);
-  extract($prefs);
-  $customFields = glz_getCustomFields();
-  $customlAtts = array_null(array_flip($customFields));
-  // dmp($customFields);
-  //getting attributes
-  $theAtts = lAtts(array(
-    'form'      => 'default',
-    'listform'  => '',
-    'searchform'=> '',
-    'limit'     => 10,
-    'pageby'    => '',
-    'category'  => '',
-    'section'   => '',
-    'excerpted' => '',
-    'author'    => '',
-    'sort'      => '',
-    'sortby'    => '',
-    'sortdir'   => '',
-    'month'     => '',
-    'keywords'  => '',
-    'frontpage' => '',
-    'id'        => '',
-    'time'      => 'past',
-    'status'    => '4',
-    'pgonly'    => 0,
-    'searchall' => 1,
-    'searchsticky' => 0,
-    'allowoverride' => (!$q and !$iscustom),
-    'offset'    => 0,
-    'no_results' => 'no_results',
-    'no_results_redirect'  => 1
-  )+$customlAtts,$atts);
-
-  // if an article ID is specified, treat it as a custom list
-  $iscustom = (!empty($theAtts['id'])) ?
-    true :
-    $iscustom;
-
-  //for the txp:article tag, some attributes are taken from globals;
-  //override them before extract
-  if (!$iscustom) {
-    if ($c && !empty($theAtts['category']))
-      $theAtts['category'] = $c;
-    $theAtts['section'] = ($s && $s!='default') ? $s : '';
-    $theAtts['author'] = (!empty($author) ? $author : '');
-    $theAtts['month'] = (!empty($month) ? $month : '');
-    $theAtts['frontpage'] = ($s && $s=='default') ? true:  false;
-    $theAtts['excerpted'] = '';     
-  }
-  extract($theAtts);
-  
-  $pageby = (empty($pageby) ? $limit : $pageby);
-
-  // treat sticky articles differently wrt search filtering, etc
-  if (!is_numeric($status))
-    $status = getStatusNum($status);
-  $issticky = ($status == 5);
-    
-  //give control to search, if necesary
-  if($q && !$iscustom && !$issticky) {
-    include_once txpath.'/publish/search.php';
-    
-    $s_filter = ($searchall ? filterSearch() : '');
-    $q        = doSlash($q);
-    $match    = ", match (Title,Body) against ('$q') as score";
-    $search   = " and (Title rlike '$q' or Body rlike '$q') $s_filter";
-
-    // searchall=0 can be used to show search results for the current section only
-    if ($searchall)
-      $section = '';
-    if (!$sort)
-      $sort ='score desc';
-  }
-  else {
-    $match = $search = '';
-    if (!$sort)
-      $sort='Posted desc';
-  }
-
-  // for backwards compatibility
-  // sortby and sortdir are deprecated
-  if ($sortby) {
-    if (!$sortdir)
-      $sortdir = 'desc';
-    $sort = "$sortby $sortdir";
-  }
-  elseif ($sortdir)
-    $sort = "Posted $sortdir";
-
-  //Building query parts
-  $frontpage = ($frontpage and (!$q or $issticky)) ? filterFrontPage() : '';
-  $category  = join("','", doSlash(do_list($category))); 
-  $category  = (!$category)  ? '' : " and (Category1 IN ('".$category."') or Category2 IN ('".$category."'))";
-  $section   = (!$section)   ? '' : " and Section IN ('".join("','", doSlash(do_list($section)))."')";
-  $excerpted = ($excerpted=='y')  ? " and Excerpt !=''" : '';
-  $author    = (!$author)    ? '' : " and AuthorID IN ('".join("','", doSlash(do_list($author)))."')";
-  $month     = (!$month)     ? '' : " and Posted like '".doSlash($month)."%'";
-  $id        = (!$id)        ? '' : " and ID = '".intval($id)."'";
-  switch ($time) {
-    case 'any':
-      $time = ""; break;
-    case 'future':
-      $time = " and Posted > now()"; break;
-    default:
-      $time = " and Posted <= now()";
-  }
-  if (!is_numeric($status))
-    $status = getStatusNum($status);
-    
-  $custom_sql = '';
-  
-  // DEBUG
-  // dmp($customFields);
-  if ($customFields) {
-    foreach($customFields as $cField) {
-      if (isset($atts[$cField]))
-        $customPairs[$cField] = $atts[$cField];
-    }
-    
-    $arr_post_custom = preg_grep("(^custom_\d+$)", array_keys($_POST));
-    // DEBUG
-    // dmp($arr_post_custom);
-    // dmp($_POST);
-    foreach ( $arr_post_custom as $custom ) { 
-      // skip if values are the same - users have left the default
-      if ( ps($custom) == $custom )
-        continue;
-      // if there is a value, add it for the query
-      if ( ps($custom) ) {
-        // need the digit to find out the custom field name
-        list($rubbish, $digit) = explode("_", $custom);
-        $customPairs[$prefs['custom_'.$digit.'_set']] = ps($custom);
-      }
-    }
-    // DEBUG
-    // dmp($customPairs);
-    
-    if(!empty($customPairs))
-      $custom_sql =  glz_buildCustomSql($customFields,$customPairs);
-  }
-
-  //Allow keywords for no-custom articles. That tagging mode, you know
-  if ($keywords) {
-    $keys = doSlash(do_list($keywords));
-    foreach ($keys as $key) {
-      $keyparts[] = "FIND_IN_SET('".$key."',Keywords)";
-    }
-    $keywords = " and (" . join(' or ',$keyparts) . ")"; 
-  }
-
-  if ($q and $searchsticky)
-    $statusq = ' and Status >= 4';
-  elseif ($id)
-    $statusq = ' and Status >= 4';
-  else
-    $statusq = ' and Status = '.intval($status);
-  
-  $where = "1=1" . $statusq. $time.
-    $search . $id . $category . $section . $excerpted . $month . $author . $keywords . $custom_sql . $frontpage;
-  // DEBUG
-  // dmp($where);
-  
-  //do not paginate if we are on a custom list
-  if (!$iscustom and !$issticky) {
-    $grand_total = safe_count('textpattern',$where);
-    $total = $grand_total - $offset;
-    $numPages = ceil($total/$pageby);  
-    $pg = (!$pg) ? 1 : $pg;
-    $pgoffset = $offset + (($pg - 1) * $pageby);  
-    // send paging info to txp:newer and txp:older
-    $pageout['pg']       = $pg;
-    $pageout['numPages'] = $numPages;
-    $pageout['s']        = $s;
-    $pageout['c']        = $c;
-    $pageout['grand_total'] = $grand_total;
-    $pageout['total']    = $total;
-
-    global $thispage;
-    if (empty($thispage))
-      $thispage = $pageout;
-    if ($pgonly)
-      return;
-  }
-  else
-    $pgoffset = $offset;
-  
-  $rs = safe_rows_start("*, unix_timestamp(Posted) as uPosted".$match, 'textpattern', 
-  $where.' order by '.doSlash($sort).' limit '.intval($pgoffset).', '.intval($limit));
-  // get the form name
-  if ($q and !$iscustom and !$issticky)
-    $fname = ($searchform ? $searchform : 'search_results');
-  else
-    $fname = ($listform ? $listform : $form);
-  
-  if ($rs) {
-    $count = 0;
-    
-    $articles = array();
-    while ( $a = nextRow($rs) ) {
-      ++$count;
-      
-      glz_populateArticleData($a);
-      global $thisarticle, $uPosted, $limit;
-      
-      $thisarticle['is_first'] = ($count == 1);
-      $thisarticle['is_last'] = ($count == numRows($rs));
-      
-      if (@constant('txpinterface') === 'admin' and gps('Form'))
-        $articles[] = parse(gps('Form'));
-      elseif ($allowoverride and $a['override_form'])
-        $articles[] = parse_form($a['override_form']);
-      else
-        $articles[] = parse_form($fname);
-      
-      // sending these to paging_link(); Required?
-      $uPosted = $a['uPosted'];
-      $limit = $limit;
-
-      unset($GLOBALS['thisarticle']);
-
-    }
-    if ( count($articles) == "0" && $no_results_redirect )
-      header('Location: '.hu.$no_results);
-    else
-      return join('',$articles);
-  }
-}
-
-
 
 ##########################
 ##### PRE-REQUISITES #####
 ##########################
 
 // -------------------------------------------------------------
+// we are setting up the pre-requisite values for glz_custom_fields
+function before_glz_custom_fields() {
+  // we will be reusing these globals across the whole plugin
+  global $all_custom_sets, $glz_notice, $prefs;
+  
+  // let's initialize our glz_notice, available throughout the entire plugin
+  $glz_notice = array();
+  
+  // let's get all custom field sets from prefs
+  $all_custom_sets = glz_custom_fields_MySQL("all");
+}
+
+
+// -------------------------------------------------------------
 // checks if custom_fields table exists
 function glz_custom_fields_install() {
-  // we will be reusing these globals across the whole plugin
   global $all_custom_sets, $glz_notice, $prefs;
   
   // if jQuery is not present, trigger error
@@ -1967,8 +1540,17 @@ function glz_custom_fields_install() {
     trigger_error(glz_custom_fields_gTxt('check_path'));
   }
   
-  // let's initialize our glz_notice, available throughout the entire plugin
-  $glz_notice = array();
+  // if we don't have a search section, let's create it because we'll need it when searching by custom fields
+  if( !getRow("SELECT name FROM `".PFX."txp_section` WHERE name='search'") ) {
+    safe_query("
+      INSERT INTO 
+        `".PFX."txp_section` (`name`, `page`, `css`, `is_default`, `in_rss`, `on_frontpage`, `searchable`, `title`)
+      VALUES
+        ('search', 'default', 'default', '0', '0', '0', '0', 'Search')
+    ");
+    // add a notice that search section has bee created
+    $glz_notice[] = glz_custom_fields_gTxt("search_section_created");
+  }
   
   // if we don't have the custom_fields table, let's create it
   if ( !getRows("SHOW TABLES LIKE '".PFX."custom_fields'") ) {
@@ -1981,10 +1563,6 @@ function glz_custom_fields_install() {
     ");
   }
   else {
-    // let's get all custom field sets from prefs
-    // we will be assigning the result of this query to a global
-    $all_custom_sets = glz_custom_fields_MySQL("all");
-    
     // if we have definitely migrated using this function, skip everything
     if ( isset($prefs['glz_custom_fields_migrated']) )
       return;
@@ -2045,14 +1623,24 @@ function glz_custom_fields_install() {
 
 
 // -------------------------------------------------------------
-// uninstalls glz_custom_fields by doing the following things:
-// 1. remove all custom fields above 10 in txp_prefs
-// 2. change the remaining custom fields back to input
-// 3. remove custom_fields table
+// uninstalls glz_custom_fields
 function glz_custom_fields_uninstall() {
-  /**
-    TODO Uninstall functions
-  */
+  global $all_custom_sets, $glz_notice;
+  
+  // change all custom fields back to input
+  foreach ($all_custom_sets as $custom_set) {
+    glz_custom_fields_MySQL("update", $custom, PFX."txp_prefs", array(
+      'custom_set_type'   => "input",
+      'custom_set_name'   => $custom_set['name']
+    ));
+  }
+  $glz_notice[] = glz_custom_fields_gTxt("custom_sets_all_input");
+  
+  // remove custom_fields table
+  safe_query("
+    DROP TABLE `".PFX."custom_fields`
+  ");
+  $glz_notice[] = glz_custom_fields_gTxt("custom_fields_removed");
 }
 
 
