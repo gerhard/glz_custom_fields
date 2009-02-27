@@ -818,7 +818,7 @@ function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value =
       $name .= "[]";
     }
 
-    return "<select id=\"$id\" name=\"$name\" class=\"list\"$multi>".
+    return "<select id=\"".glz_idify($id)."\" name=\"$name\" class=\"list\"$multi>".
       ($blank_first ? "<option value=\"\"$selected></option>" : '').
       ( $out ? join('', $out) : '').
       "</select>";
@@ -838,7 +838,7 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
     $checked = glz_selected_checked('checked', $key, $custom_value);
     
     // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
-    $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"$key\"{$checked} /><label for=\"$key\">$value</label></span><br />";
+    $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"".glz_idify($key)."\"{$checked} /><label for=\"".glz_idify($key)."\">$value</label></span><br />";
   }
 
   return join('', $out);
@@ -914,14 +914,44 @@ function php4_array_combine($keys, $values) {
 // -------------------------------------------------------------
 // converts all values into id safe ones
 function glz_idify($value) {
-  // replace all non-word characters
-  return preg_replace("/\W/", "", $value);
+  $patterns[0] = "/\s/";
+  $replacements[0] = "-";
+  $patterns[1] = "/[^a-z\-]/";
+  $replacements[1] = "";
+  
+  return preg_replace($patterns, $replacements, strtolower($value));
 }
 
 
+// -------------------------------------------------------------
+// strips slashes in arrays, used in conjuction with e.g. array_map
 function glz_array_stripslashes(&$value) {
   return stripslashes($value);
 }
+
+
+// -------------------------------------------------------------
+// returns all sections/categories that are searchable
+function glz_all_searchable_sections_categories($type) {
+  $type = (in_array($type, array('category', 'section')) ? $type : 'section');
+  
+  $condition = "";
+  
+  if ( $type == "section" )
+    $condition .= "searchable='1'";
+  else
+    $condition .= "name <> 'root' AND type='article'";
+    
+  $result = safe_rows('*', "txp_{$type}", $condition);
+  
+  $out = array();
+  foreach ($result as $value) {
+    $out[] = $value['name'];
+  }
+  
+  return join(",", $out);
+}
+
 
 // -------------------------------------------------------------
 // messages that will be available throughout this plugin
@@ -1379,31 +1409,32 @@ function glz_mark_migration() {
 // -------------------------------------------------------------
 /**
  * DROP-DOWN SEARCH FORM
- Call it like this: <txp:glz_custom_fields_search_form results_page="search" searchby="Area:input,City:select,Price:radio" />
+ Call it like this: <txp:glz_custom_fields_search_form results_page="search" searchby="Area:input,City:select,Price:radio,section" section="default,articles" category="textpattern" />
  */
 function glz_custom_fields_search_form($atts) {
-  global $all_custom_sets;
+  global $all_custom_sets, $s;
   
   // DEBUG
   // dmp($all_custom_sets);
   
   // we have $_POST, let's see if it comes from glz_custom_fields_search
+  // DEBUG
+  // dmp($_POST);
+  $incoming = array();
   if ( $_POST AND in_array("glz_custom_fields_search", $_POST) ) {
     // stripPost() doesn't know how to handle arrays
     foreach ($_POST as $key => $value)
-      $_POST[$key] = (is_array($value)) ? stripslashes(join("|", $value)) : stripslashes($value);
+      $incoming[$key] = (is_array($value)) ? stripslashes(join(",", $value)) : stripslashes($value);
   }
-  else
-    // need to create an empty array if this page isn't generated from glz_custom_fields_search
-    $incoming = array();
-  
   // DEBUG
   // dmp($incoming);
   
   extract(lAtts(array(
-    'results_page'=> "search",
-    'searchby'    => "",
-    'labels'      => 1
+    'results_page'  => "search",
+    'searchby'      => "",
+    'section'       => "all",
+    'category'      => "all",
+    'labels'        => 1
   ),$atts));
   
   if ( !empty($searchby) ) {
@@ -1434,9 +1465,19 @@ function glz_custom_fields_search_form($atts) {
         }
         // otherwise we're dealing with a section, category or search input
         else {
-          if ( !isset($query_custom_type) )
-            // our searchby values default to text_input if they're not custom sets
-            $query_custom_type = "text_input";
+          if ( !isset($query_custom_type) ) {
+            switch($query_custom) {
+              case "section":
+                $query_custom_type = "checkbox";
+                break;
+              case "category":
+                $query_custom_type = "checkbox";
+                break;
+              default:
+                $query_custom_type = "text_input";
+                break;
+            }
+          }
         }
         // add this custom set to our search array
         $arr_query_custom[$custom] = array(
@@ -1447,14 +1488,11 @@ function glz_custom_fields_search_form($atts) {
     else
       // we are searching for a single custom set, add it to our custom sets search array
       $arr_query_custom[$searchby] = array_search($query_custom_set, $GLOBALS['prefs']);
-    
-    // DEBUG
-    // dmp($arr_query_custom);
-
+      
     // start our form
     $out[] = '<form method="post" action="'.hu.$results_page.'">'.n
       .'<fieldset>'.n;
-
+    
     // build our selects
     foreach ( $arr_query_custom as $custom => $custom_search ) {
       // if the key is an integer, we're dealing with a section, category or search input
@@ -1486,7 +1524,7 @@ function glz_custom_fields_search_form($atts) {
         // DEBUG
         // dmp($custom_value);
         // dmp($custom_search);
-
+        
         $out[] = ($labels) ?
           graf("<label for=\"$custom_id\">{$custom_search['name']}</label><br />$custom_value", " class=\"$custom_class\"") :
           graf("$custom_value", " class=\"$custom_class\"");
@@ -1494,9 +1532,15 @@ function glz_custom_fields_search_form($atts) {
       else
         return '<p>'.glz_custom_fields_gTxt('no_articles_found').'</p></form>';
     }
-
+    
+    // there will be default sections & categories
+    foreach (array("section", "category") as $value) {
+      $values = (($$value == "all") ? glz_all_searchable_sections_categories($value, $$value) : $$value);
+      $out[] = hInput("{$value}['default']", $values);
+    }
+    
     // end our form
-    $out[] = glz_fButton("submit", "submit", "Submit", "glz_custom_fields_search").n
+    $out[] = glz_fButton("submit", "submit", "Search", "glz_custom_fields_search").n
          ."</fieldset>".n
          ."</form>".n.n;
     // DEBUG
