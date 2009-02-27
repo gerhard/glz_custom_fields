@@ -113,40 +113,18 @@ if (0) {
 
   <h2>Requirements</h2>
   <ul>
-   <li>minimum <strong>TXP 4</strong> (<a href="http://www.tetpattern.com/download" title="Latest Stable Textpattern Download">TXP 4.0.6</a> recommended)</li>
+   <li>minimum <strong>TXP 4</strong> (<a href="http://www.tetpattern.com/download" title="Latest Stable Textpattern Download">TXP 4.0.8</a> recommended). Best approach would be to download <a href="http://github.com/gerhard/textpattern-4-0/tree/txp-gerhard">my patched version</a> of TXP 4.0.8. A patch against TXP r3087 will be released soon.</li>
    <li><strong>jquery.js</strong> present in <strong>textpattern</strong> folder. Please make sure your jQuery is at least v1.2.</li>
    <li>preferably, a clean TXP install. If you have been using various custom fields hacks, <strong>PLEASE back-up your database</strong> before using this plugin. While it won't delete anything automatically, you can delete all your custom fields data (<strong>and I really mean all of it</strong>) if not careful. We still don't have an automatic import functionality, but if you haven't performed any hacks on the TXP's default custom fields don't worry, integration will be seamless (as will all upgrades from glz_custom_fields 1.0). Having said that, database back-up is <strong>STRONGLY</strong> advised.</li>
-   <li>unfortunately, a hack is required to get custom fields > 10 on single articles, please check this page: <a href="http://gerhardlazu.com/blog/51/glz_custom_fields-11-released">glz_custom_fields 1.1 released</a></li>
   </ul>
 
   <h2>Usage and Options</h2>
-  <p>Because this is a back-end plugin primarily, there are only a few front-end functions:</p>
-
-  <code class="txp">&lt;txp:glz_if_custom_field name="Rating" val="4">...&lt;/txp:glz_if_custom_field></code>
-  <p>This is similar to <code>&lt;txp:if_custom_field /&gt;</code> so please refer to the <a href="#">TextBook</a> for documentation. The only difference is that this tag will look past custom_10 and it searches custom fields with multiple values nicely (e.g. value 1|value 2|value 3).</p>
-
-  <code class="txp">&lt;txp:glz_custom_field name="Rating" /></code>
-  <p>This is similar to <code>&lt;txp:custom_field /&gt;</code> so please refer to the <a href="#">TextBook</a> for documentation. The only difference is that this tag will look past custom_10.</p>
-
-  <code class="txp">&lt;txp:glz_custom_fields_search_form results_page="search" searchby="Area,City,Price" /></code>
+  <p>Because this is a back-end plugin primarily, there is only 1 front-end tag:</p>
+  <code class="txp">&lt;txp:glz_custom_fields_search_form results_page="search" searchby="Area:select,City:radio,Price:checkbox,section,category" /></code>
   <p>This builds a nice search form on the front-end (only selects so far).</p>
   <ul>
   <li><code>results_page</code> - which page should the submit button take the user to (<code>search</code> by default)</li>
-  <li><code>searchby (MUST BE SET)</code> - which custom fields should we search by and in what order? (<code>empty</code> by default)</li>
-  </ul>
-
-  <code class="txp">&lt;txp:glz_article limit="100" no_results="no_results" /></code>
-  <p>This needs to be used instead of <code>txp:article</code> where you want the search results to appear. We need to "inject" our extra custom fields in the search query and modify it slightly. This is a straight copy of <code>article()</code> from TXP 4.0.6 (r2085) with some "magical dust" : ).</p>
-  <p>This is not too obvious so please pay attention. If our custom search tag is set to land on section "listings" (which we define in <code>glz_custom_fields_search_form</code>), the articles you want searching <b>must</b> be belong to this section. For example, if our search points to section "listings" but our articles are saved under section "properties", there will be no matches and thus we will be forwarded to <b>no_results</b> page. In this case, what we might want to do, is set <b>results_page</b> in <code>glz_custom_fields_search_form</code> to "properties".</p>
-  <ul>
-  <li><code>no_results</code> - if no matching results are found, this is the page (section) where the users will be redirected (<code>no_results</code> by default)</li>
-  </ul>
-  
-  <code class="txp">&lt;txp:glz_article_custom limit="5" no_results="no_results" form="some_form" /></code>
-  <p>This needs to be used instead of <code>txp:article_custom</code> where you want the search results to appear. We need to "inject" our extra custom fields in the search query and modify it slightly. This is a straight copy of <code>article_custom()</code> from TXP 4.0.6 (r2085) with some "magical dust" : ).</p>
-  <p>This is not too obvious so please pay attention. If our custom search tag is set to land on section "listings" (which we define in <code>glz_custom_fields_search_form</code>), the articles you want searching <b>must</b> be belong to this section. For example, if our search points to section "listings" but our articles are saved under section "properties", there will be no matches and thus we will be forwarded to <b>no_results</b> page. In this case, what we might want to do, is set <b>results_page</b> in <code>glz_custom_fields_search_form</code> to "properties".</p>
-  <ul>
-  <li><code>no_results</code> - if no matching results are found, this is the page (section) where the users will be redirected (<code>no_results</code> by default)</li>
+  <li><code>searchby (MUST BE SET)</code> - which custom fields should we search by and in what order? Also provides capability to search by section and category, they default to checkboxes and cannot be changed. (<code>empty</code> by default)</li>
   </ul>
 
   <h2>Tricks</h2>
