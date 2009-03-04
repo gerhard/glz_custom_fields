@@ -574,7 +574,8 @@ function glz_check_custom_set_name($arr_custom_fields, $custom_set_name, $custom
 // -------------------------------------------------------------
 // formats the custom set output based on its type
 function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $arr_custom_field_values, $custom_value = "") {
-  $arr_custom_field_values = array_map('glz_array_stripslashes', $arr_custom_field_values);
+  if ( is_array($arr_custom_field_values) )
+    $arr_custom_field_values = array_map('glz_array_stripslashes', $arr_custom_field_values);
   
   switch ( $custom_set_type ) {
     case "text_input":
