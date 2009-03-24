@@ -129,11 +129,11 @@ if (0) {
 
   <h2>Tricks</h2>
   <p>Actually, there is a single one, but I'll let you know if I'll implement more ; ).</p>
-  <p>If you want to define ranges, do the following for the range name (custom set name): <code>Price range &amp;pound;(after)</code></p>
+  <p>If you want to define ranges, create a new custom field with the following name e.g. <code>Price range &amp;pound;(after)</code></p>
   <ul>
   <li><code>range</code> - this is really important and <strong>must</strong> be present for the range to work correctly</li>
-  <li><code>&amp;pound;</code> - don't use straight symbols (like &euro; or &pound;) but entity ones e.g. &amp;pound; &amp; &amp;euro;</li>
-  <li><code>(after)</code> - don't leave any spaces after the measuring unit and (after). This basically says where to add the measuring unit - <code>(before)</code> is default. You might have &pound;10-&pound;20 but 10m<sup>3</sup>-20m<sup>3</sup></li>
+  <li><code>&amp;pound;</code> - don't use straight symbols (like &euro; or &pound;) but entity ones e.g. &amp;pound; &amp; &amp;euro; $ and &amp;cent are valid symbols.</li>
+  <li><code>(after)</code> - don't leave any spaces after e.g. $ and (after). This basically says where to add the measuring unit (be it a currency or something like m<sup>3</sup> etc.) - <code>(before)</code> is default.</li>
   </ul>
 
   <p>Ranges are defined 10-20, 21-30 etc. (no measuring units - they get pulled from the custom set name).</p>

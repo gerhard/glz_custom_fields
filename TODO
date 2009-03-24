@@ -1,16 +1,18 @@
-== v1.2 ==
-
-
-
-
-
 == V1.2.1 ==
+
+* searches can either be displayed on the current page or on search section (user-configurable)
+
+* sort values alphabetically or as they were entered
 
 * Also, I am using the the_video plugin which has an one- or two-letter code for each video host option. Is it possible to have the name of the video host show up in the dropdown but output the code instead of the name when the custom field is called up? For example, a selection of "Google Video" would store and eventually output the value "G". - Alicia Lane - alicialane@gmail.com
 
 
 
 == DONE ==
+
+* limit the pages where glz_custom_fields adds it's JS & CSS in the head http://forum.textpattern.com/viewtopic.php?pid=202254#p202254
+
+* jQuery annoying bug http://forum.textpattern.com/viewtopic.php?pid=184368#p184368
 
 * input values filter before values are saved, exclude ' " from filtering:
   I just want to point out that there still is a problem with ' character (single quote). I can substitute it with apostrophe ', and that works fine, so there is a workaround. But for a client this could be a difficult thing to remember (the keyboard doesn't offer a stroke for that).
