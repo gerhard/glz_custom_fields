@@ -4,7 +4,7 @@ glz_custom_fields plugin, FROM UK WITH LOVE
 
 @author Gerhard Lazu
 @version 1.2
-@copyright Gerhard Lazu, 24th March, 2009
+@copyright Gerhard Lazu, 17th April, 2009
 @package TXP 4.0.8 (r3078)
 @contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger, Steve Dickinson
 @special: Randy Levine, Husain Hakim
@@ -1232,7 +1232,7 @@ function glz_mark_migration() {
 // -------------------------------------------------------------
 /**
  * DROP-DOWN SEARCH FORM
- Call it like this: <txp:glz_custom_fields_search_form results_page="search" searchby="Area:input,City:select,Price:radio,section" section="default,articles" category="textpattern" />
+ Call it like this: <txp:glz_custom_fields_search_form results_page="#" searchby="Area:input,City:select,Price:radio,section" section="default,articles" category="textpattern" />
  */
 function glz_custom_fields_search_form($atts) {
   global $all_custom_sets, $s, $glz_search_options;
@@ -1248,7 +1248,7 @@ function glz_custom_fields_search_form($atts) {
   if ( $_POST AND in_array("glz_custom_fields_search", $_POST) ) {
     // stripPost() doesn't know how to handle arrays
     foreach ($_POST as $key => $value)
-      $glz_search_options[$key] = (is_array($value)) ? stripslashes(join(",", $value)) : stripslashes($value);
+      $glz_search_options[$key] = (is_array($value)) ? stripslashes(join("|", $value)) : stripslashes($value);
   }
   
   extract(lAtts(array(
