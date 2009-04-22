@@ -740,7 +740,7 @@ function php4_array_combine($keys, $values) {
 function glz_idify($value) {
   $patterns[0] = "/\s/";
   $replacements[0] = "-";
-  $patterns[1] = "/[^a-z\-]/";
+  $patterns[1] = "/[^a-zA-Z0-9\-]/";
   $replacements[1] = "";
   
   return preg_replace($patterns, $replacements, strtolower($value));
@@ -1539,7 +1539,7 @@ function glz_custom_fields_css_js($buffer) {
     URL : http://www.gerhardlazu.com/ & http://www.calti.co.uk
     
     Created : 14th May 2007
-    Last modified: 7th January 2008
+    Last modified: 22nd April 2009
     
     - - - - - - - - - - - - - - - - - - - - - */
     
@@ -1642,6 +1642,11 @@ function glz_custom_fields_css_js($buffer) {
     /* select on write tab for the custom fields */
     td#article-col-1 #advanced p select.list {
       width: 100%;
+    }
+    
+    td#article-col-1 #advanced p input.radio,
+    td#article-col-1 #advanced p input.checkbox {
+      width: auto;
     }
     
   </style>
