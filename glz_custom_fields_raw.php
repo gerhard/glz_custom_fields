@@ -643,7 +643,7 @@ function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value =
     }
 
     return "<select id=\"".glz_idify($id)."\" name=\"$name\" class=\"list\"$multi>".
-      ($blank_first ? "<option value=\"\"$selected></option>" : '').
+      ($blank_first ? "<option value=\"\"$selected>&nbsp;</option>" : '').
       ( $out ? join('', $out) : '').
       "</select>";
   }
@@ -1318,7 +1318,7 @@ function glz_custom_fields_search_form($atts) {
     // dmp($arr_query_custom);
     
     // start our form
-    $out[] = '<form method="post" action="'.hu.$results_page.'">'.n
+    $out[] = '<form method="post" action="'.hu.$results_page.'" id="glz_custom_fields_search">'.n
       .'<fieldset>'.n;
     
     // build our selects
