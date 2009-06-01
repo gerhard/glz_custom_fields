@@ -324,7 +324,7 @@ function glz_custom_fields_replace() {
     $(document).ready(function() {
       // removes all existing custom fields
       $("p:has(label[for*=custom-])").remove();
-      $("p:has(label[@for=override-form])").after(\''.$out.'\');
+      $("p:has(label[for=override-form])").after(\''.$out.'\');
       
       // add a reset link to all radio custom fields
       $(".glz_custom_radio_field").each(function() {
@@ -1670,15 +1670,15 @@ css;
     };
     
     // toggle custom field value based on its type
-    if ( $("select#type option[@selected]").attr("value") == "text_input" ) {
+    if ( $("select#type option[selected]").attr("value") == "text_input" ) {
       custom_field_value_off();
     };
     
     $("select#type").click( function() {
-      if ( $("select#type option[@selected]").attr("value") != "text_input" && !$("textarea#value").length ) {
+      if ( $("select#type option[selected]").attr("value") != "text_input" && !$("textarea#value").length ) {
         custom_field_value_on();
       }
-      else if ( $("select#type option[@selected]").attr("value") == "text_input" && !$("input#value").length ) {
+      else if ( $("select#type option[selected]").attr("value") == "text_input" && !$("input#value").length ) {
         custom_field_value_off();
       }
     });
@@ -1690,16 +1690,16 @@ css;
     // ### RE-USABLE FUNCTIONS ###
     
     function custom_field_value_off() {
-      $("label[@for=value] em").hide();
+      $("label[for=value] em").hide();
       $("textarea#value").remove();
-      $("label[@for=value]").after('<input id="value" value="no value allowed" name="value"/>');
+      $("label[for=value]").after('<input id="value" value="no value allowed" name="value"/>');
       $("input#value").attr("disabled", "disabled");
     }
     
     function custom_field_value_on() {
-      $("label[@for=value] em").show();
+      $("label[for=value] em").show();
       $("input#value").remove();
-      $("label[@for=value]").after('<textarea id="value" name="value"></textarea>');
+      $("label[for=value]").after('<textarea id="value" name="value"></textarea>');
     }
     
   });
