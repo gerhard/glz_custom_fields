@@ -10,8 +10,12 @@
 
 * perform searches via GET, not POST so that we can mimic the safe-search functionality
 
+* paginate search results
+
 
 == DONE ==
+
+* add date picker jQuery plugin
 
 * limit the pages where glz_custom_fields adds it's JS & CSS in the head http://forum.textpattern.com/viewtopic.php?pid=202254#p202254
 

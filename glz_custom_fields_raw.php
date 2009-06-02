@@ -3,8 +3,8 @@
 glz_custom_fields plugin, FROM UK WITH LOVE
 
 @author Gerhard Lazu
-@version 1.2
-@copyright Gerhard Lazu, 17th April, 2009
+@version 1.2.1
+@copyright Gerhard Lazu, 3rd June, 2009
 @package TXP 4.0.8 (r3078)
 @contributors:  Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger, Steve Dickinson
 @special: Randy Levine, Husain Hakim
@@ -214,11 +214,15 @@ function glz_custom_fields() {
   $arr_custom_set_types = glz_custom_set_types();
   
   $custom_set_types = NULL;
-  foreach ( $arr_custom_set_types as $custom_type ) {
-    $selected = ( gps('edit') && gps('custom_set_type') == $custom_type ) ?
-      ' selected="selected"' :
-      NULL;
-    $custom_set_types .= '<option value="'.$custom_type.'"'.$selected.'>'.glz_custom_fields_gTxt($custom_type).'</option>'.n;
+  foreach ( $arr_custom_set_types as $custom_type_group => $custom_types ) {
+    $custom_set_types .= '<optgroup label="'.ucfirst($custom_type_group).'">'.n;
+    foreach ($custom_types as $custom_type) {
+      $selected = ( gps('edit') && gps('custom_set_type') == $custom_type ) ?
+        ' selected="selected"' :
+        NULL;
+      $custom_set_types .= '<option value="'.$custom_type.'"'.$selected.'>'.glz_custom_fields_gTxt($custom_type).'</option>'.n;
+    }
+    $custom_set_types .= '</optgroup>'.n;
   }
   // fetching the values for this custom field
   if ( gps('edit') ) {
@@ -263,7 +267,7 @@ function glz_custom_fields() {
 // -------------------------------------------------------------
 // replaces the default custom fields under write tab
 function glz_custom_fields_replace() {
-  global $all_custom_sets;
+  global $all_custom_sets, $date_picker;
   // get all custom fields & keep only the ones which are set
   $arr_custom_fields = array_filter($all_custom_sets, "glz_check_custom_set");
   
@@ -317,8 +321,7 @@ function glz_custom_fields_replace() {
     // DEBUG
     // dmp($out);
   
-    echo
-    '<script type="text/javascript">
+    $js = '<script type="text/javascript">
     <!--//--><![CDATA[//><!--
 
     $(document).ready(function() {
@@ -340,10 +343,22 @@ function glz_custom_fields_replace() {
         // add an empty value with the same ID so that it saves the value as empty in the db
         $(this).after("<input type=\"hidden\" value=\"\" name=\""+ custom_field_to_reset +"\" />");
         return false;
-      });
-    });
+      });';
+    
+    if ( $date_picker ) {
+      $js .= '// enable date-picker custom sets
+      try {
+        $(".date-picker").datePicker();
+      } catch(err) {
+        console.error("Please download and enable the jQuery DatePicker plugin. http://www.kelvinluck.com/assets/jquery/datePicker");
+      }';
+    }
+    
+    $js .= '});
     //--><!]]>
     </script>';
+    
+    echo $js;
   }
 }
 
@@ -416,12 +431,15 @@ function glz_form_buttons($action, $value, $custom_set, $custom_set_name, $custo
 // the types our custom fields can take
 function glz_custom_set_types() {
   return array(
-    'text_input',
-    'select',
-    'multi-select',
-//    'textarea', // planned for v1.2.x
-    'checkbox',
-    'radio'
+    'normal' => array(
+      'text_input',
+      'select',
+      'multi-select',
+      // 'textarea', // planned for v1.2.x
+      'checkbox',
+      'radio'),
+    'special' => array(
+      'date-picker')
   );
 }
 
@@ -582,12 +600,13 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
     $arr_custom_field_values = array_map('glz_array_stripslashes', $arr_custom_field_values);
   
   switch ( $custom_set_type ) {
+    // these are the normal custom fields
     case "text_input":
       return array(
         fInput("text", $custom, $custom_value, "edit", "", "", "22", "", $custom_id),
         'glz_custom_field'
       );
-
+    
     case "select":
       return array(
         glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, 1),
@@ -599,19 +618,26 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
         glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, '', 1),
         'glz_custom_multi-select_field'
       );
-
+    
     case "checkbox":
       return array(
         glz_checkbox($custom, $arr_custom_field_values, $custom_value),
         'glz_custom_checkbox_field'
       );
-
+    
     case "radio":
       return array(
         glz_radio($custom, $custom_id, $arr_custom_field_values, $custom_value),
         'glz_custom_radio_field'
       );
-
+    
+    // here start the special custom fields, might need to refactor the return, starting to repeat itself
+    case "date-picker":
+      return array(
+        fInput("text", $custom, $custom_value, "edit date-picker", "", "", "22", "", $custom_id),
+        'glz_custom_date-picker_field clearfix'
+      );
+    
     // a type has been passed that is not supported yet
     default:
       return array(
@@ -794,6 +820,7 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'textarea'          => 'Textarea',
     'checkbox'          => 'Checkbox',
     'radio'             => 'Radio',
+    'date-picker'       => 'Date Picker',
     'type_not_supported'=> 'Type not supported',
     'no_do'             => 'Ooops! No action specified for method, abort.',
     'not_specified'     => 'Ooops! {what} is not specified',
@@ -866,6 +893,10 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
       
       case 'mark_migration':
         return glz_mark_migration();
+        break;
+      
+      case 'custom_set_exists':
+        return glz_check_custom_set_exists($name);
         break;
     }
   }
@@ -1223,6 +1254,27 @@ function glz_mark_migration() {
   safe_query($query);
 }
 
+// -------------------------------------------------------------
+// check if one of the special custom fields exists
+function glz_check_custom_set_exists($name) {
+  if ( !empty($name) ) {
+    $query = "
+      SELECT
+        `name`, `val`
+      FROM
+        `".PFX."txp_prefs`
+      WHERE
+        `html` = '{$name}'
+      AND
+        `name` LIKE 'custom_%'
+      ORDER BY
+        `name`
+    ";
+  
+    return getThing($query);
+  }
+}
+
 
 
 #####################
@@ -1397,13 +1449,16 @@ function glz_custom_fields_search_form($atts) {
 // we are setting up the pre-requisite values for glz_custom_fields
 function before_glz_custom_fields() {
   // we will be reusing these globals across the whole plugin
-  global $all_custom_sets, $glz_notice, $prefs;
+  global $all_custom_sets, $glz_notice, $prefs, $date_picker;
   
   // let's initialize our glz_notice, available throughout the entire plugin
   $glz_notice = array();
   
   // let's get all custom field sets from prefs
   $all_custom_sets = glz_custom_fields_MySQL("all");
+  
+  // let's see if we have a date-picker custom field (first of the special ones)
+  $date_picker = glz_custom_fields_MySQL("custom_set_exists", "date-picker");
 }
 
 
@@ -1526,7 +1581,7 @@ function glz_custom_fields_uninstall() {
 // -------------------------------------------------------------
 // adds the css & js we need
 function glz_custom_fields_css_js($buffer) {
-  global $glz_notice;
+  global $glz_notice, $date_picker;
   
   $css =<<<css
 <style type="text/css" media="screen">
@@ -1539,10 +1594,30 @@ function glz_custom_fields_css_js($buffer) {
     URL : http://www.gerhardlazu.com/ & http://www.calti.co.uk
     
     Created : 14th May 2007
-    Last modified: 22nd April 2009
+    Last modified: 3rd June 2009
     
     - - - - - - - - - - - - - - - - - - - - - */
     
+    .clearfix:after {
+      content: ".";
+      display: block;
+      clear: both;
+      visibility: hidden;
+      line-height: 0;
+      height: 0;
+    }
+    
+    .clearfix {
+      display: inline-block;
+    }
+    
+    html[xmlns] .clearfix {
+      display: block;
+    }
+    
+    * html .clearfix {
+      height: 1%;
+    }
     
     /* CLASSES
     -------------------------------------------------------------- */
@@ -1649,10 +1724,18 @@ function glz_custom_fields_css_js($buffer) {
       width: auto;
     }
     
-  </style>
+  </style>\n
 css;
+  if ( $date_picker )
+    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.hu.'scripts/jquery.datePicker/datePicker.css" />'.n;
   
-  $js =<<<js
+  $js = '';
+  if ( $date_picker ) {
+    foreach (array('date.js', 'jquery.datePicker.js') as $file) {
+      $js .= '<script type="text/javascript" src="'.hu.'scripts/jquery.datePicker/'.$file.'"></script>'.n;
+    }
+  }
+  $js .= '
 <script type="text/javascript">
   <!--//--><![CDATA[//><!--
   
@@ -1662,7 +1745,7 @@ css;
     $(".stripeMe tr:even").addClass("alt");
     
     // disable all custom field references in Advanced Prefs
-    var custom_field_tr = $("tr:has(label[for*=custom_]), tr:has(h2:contains('Custom Fields'))");
+    var custom_field_tr = $("tr:has(label[for*=custom_]), tr:has(h2:contains(\'Custom Fields\'))");
     if ( custom_field_tr ) {
       $.each (custom_field_tr, function() {
         $(this).hide();
@@ -1670,50 +1753,49 @@ css;
     };
     
     // toggle custom field value based on its type
-    if ( $("select#type option[selected]").attr("value") == "text_input" ) {
+    special_custom_types = ["text_input", "date-picker"];
+    if ( $.inArray($("select#type option[selected]").attr("value"), special_custom_types) != -1 ) {
       custom_field_value_off();
     };
     
     $("select#type").click( function() {
-      if ( $("select#type option[selected]").attr("value") != "text_input" && !$("textarea#value").length ) {
+      if ( $.inArray($("select#type option[selected]").attr("value"), special_custom_types) == -1 && !$("textarea#value").length ) {
         custom_field_value_on();
       }
-      else if ( $("select#type option[selected]").attr("value") == "text_input" && !$("input#value").length ) {
+      else if ( $.inArray($("select#type option[selected]").attr("value"), special_custom_types) != -1 && !$("input#value").length ) {
         custom_field_value_off();
       }
     });
     
-    // let's have Advanced Options displayed by default - why hide them in the first place?
-    $('#advanced').show();
-    
+    // let\'s have Advanced Options displayed by default - why hide them in the first place?
+    $("#advanced").show();
     
     // ### RE-USABLE FUNCTIONS ###
     
     function custom_field_value_off() {
       $("label[for=value] em").hide();
       $("textarea#value").remove();
-      $("label[for=value]").after('<input id="value" value="no value allowed" name="value"/>');
+      $("label[for=value]").after(\'<input id="value" value="no value allowed" name="value"/>\');
       $("input#value").attr("disabled", "disabled");
     }
     
     function custom_field_value_on() {
       $("label[for=value] em").show();
       $("input#value").remove();
-      $("label[for=value]").after('<textarea id="value" name="value"></textarea>');
+      $("label[for=value]").after(\'<textarea id="value" name="value"></textarea>\');
     }
     
   });
   
   //--><!]]>
-  </script>
-js;
+  </script>';
   
   // displays the notices we have gathered throughout the entire plugin
   if ( count($glz_notice) > 0 ) {
     // let's turn our notices into a string
     $glz_notice = join("<br />", array_unique($glz_notice));
 
-    $noticejs = '<script type="text/javascript">
+    $js .= '<script type="text/javascript">
     <!--//--><![CDATA[//><!--
 
     $(document).ready(function() {
@@ -1723,13 +1805,9 @@ js;
     //--><!]]>
     </script>';
   }
-  else {
-    $noticejs = "";
-  }
-  
   
   $find = '</head>';
-  $replace = $js.n.t.$noticejs.n.t.$css.n.t.$find;
+  $replace = $js.n.t.$css.n.t.$find;
 
   return str_replace($find, $replace, $buffer);
 }
