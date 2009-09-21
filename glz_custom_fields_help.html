@@ -1,0 +1,120 @@
+<style type="text/css" media="screen,projection">
+  #glz_custom_fields_help {
+    margin: 0 auto;
+    font-family: Verdana,"Lucida Grande",sans-serif;
+    padding: 15px;
+    background-color: #F7F7F7;
+    border: 1px dotted #EBEBEB;
+    width: 700px;
+    color: #333;
+    font-size: 12px;
+    line-height:15px;
+  }
+  #glz_custom_fields_help p, #glz_custom_fields_help ul, #glz_custom_fields_help ol, #glz_custom_fields_help dl {
+    font-size: 12px;
+    line-height: 15px;
+    margin-bottom: 15px;
+  }
+  #glz_custom_fields_help ul {
+    padding-left: 15px;
+    list-style: square;
+  }
+  #glz_custom_fields_help ol {
+    padding-left: 20px;
+  }
+  #glz_custom_fields_help a, #glz_custom_fields_help a.visited {
+    color: #FF7B00;
+    text-decoration: none;
+    padding-bottom: 1px;
+    border-bottom: 1px dotted #FF7B00;
+  }
+  #glz_custom_fields_help a:hover {
+    color: #FFF;
+    background-color: #FF7B00;
+    border-bottom: 1px dotted #FF7B00;
+  }
+  #glz_custom_fields_help h1 {
+    font-family: Georgia,Times,Serif;
+    font-size: 24px;
+    font-weight: normal;
+    text-decoration: none;
+    line-height: 30px;
+    margin-bottom: 15px;
+    color: #333;
+    letter-spacing: -1px;
+  }
+  #glz_custom_fields_help h2 {
+    font-family: Georgia,Times,Serif;
+    color: #FFF;
+    font-size: 18px;
+    font-weight: normal;
+    line-height: 30px;
+    margin-bottom: 15px;
+    background-color: #C1C4C3;
+    padding-left: 15px;
+  }
+  #glz_custom_fields_help strong {
+
+  }
+  #glz_custom_fields_help code {
+    line-height: 16px;
+    font-style: italic;
+    font-family: Monaco,"Courier New", Courier, monospace;
+    font-size-adjust: none;
+    font-stretch: normal;
+    font-variant: normal;
+    font-weight: normal;
+    font-size: 12px;
+    color: #000;
+  }
+  #glz_custom_fields_help code.txp {
+    background-color: #FFF6A9;
+    font-family: Monaco,"Courier New", Courier, monospace;
+    line-height: 30px;
+    font-style: normal;
+    padding: 2px 0;
+    color: #000;
+  }
+</style>
+
+<div id="glz_custom_fields_help">
+  <h1>glz_custom_fields, limitless pimped custom fields</h1>
+
+  <p>If you feel totally lost, there is a screencast showing the basics of this plugin: <a href="http://gerhardlazu.com/file_download/15" title="glz_custom_fields, Limitless Pimped Custom Fields">glz_custom_fields_unveiled.mov</a>. The post associated with this screencast is here: <a href="http://gerhardlazu.com/blog/50/glz_custom_fields-unveiled" title="glz_custom_fields unveiled">glz_custom_fields unveiled</a>.</p>
+
+  <h2>Requirements</h2>
+  <p>There is a single requirement now, <a href="http://github.com/gerhard/textpattern-4-0/zipball/txp-gerhard">my modified version of TXP 4.0.8</a>.</p>
+  <p>If you want to use the special custom set type <strong>Date Picker</strong>, you will need to place the jquery.datePicker folder in a scripts folder at the root of your website. If your textpattern folder is <code>/var/www/mysite/textpattern</code>, the jquery.datePicker folder will be <code>/var/www/mysite/scripts/jquery.datePicker</code>. The jquery.datePicker folder will come archived, as an attachment alongside the plugin as of v1.2.1.</p>
+
+  <h2>Usage and Options</h2>
+  <p>Because this is a back-end plugin primarily, there is only 1 front-end tag:</p>
+  <code class="txp">&lt;txp:glz_custom_fields_search_form results_page="#" searchby="Area:select, City:radio, Price:checkbox, section, category" section="articles" /></code>
+  <ul>
+    <li><code>searchby (<strong>must</strong> be set)</code> - which custom fields should we search by and in what order? Also provides capability to search by section and category, they default to checkboxes and cannot be changed. In the above example, we are displaying both the section &amp; category select boxes, if no section is selected, it will default to *articles* section ONLY. If you want to search in all sections by default, do <code>section="all"</code>.</li>
+    <li><code>results_page</code> - which page should the submit button take the user to. In our example this will send the POST request to the same page - <strong>will become available as of v1.2.x</strong>. (<code>search</code> by default).</li>
+  </ul>
+
+  <h2>Tricks</h2>
+  <p>Actually, there is a single one.</p>
+  <p>If you want to define ranges, create a new custom field with the following name e.g. <code>Price range &amp;pound;(after)</code></p>
+  <ul>
+  <li><code>range</code> - this is really important and <strong>must</strong> be present for the range to work correctly</li>
+  <li><code>&amp;pound;</code> - don't use straight symbols (like &euro; or &pound;) but entity ones e.g. &amp;pound; &amp; &amp;euro; $ and &amp;cent are valid symbols.</li>
+  <li><code>(after)</code> - don't leave any spaces after e.g. $ and (after). This basically says where to add the measuring unit (be it a currency or something like m<sup>3</sup> etc.) - <code>(before)</code> is default.</li>
+  </ul>
+
+  <p>Ranges are defined 10-20, 21-30 etc. (no measuring units - they get pulled from the custom set name).</p>
+
+  <h2>Support</h2>
+  <p>If anything goes wrong or you discover a bug:</p>
+  <ol>
+    <li>look for help in the forum, <a href="http://forum.textpattern.com/viewtopic.php?id=23996">glz_custom_fields thread</a></li>
+    <li>ping me via <a href="http://www.twitter.com/gerhardlazu">Twitter</a>. I'm using it around the clock, it's great for short messages!</li>
+    <li>drop a line to <a href="mailto:gerhard@lazu.co.uk?Subject:glz_custom_fields needs your attention">gerhard@lazu.co.uk</a> (sometimes things can get really hectic on my end, please be patient)</li>
+  </ol>
+  <p>If you have lost your glz_custom_fields copy, get another one from <a href="http://groups.google.com/group/glz_custom_fields">glz_custom_fields Google Group</a>. This is a private group, only people that have donated have access to it. I would appreciate if you would post queries on the public Textpattern forum, I want to avoid having to follow 2 places for support issues. Thanks!</p>
+
+  <h2>Colophon &amp; Limitations</h2>
+  <p><strong>PLEASE back-up your database</strong> before using this plugin. It won't delete anything automatically, but if something goes wrong, you might end up deleting all your custom fields data (<strong>and I really mean all of it</strong>).</p>
+  <p>If you don't have JavaScript enabled in your browser, things will blow up - GUARANTEED.</p>
+</div>

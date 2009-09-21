@@ -1,0 +1,141 @@
+<style type="text/css" media="screen">
+/* - - - - - - - - - - - - - - - - - - - - -
+
+### TEXTPATTERN CUSTOM FIELDS ###
+
+Title : glz_custom_fields stylesheet
+Author : Gerhard Lazu
+URL : http://www.gerhardlazu.com/
+
+Created : 14th May 2007
+Last modified: 3rd June 2009
+
+- - - - - - - - - - - - - - - - - - - - - */
+
+.clearfix:after {
+  content: ".";
+  display: block;
+  clear: both;
+  visibility: hidden;
+  line-height: 0;
+  height: 0;
+}
+
+.clearfix {
+  display: inline-block;
+}
+
+html[xmlns] .clearfix {
+  display: block;
+}
+
+* html .clearfix {
+  height: 1%;
+}
+
+/* CLASSES
+-------------------------------------------------------------- */
+.green {
+  color: #6B3;
+}
+.red {
+  color: #C00;
+}
+
+
+/* TABLE
+-------------------------------------------------------------- */
+#glz_custom_fields {
+  width: 50em;
+  margin: 0 auto;
+  border: 1px solid #DDD;
+}
+
+#glz_custom_fields thead tr {
+  font-size: 1.2em;
+  font-weight: 700;
+  background: #EEE;
+}
+
+#glz_custom_fields tbody tr.alt {
+  background: #FFC;
+}
+#glz_custom_fields tbody tr.over {
+  background: #FF6;
+}
+
+#glz_custom_fields td {
+  padding: 0.2em 1em;
+  vertical-align: middle;
+}
+#glz_custom_fields thead td {
+  padding: 0.3em 0.8em;
+}
+#glz_custom_fields td.custom_set {
+  width: 8em;
+}
+#glz_custom_fields td.custom_set_name {
+  width: 18em;
+}
+#glz_custom_fields td.type {
+  width: 6em;
+}
+#glz_custom_fields td.events {
+  width: 12em;
+  text-align: right;
+}
+
+
+/* FORMS
+-------------------------------------------------------------- */
+input:focus,
+select:focus,
+textarea:focus {
+  background: #FFC;
+}
+
+#glz_custom_fields td.events form {
+  display: inline;
+}
+
+#add_edit_custom_field {
+  width: 50em;
+  margin: 2em auto 0 auto;
+}
+#add_edit_custom_field legend {
+  font-size: 1.2em;
+  font-weight: 700;
+}
+#add_edit_custom_field label {
+  float: left;
+  width: 10em;
+  font-weight: 700;
+}
+#add_edit_custom_field p input,
+#add_edit_custom_field p select {
+  width: 20em;
+}
+#add_edit_custom_field p textarea {
+  width: 30em;
+  height: 10em;
+}
+#add_edit_custom_field p em {
+  font-size: 0.9em;
+  font-weight: 500;
+  color: #777;
+}
+#add_edit_custom_field input.publish {
+  margin-left: 11em;
+}
+
+/* select on write tab for the custom fields */
+td#article-col-1 #advanced p select.list {
+  width: 100%;
+}
+
+td#article-col-1 #advanced p input.radio,
+td#article-col-1 #advanced p input.checkbox {
+  width: auto;
+}
+</style>
+
