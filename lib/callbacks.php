@@ -177,7 +177,7 @@ $(document).ready(function() {
   };
 
   // toggle custom field value based on its type
-  special_custom_types = ["text_input", "date-picker"];
+  special_custom_types = ["text_input", "date-picker", "textarea"];
   if ( $.inArray($("select#type option[selected]").attr("value"), special_custom_types) != -1 ) {
     custom_field_value_off();
   };

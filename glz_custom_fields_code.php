@@ -38,6 +38,8 @@ if (txpinterface == "admin") {
 
   // YES, finally the default custom fields are replaced by the new, pimped ones : )
   register_callback('glz_custom_fields_replace', 'article_ui', 'custom_fields');
+  // YES, now we have textarea custom fields as well ; )
+  register_callback('glz_custom_fields_replace', 'article_ui', 'excerpt');
 }
 
 // -------------------------------------------------------------
@@ -259,7 +261,7 @@ function glz_custom_fields() {
 
 // -------------------------------------------------------------
 // replaces the default custom fields under write tab
-function glz_custom_fields_replace() {
+function glz_custom_fields_replace($event, $step, $data, $rs) {
   global $all_custom_sets, $date_picker;
   // get all custom fields & keep only the ones which are set
   $arr_custom_fields = array_filter($all_custom_sets, "glz_check_custom_set");
@@ -278,7 +280,7 @@ function glz_custom_fields_replace() {
       extract($arr_article_customs);
 
     // let's initialize our output
-    $out = '';
+    $out = array('article-col-1' => array(), 'article-main' => array());
 
     // let's see which custom fields are set
     foreach ( $arr_custom_fields as $custom => $custom_set ) {
@@ -306,16 +308,22 @@ function glz_custom_fields_replace() {
       // DEBUG
       //dmp($custom_set_value);
 
-      $out .= graf(
+      $result = graf(
         "<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\""
       );
+
+      if ($custom_set['type'] == "textarea")
+        $out['article-main'][] = $result;
+      else
+        $out['article-col-1'][] = $result;
     }
     // DEBUG
     // dmp($out);
 
-    return $out;
+    return ($step == "excerpt") ? $data.join($out['article-main'], "\n") : join($out['article-col-1'], "\n");
   }
 }
+
 
 // -------------------------------------------------------------
 // prep our custom fields for the db (watch out for multi-selects, checkboxes & radios, they might have multiple values)

@@ -37,9 +37,9 @@ function glz_custom_set_types() {
       'text_input',
       'select',
       'multi-select',
-      // 'textarea', // planned for v1.2.x
       'checkbox',
-      'radio'),
+      'radio',
+      'textarea'),
     'special' => array(
       'date-picker')
   );
@@ -231,6 +231,12 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
       return array(
         glz_radio($custom, $custom_id, $arr_custom_field_values, $custom_value),
         'glz_custom_radio_field'
+      );
+
+    case "textarea":
+      return array(
+        text_area($custom, 100, 500, $custom_value, $custom_id),
+        'glz_text_area_field'
       );
 
     // here start the special custom fields, might need to refactor the return, starting to repeat itself
