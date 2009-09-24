@@ -48,8 +48,19 @@ function glz_custom_set_types() {
 
 // -------------------------------------------------------------
 // outputs only custom fields that have been set, i.e. have a name assigned to them
-function glz_check_custom_set($var) {
-  return !empty($var['name']);
+function glz_check_custom_set($all_custom_sets, $step) {
+  $out = array();
+
+  foreach ($all_custom_sets as $key => $custom_field) {
+    if (!empty($custom_field['name'])) {
+      if ( ($step == "excerpt") && ($custom_field['type'] == "textarea") )
+        $out[$key] = $custom_field;
+      else if ( ($step == "custom_fields") && ($custom_field['type'] != "textarea") )
+        $out[$key] = $custom_field;
+    }
+  }
+
+  return $out;
 }
 
 

@@ -263,11 +263,13 @@ function glz_custom_fields() {
 // replaces the default custom fields under write tab
 function glz_custom_fields_replace($event, $step, $data, $rs) {
   global $all_custom_sets, $date_picker;
-  // get all custom fields & keep only the ones which are set
-  $arr_custom_fields = array_filter($all_custom_sets, "glz_check_custom_set");
+  // get all custom fields & keep only the ones which are set + filter by step
+  $arr_custom_fields = glz_check_custom_set($all_custom_sets, $step);
 
   // DEBUG
   // dmp($arr_custom_fields);
+
+  $out = ' ';
 
   if ( is_array($arr_custom_fields) && !empty($arr_custom_fields) ) {
     // get all custom fields values for this article
@@ -278,9 +280,6 @@ function glz_custom_fields_replace($event, $step, $data, $rs) {
 
     if ( is_array($arr_article_customs) )
       extract($arr_article_customs);
-
-    // let's initialize our output
-    $out = array('article-col-1' => array(), 'article-main' => array());
 
     // let's see which custom fields are set
     foreach ( $arr_custom_fields as $custom => $custom_set ) {
@@ -308,20 +307,18 @@ function glz_custom_fields_replace($event, $step, $data, $rs) {
       // DEBUG
       //dmp($custom_set_value);
 
-      $result = graf(
+      $out .= graf(
         "<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\""
       );
 
-      if ($custom_set['type'] == "textarea")
-        $out['article-main'][] = $result;
-      else
-        $out['article-col-1'][] = $result;
-    }
-    // DEBUG
-    // dmp($out);
 
-    return ($step == "excerpt") ? $data.join($out['article-main'], "\n") : join($out['article-col-1'], "\n");
+    }
   }
+
+  // DEBUG
+  // dmp($out);
+
+  return $out;
 }
 
 
