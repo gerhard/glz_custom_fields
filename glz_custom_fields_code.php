@@ -266,7 +266,7 @@ function glz_custom_fields() {
         </select>
       </p>'.n.
     ' <p>
-        <label for="value">Value:<br /><em>Each value on a separate line</em></label>
+        <label for="value">Value:<br /><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></label>
         <textarea name="value" id="value">'.$values.'</textarea>
       </p>'.n.
     ' '.$action.n.
@@ -309,15 +309,22 @@ function glz_custom_fields_replace($event, $step, $data, $rs) {
       //custom_set without "_set" e.g. custom_1_set => custom_1
       $custom = glz_custom_number($custom);
 
-      // if current article holds no value for this custom field, make it empty
-      $custom_value = ( !empty($$custom) ) ?
-        $$custom :
-        '';
+      // if current article holds no value for this custom field and we have no default value, make it empty
+      $custom_value = (!empty($$custom) ? $$custom : '');
       // DEBUG
-      // dmp($custom_value);
+      // dmp("custom_value: {$custom_value}");
+
+      // check if there is a default value
+      $default_value = glz_default_value($arr_custom_field_values);
+      // DEBUG
+      // dmp("default_value: {$default_value}");
+
+      // now that we've found our default, we need to clean our custom_field values
+      if (is_array($arr_custom_field_values))
+        array_walk($arr_custom_field_values, "glz_clean_default_array_values");
 
       // the way our custom field value is going to look like
-      list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values, $custom_value);
+      list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values, $custom_value, $default_value);
 
       // DEBUG
       //dmp($custom_set_value);

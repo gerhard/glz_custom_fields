@@ -65,6 +65,32 @@ function glz_check_custom_set($all_custom_sets, $step) {
 
 
 // -------------------------------------------------------------
+// removes { } from values which are marked as default
+function glz_return_clean_default($value) {
+  $pattern = "/^.*\{(.*)\}.*/";
+
+  return preg_replace($pattern, "$1", $value);
+}
+
+
+// -------------------------------------------------------------
+// return our default value from all custom_field values
+function glz_default_value($all_values) {
+  if (is_array($all_values)) {
+    preg_match("/(\{.*\})/", join(" ", $all_values), $default);
+    return ($default[0] ? $default[0] : '');
+  }
+}
+
+
+// -------------------------------------------------------------
+// calling the above function in an array context
+function glz_clean_default_array_values(&$value, $key) {
+  $value = glz_return_clean_default($value);
+}
+
+
+// -------------------------------------------------------------
 // custom_set without "_set" e.g. custom_1_set => custom_1
 // or custom set formatted for IDs e.g. custom-1
 function glz_custom_number($custom_set, $delimiter="_") {
@@ -208,7 +234,7 @@ function glz_check_custom_set_name($arr_custom_fields, $custom_set_name, $custom
 
 // -------------------------------------------------------------
 // formats the custom set output based on its type
-function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $arr_custom_field_values, $custom_value = "") {
+function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $arr_custom_field_values, $custom_value = "", $default_value = "") {
   if ( is_array($arr_custom_field_values) )
     $arr_custom_field_values = array_map('glz_array_stripslashes', $arr_custom_field_values);
 
@@ -222,25 +248,25 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
 
     case "select":
       return array(
-        glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, 1),
+        glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, $default_value),
         'glz_custom_select_field'
       );
 
     case "multi-select":
       return array(
-        glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, '', 1),
+        glz_selectInput($custom, $custom_id, $arr_custom_field_values, $custom_value, $default_value, 1),
         'glz_custom_multi-select_field'
       );
 
     case "checkbox":
       return array(
-        glz_checkbox($custom, $arr_custom_field_values, $custom_value),
+        glz_checkbox($custom, $arr_custom_field_values, $custom_value, $default_value),
         'glz_custom_checkbox_field'
       );
 
     case "radio":
       return array(
-        glz_radio($custom, $custom_id, $arr_custom_field_values, $custom_value),
+        glz_radio($custom, $custom_id, $arr_custom_field_values, $custom_value, $default_value),
         'glz_custom_radio_field'
       );
 
@@ -269,12 +295,16 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
 
 // -------------------------------------------------------------
 // had to duplicate the default selectInput() because trimming \t and \n didn't work + some other mods
-function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value = '', $blank_first = '', $multi = '') {
+function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value = '', $default_value = '', $multi = '') {
   if ( is_array($arr_values) ) {
     $out = array();
 
+    // if there is no custom_value coming from the article, let's use our default one
+    if ( empty($custom_value) )
+      $custom_value = $default_value;
+
     foreach ($arr_values as $key => $value) {
-      $selected = glz_selected_checked('selected', $key, $custom_value);
+      $selected = glz_selected_checked('selected', $key, $custom_value, $default_value);
       $out[] = "<option value=\"$key\"{$selected}>$value</option>";
     }
 
@@ -288,7 +318,7 @@ function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value =
     }
 
     return "<select id=\"".glz_idify($id)."\" name=\"$name\" class=\"list\"$multi>".
-      ($blank_first ? "<option value=\"\"$selected>&nbsp;</option>" : '').
+      ($default_value ? '' : "<option value=\"\"$selected>&nbsp;</option>").
       ( $out ? join('', $out) : '').
       "</select>";
   }
@@ -299,8 +329,12 @@ function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value =
 
 // -------------------------------------------------------------
 // had to duplicate the default checkbox() to keep the looping in here and check against existing value/s
-function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
+function glz_checkbox($name = '', $arr_values = '', $custom_value = '', $default_value = '') {
   $out = array();
+
+  // if there is no custom_value coming from the article, let's use our default one
+  if ( empty($custom_value) )
+    $custom_value = $default_value;
 
   foreach ( $arr_values as $key => $value ) {
     $checked = glz_selected_checked('checked', $key, $custom_value);
@@ -315,8 +349,12 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '') {
 
 // -------------------------------------------------------------
 // had to duplicate the default radio() to keep the looping in here and check against existing value
-function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '') {
+function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '', $default_value = '') {
   $out = array();
+
+  // if there is no custom_value coming from the article, let's use our default one
+  if ( empty($custom_value) )
+    $custom_value = $default_value;
 
   foreach ( $arr_values as $key => $value ) {
     $checked = glz_selected_checked('checked', $key, $custom_value);
