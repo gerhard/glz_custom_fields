@@ -35,10 +35,10 @@ function glz_custom_set_types() {
   return array(
     'normal' => array(
       'text_input',
-      'select',
-      'multi-select',
       'checkbox',
       'radio',
+      'select',
+      'multi-select',
       'textarea'),
     'special' => array(
       'date-picker')

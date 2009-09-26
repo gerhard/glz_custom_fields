@@ -391,6 +391,12 @@ function glz_custom_fields_uninstall() {
       'custom_set_type'   => "custom_set",
       'custom_set_name'   => $custom_set['name']
     ));
+
+    // change all custom field columns back to varchar
+    glz_custom_fields_MySQL("update", $custom, PFX."textpattern", array(
+      'custom_set_type' => "custom_set",
+      'custom_field'    => glz_custom_number($custom_set['name'])
+    ));
   }
   $glz_notice[] = glz_custom_fields_gTxt("custom_sets_all_input");
 

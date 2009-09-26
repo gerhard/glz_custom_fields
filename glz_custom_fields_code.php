@@ -9,7 +9,7 @@ require_once('lib/callbacks.php');
 // globals, expensive operations mostly
 before_glz_custom_fields();
 
-if (txpinterface == "admin") {
+if (@txpinterface == "admin") {
 
   // INSTALL ROUTINES
   // checks if all tables exist and everything is setup properly
@@ -26,7 +26,6 @@ if (txpinterface == "admin") {
 
     // we need to make sure that all custom field values will be converted to strings first - think checkboxes & multi-selects
     if ( (gps("step") == "edit") || (gps("step") == "create") ) {
-      add_privs('glz_custom_fields_before_save', "1");
       register_callback('glz_custom_fields_before_save', "article", '', 1);
     }
   }
@@ -72,7 +71,10 @@ function glz_custom_fields() {
       glz_custom_fields_MySQL("reset", $custom_set, PFX."txp_prefs");
       glz_custom_fields_MySQL("delete", $custom_set, PFX."custom_fields");
 
-      glz_custom_fields_MySQL("reset", glz_custom_number($custom_set), PFX."textpattern");
+      glz_custom_fields_MySQL("reset", glz_custom_number($custom_set), PFX."textpattern", array(
+        'custom_set_type' => $custom_set_type,
+        'custom_field' => glz_custom_number($custom_set)
+      ));
 
       $glz_notice[] = glz_custom_fields_gTxt("reset", array('{custom_set_name}' => $custom_set_name));
     }
@@ -99,12 +101,16 @@ function glz_custom_fields() {
           ));
           glz_custom_fields_MySQL("new", $custom_set_name, PFX."textpattern", array(
             'custom_field_number' => $custom_field_number,
-            'after'               => intval($custom_field_number-1)
+            'after'               => intval($custom_field_number-1),
+            'custom_set_type' => $custom_set_type,
           ));
-          glz_custom_fields_MySQL("new", $custom_set_name, PFX."custom_fields", array(
-            'custom_field_number' => $custom_field_number,
-            'value'               => $value
-          ));
+          // there are custom fields for which we do not need to touch custom_fields table
+          if ( !in_array($custom_set_type, array("textarea", "text_input")) ) {
+            glz_custom_fields_MySQL("new", $custom_set_name, PFX."custom_fields", array(
+              'custom_field_number' => $custom_field_number,
+              'value'               => $value
+            ));
+          }
 
           $glz_notice[] = glz_custom_fields_gTxt("created", array('{custom_set_name}' => $custom_set_name));
         }
@@ -118,18 +124,27 @@ function glz_custom_fields() {
     if ( gps('save') ) {
       if ( !empty($custom_set_name) ) {
         $name_exists = glz_check_custom_set_name($all_custom_sets, $custom_set_name, $custom_set);
-
         // if name doesn't exist
         if ( $name_exists == FALSE ) {
           glz_custom_fields_MySQL("update", $custom_set, PFX."txp_prefs", array(
-            'custom_set_type'   => $custom_set_type,
-            'custom_set_name'   => $custom_set_name
+            'custom_set_type' => $custom_set_type,
+            'custom_set_name' => $custom_set_name
           ));
-          glz_custom_fields_MySQL("delete", $custom_set, PFX."custom_fields");
-          glz_custom_fields_MySQL("new", $custom_set_name, PFX."custom_fields", array(
-            'custom_set'    => $custom_set,
-            'value'         => $value
+
+          // custom sets need to be changed based on their type
+          glz_custom_fields_MySQL("update", $custom_set, PFX."textpattern", array(
+            'custom_set_type' => $custom_set_type,
+            'custom_field' => glz_custom_number($custom_set)
           ));
+
+          // there are custom fields for which we do not need to touch custom_fields table
+          if ( !in_array($custom_set_type, array("textarea", "text_input")) ) {
+            glz_custom_fields_MySQL("delete", $custom_set, PFX."custom_fields");
+            glz_custom_fields_MySQL("new", $custom_set_name, PFX."custom_fields", array(
+              'custom_set'  => $custom_set,
+              'value'       => $value
+            ));
+          }
 
           $glz_notice[] = glz_custom_fields_gTxt("updated", array('{custom_set_name}' => $custom_set_name));
         }

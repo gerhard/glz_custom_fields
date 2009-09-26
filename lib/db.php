@@ -34,7 +34,7 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
         break;
 
       case 'reset':
-        return glz_reset_custom_field($name, $table);
+        return glz_reset_custom_field($name, $table, $extra);
         break;
 
       case 'delete':
@@ -252,11 +252,12 @@ function glz_new_custom_field($name, $table, $extra) {
       ";
     }
     else if ( $table == PFX."textpattern" ) {
+      $column_type = ( $custom_set_type == "textarea" ) ? "TEXT" : "VARCHAR(255)";
       $query = "
         ALTER TABLE
           `".PFX."textpattern`
         ADD
-          `custom_{$custom_field_number}` varchar(16383) NOT NULL DEFAULT ''
+          `custom_{$custom_field_number}` {$column_type} NOT NULL DEFAULT ''
         AFTER
           `custom_{$after}`
       ";
@@ -293,29 +294,38 @@ function glz_new_custom_field($name, $table, $extra) {
 
 
 function glz_update_custom_field($name, $table, $extra) {
-  if ( is_array($extra) ) {
+  if ( is_array($extra) )
     extract($extra);
 
-    if ( ($table == PFX."txp_prefs")  ) {
-      safe_query("
-        UPDATE
-            `".PFX."txp_prefs`
-          SET
-            `val` = '{$custom_set_name}',
-            `html` = '{$custom_set_type}'
-          WHERE
-            `name`='{$name}'
-      ");
-    }
+  if ( ($table == PFX."txp_prefs") ) {
+    safe_query("
+      UPDATE
+        `".PFX."txp_prefs`
+      SET
+        `val` = '{$custom_set_name}',
+        `html` = '{$custom_set_type}'
+      WHERE
+        `name`='{$name}'
+    ");
   }
-  else
-    trigger_error(glz_custom_fields_gTxt('not_specified', array('{what}' => "extra attributes")));
+  else if ( ($table == PFX."textpattern") ) {
+    $column_type = ( $custom_set_type == "textarea" ) ? "TEXT" : "VARCHAR(255)";
+    safe_query("
+      ALTER TABLE
+        `".PFX."textpattern`
+      MODIFY
+        `{$custom_field}` {$column_type} NOT NULL DEFAULT ''
+    ");
+  }
 }
 
 
-function glz_reset_custom_field($name, $table) {
+function glz_reset_custom_field($name, $table, $extra) {
+  if ( is_array($extra) )
+    extract($extra);
+
   if ( $table == PFX."txp_prefs" ) {
-    $query = "
+    safe_query("
       UPDATE
         `".PFX."txp_prefs`
       SET
@@ -323,18 +333,12 @@ function glz_reset_custom_field($name, $table) {
         `html` = 'text_input'
       WHERE
         `name`='{$name}'
-    ";
+    ");
   }
   else if ( $table == PFX."textpattern" ) {
-    $query = "
-      UPDATE
-        `".PFX."textpattern`
-      SET
-        `{$name}` = ''
-    ";
+    safe_query("UPDATE `".PFX."textpattern` SET `{$name}` = ''");
+    safe_query("ALTER TABLE `".PFX."textpattern` MODIFY `{$custom_field}` VARCHAR(255) NOT NULL DEFAULT ''");
   }
-
-  safe_query($query);
 }
 
 
