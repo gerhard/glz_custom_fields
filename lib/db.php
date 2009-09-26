@@ -256,7 +256,7 @@ function glz_new_custom_field($name, $table, $extra) {
         ALTER TABLE
           `".PFX."textpattern`
         ADD
-          `custom_{$custom_field_number}` varchar(255) NOT NULL DEFAULT ''
+          `custom_{$custom_field_number}` varchar(16383) NOT NULL DEFAULT ''
         AFTER
           `custom_{$after}`
       ";

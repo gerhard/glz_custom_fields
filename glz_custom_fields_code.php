@@ -318,6 +318,10 @@ function glz_custom_fields_replace($event, $step, $data, $rs) {
   // DEBUG
   // dmp($out);
 
+  // if we're writing textarea custom fields, we need to include the excerpt as well
+  if ($step == "excerpt")
+    $out = $data.$out;
+
   return $out;
 }
 
