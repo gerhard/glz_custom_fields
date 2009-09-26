@@ -55,8 +55,12 @@ function glz_check_custom_set($all_custom_sets, $step) {
     if (!empty($custom_field['name'])) {
       if ( ($step == "excerpt") && ($custom_field['type'] == "textarea") )
         $out[$key] = $custom_field;
-      else if ( ($step == "custom_fields") && ($custom_field['type'] != "textarea") )
-        $out[$key] = $custom_field;
+      else if ( ($step == "custom_fields") && ($custom_field['type'] != "textarea") ) {
+        if ( $custom_field['type'] == "date-picker" && file_exists($GLOBALS['prefs']['path_to_site']."/scripts/jquery.datePicker") )
+          $out[$key] = $custom_field;
+        else if ( $custom_field['type'] != "date-picker" )
+          $out[$key] = $custom_field;
+      }
     }
   }
 
