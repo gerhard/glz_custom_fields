@@ -382,6 +382,30 @@ function glz_custom_fields_install() {
     trigger_error(glz_custom_fields_gTxt('check_path'));
   }
 
+  // default custom fields are set to custom_set
+  // need to change this because it confuses our set_types()
+  safe_query("
+    UPDATE
+      `".PFX."txp_prefs`
+    SET
+      `html` = 'text_input'
+    WHERE
+      `event` = 'custom'
+    AND
+      `html` = 'custom_set'
+  ");
+
+  // we know this routine hasn't run, ther are no plugin preferences in the db
+  if ( !isset($prefs['values_ordering']) ) {
+    // default plugin preferences
+    $arr_plugin_preferences = array(
+      'values_ordering' => "custom",
+      'datepicker_format' => "dd/mm/yyyy",
+      'datepicker_first_day' => 1
+    );
+    glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
+  }
+
   // if we don't have a search section, let's create it because we'll need it when searching by custom fields
   if( !getRow("SELECT name FROM `".PFX."txp_section` WHERE name='search'") ) {
     safe_query("
@@ -458,8 +482,9 @@ function glz_custom_fields_install() {
            safe_query($query);
            // update the type of this custom field to select (might want to make this user-adjustable at some point)
            glz_custom_fields_MySQL("update", $custom, PFX."txp_prefs", array(
+             'custom_set_name'   => $custom_set['name'],
              'custom_set_type'   => "select",
-             'custom_set_name'   => $custom_set['name']
+             'custom_set_position' => $custom_set['position']
            ));
            $glz_notice[] = glz_custom_fields_gTxt("migration_success");
          }
@@ -469,30 +494,6 @@ function glz_custom_fields_install() {
 
    // make a note of this migration in txp_prefs
    glz_custom_fields_MySQL('mark_migration');
-  }
-
-  // default custom fields are set to custom_set
-  // need to change this because it confuses our set_types()
-  safe_query("
-    UPDATE
-      `".PFX."txp_prefs`
-    SET
-      `html` = 'text_input'
-    WHERE
-      `event` = 'custom'
-    AND
-      `html` = 'custom_set'
-  ");
-
-  // we know this routine hasn't run, ther are no plugin preferences in the db
-  if ( !isset($prefs['values_ordering']) ) {
-    // default plugin preferences
-    $arr_plugin_preferences = array(
-      'values_ordering' => "custom",
-      'datepicker_format' => "dd/mm/yyyy",
-      'datepicker_first_day' => 1
-    );
-    glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
   }
 }
 
