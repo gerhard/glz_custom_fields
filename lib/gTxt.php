@@ -6,7 +6,6 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
   $lang = array(
     'no_name'           => 'Ooops! <strong>custom set</strong> must have a name',
     'deleted'           => '<strong>{custom_set_name}</strong> was deleted',
-    'reset'             => '<strong>{custom_set_name}</strong> was reset',
     'created'           => '<strong>{custom_set_name}</strong> was created',
     'updated'           => '<strong>{custom_set_name}</strong> was updated',
     'exists'            => 'Ooops! <strong>{custom_set_name}</strong> already exists',
@@ -30,7 +29,8 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'migration_success' => 'Migrating custom fields was successful',
     'migration_skip'    => '<strong>custom_fields</strong> table already has data in it, migration skipped.',
     'search_section_created'  => '<strong>search</strong> section has been created',
-    'custom_sets_all_input'   => 'All custom sets have been set back to input'
+    'custom_sets_all_input'   => 'All custom sets have been set back to input',
+    'preferences_updated'     => 'Plugin preferences have been updated'
   );
 
   $out = ( strstr($lang[$get], "Ooops!") ) ? // Ooops! would appear 0 in the string...

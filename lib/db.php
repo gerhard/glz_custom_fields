@@ -33,10 +33,6 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
         return glz_update_custom_field($name, $table, $extra);
         break;
 
-      case 'reset':
-        return glz_reset_custom_field($name, $table, $extra);
-        break;
-
       case 'delete':
         glz_delete_custom_field($name, $table);
         glz_custom_fields_update_count();
@@ -50,12 +46,20 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
         return glz_mark_migration();
         break;
 
-      case 'unmark_migration':
-        return glz_unmark_migration();
-        break;
-
       case 'custom_set_exists':
         return glz_check_custom_set_exists($name);
+        break;
+
+      case 'plugin_preferences':
+        return glz_plugin_preferences($name);
+        break;
+
+      case 'update_plugin_preferences':
+        return glz_update_plugin_preferences($name);
+        break;
+
+      case 'remove_plugin_preferences':
+        return glz_remove_plugin_preferences();
         break;
     }
   }
@@ -69,6 +73,7 @@ function glz_all_custom_sets() {
     SELECT
       `name` AS custom_set,
       `val` AS name,
+      `position`,
       `html` AS type
     FROM
       `".PFX."txp_prefs`
@@ -80,8 +85,9 @@ function glz_all_custom_sets() {
 
   foreach ( $all_custom_sets as $custom_set ) {
     $out[$custom_set['custom_set']] = array(
-      'name'  => $custom_set['name'],
-      'type'  => $custom_set['type']
+      'name'      => $custom_set['name'],
+      'position'  => $custom_set['position'],
+      'type'      => $custom_set['type']
     );
   }
 
@@ -90,10 +96,24 @@ function glz_all_custom_sets() {
 
 
 function glz_values_custom_field($name, $extra) {
+  global $prefs;
+
   if ( is_array($extra) ) {
     extract($extra);
 
     if ( !empty($name) ) {
+      switch ( $prefs['values_ordering'] ) {
+        case "ascending":
+          $orderby = "value ASC";
+          break;
+        case "descending":
+          $orderby = "value DESC";
+          break;
+        default:
+          $orderby = "id ASC";
+      }
+
+
       $arr_values = getThings("
         SELECT
           `value`
@@ -102,16 +122,10 @@ function glz_values_custom_field($name, $extra) {
         WHERE
           `name` = '{$name}'
         ORDER BY
-          `value`
+          {$orderby}
       ");
 
       if ( count($arr_values) > 0 ) {
-        // have our values nicely sorted
-        /**
-          TODO User-configurable. Some folks didn't like this order.
-        */
-        natsort($arr_values);
-
         // decode all special characters e.g. ", & etc. and use them for keys
         foreach ( $arr_values as $key => $value )
           $arr_values_formatted[htmlspecialchars($value)] = stripslashes($value);
@@ -149,12 +163,6 @@ function glz_all_existing_custom_values($name, $extra) {
         ORDER BY
           `$name`
         ");
-
-      // have our values nicely sorted
-      /**
-        TODO User-configurable. Some folks didn't like this order.
-      */
-      natsort($arr_values);
 
       // trim all values
       foreach ( $arr_values as $key => $value )
@@ -235,12 +243,14 @@ function glz_new_custom_field($name, $table, $extra) {
       "custom_{$custom_field_number}_set" :
       $custom_set;
 
-    if ( ($table == PFX."txp_prefs")  ) {
+    if ( ($table == PFX."txp_prefs") ) {
+      // if this is a new field without a position, use the $custom_field_number
+      if (empty($custom_set_position)) $custom_set_position = $custom_field_number;
       $query = "
         INSERT INTO
-          `".PFX."txp_prefs` (`prefs_id`,`name`,`val`,`type`,`event`,`html`,`position`)
+          `".PFX."txp_prefs` (`prefs_id`, `name`, `val`, `type`, `event`, `html`, `position`)
         VALUES
-          ('1','{$custom_set}','{$name}','1','custom','{$custom_set_type}',{$custom_field_number})
+          ('1', '{$custom_set}', '{$name}', '1', 'custom', '{$custom_set_type}', {$custom_set_position})
       ";
     }
     else if ( $table == PFX."txp_lang" ) {
@@ -258,8 +268,6 @@ function glz_new_custom_field($name, $table, $extra) {
           `".PFX."textpattern`
         ADD
           `custom_{$custom_field_number}` {$column_type} NOT NULL DEFAULT ''
-        AFTER
-          `custom_{$after}`
       ";
     }
     else if ( $table == PFX."custom_fields" ) {
@@ -303,7 +311,8 @@ function glz_update_custom_field($name, $table, $extra) {
         `".PFX."txp_prefs`
       SET
         `val` = '{$custom_set_name}',
-        `html` = '{$custom_set_type}'
+        `html` = '{$custom_set_type}',
+        `position` = '{$custom_set_position}'
       WHERE
         `name`='{$name}'
     ");
@@ -320,61 +329,33 @@ function glz_update_custom_field($name, $table, $extra) {
 }
 
 
-function glz_reset_custom_field($name, $table, $extra) {
-  if ( is_array($extra) )
-    extract($extra);
-
-  if ( $table == PFX."txp_prefs" ) {
-    safe_query("
-      UPDATE
-        `".PFX."txp_prefs`
-      SET
-        `val` = '',
-        `html` = 'text_input'
+function glz_delete_custom_field($name, $table) {
+  if ( in_array($table, array(PFX."txp_prefs", PFX."txp_lang", PFX."custom_fields")) ) {
+    $query = "
+      DELETE FROM
+        `{$table}`
       WHERE
         `name`='{$name}'
-    ");
+    ";
   }
   else if ( $table == PFX."textpattern" ) {
-    safe_query("UPDATE `".PFX."textpattern` SET `{$name}` = ''");
-    safe_query("ALTER TABLE `".PFX."textpattern` MODIFY `{$custom_field}` VARCHAR(255) NOT NULL DEFAULT ''");
+    $query = "
+      ALTER TABLE
+        `".PFX."textpattern`
+      DROP
+        `{$name}`
+    ";
   }
-}
+  else if ( ($table == PFX."custom_fields") ) {
+    $query = "
+      DELETE FROM
+        `{$table}`
+      WHERE
+        `name`='{$name}'
+    ";
+  }
 
-
-function glz_delete_custom_field($name, $table) {
-  // remember, custom fields under 10 MUST NOT be deleted
-  if ( glz_custom_digit($name) > 10 ) {
-    if ( in_array($table, array(PFX."txp_prefs", PFX."txp_lang", PFX."custom_fields")) ) {
-      $query = "
-        DELETE FROM
-          `{$table}`
-        WHERE
-          `name`='{$name}'
-      ";
-    }
-    else if ( $table == PFX."textpattern" ) {
-      $query = "
-        ALTER TABLE
-          `".PFX."textpattern`
-        DROP
-          `{$name}`
-      ";
-    }
-    safe_query($query);
-  }
-  else {
-    if ( $table == PFX."txp_prefs" )
-      glz_custom_fields_MySQL("reset", $name, $table);
-    else if ( ($table == PFX."custom_fields") ) {
-      safe_query("
-        DELETE FROM
-          `{$table}`
-        WHERE
-          `name`='{$name}'
-      ");
-    }
-  }
+  safe_query($query);
 }
 
 
@@ -393,26 +374,8 @@ function glz_check_migration() {
 // -------------------------------------------------------------
 // make a note of glz_custom_fields migration in txp_prefs
 function glz_mark_migration() {
-  safe_query("
-    INSERT INTO
-      `".PFX."txp_prefs` (`prefs_id`,`name`,`val`,`type`,`event`,`html`,`position`)
-    VALUES
-      ('1','glz_custom_fields_migrated','1','1','admin','text_input','0')
-  ");
-}
-
-
-// -------------------------------------------------------------
-// remove glz_custom_fields migration from txp_prefs if it's been set
-function glz_unmark_migration() {
-  if (getRows("SELECT * FROM '".PFX."txp_prefs' WHERE `name`='glz_custom_fields_migrated'")) {
-    safe_query("
-      DELETE FROM
-        `".PFX."txp_prefs`
-      WHERE
-        `name`='glz_custom_fields_migrated'
-    ");
-  }
+  #  set_pref($name, $val, $event='publish',  $type=0, $html='text_input', $position=0, $is_private=PREF_GLOBAL)
+  set_pref("migrated", "1", "glz_custom_f");
 }
 
 
@@ -440,6 +403,40 @@ function glz_check_custom_set_exists($name) {
 // updates max_custom_fields
 function glz_custom_fields_update_count() {
   set_pref('max_custom_fields', safe_count("txp_prefs", "event='custom'"));
+}
+
+// -------------------------------------------------------------
+// updates all plugin preferences
+function glz_plugin_preferences($arr_preferences) {
+	$r = safe_rows_start('name, val', PFX.'txp_prefs', "event = 'glz_custom_f'");
+	if ($r) {
+		while ($a = nextRow($r)) {
+			$out[$a['name']] = $a['val'];
+		}
+	}
+  return $out;
+}
+
+// -------------------------------------------------------------
+// updates all plugin preferences
+function glz_update_plugin_preferences($arr_preferences) {
+  foreach ($arr_preferences as $preference => $value) {
+    set_pref($preference, $value, "glz_custom_f");
+  }
+}
+
+
+// -------------------------------------------------------------
+// removes all plugin preferences
+function glz_remove_plugin_preferences() {
+  if (getRows("SELECT * FROM '".PFX."txp_prefs' WHERE `event` = 'glz_custom_f'")) {
+    safe_query("
+      DELETE FROM
+        `".PFX."txp_prefs`
+      WHERE
+        `event` = 'glz_custom_f'
+    ");
+  }
 }
 
 ?>

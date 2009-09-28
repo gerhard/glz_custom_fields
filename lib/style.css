@@ -1,4 +1,3 @@
-<style type="text/css" media="screen">
 /* - - - - - - - - - - - - - - - - - - - - -
 
 ### TEXTPATTERN CUSTOM FIELDS ###
@@ -8,7 +7,7 @@ Author : Gerhard Lazu
 URL : http://www.gerhardlazu.com/
 
 Created : 14th May 2007
-Last modified: 3rd June 2009
+Last modified: 28th September 2009
 
 - - - - - - - - - - - - - - - - - - - - - */
 
@@ -74,11 +73,14 @@ html[xmlns] .clearfix {
 #glz_custom_fields td.custom_set {
   width: 8em;
 }
+#glz_custom_fields td.custom_set_position {
+  width: 5em;
+}
 #glz_custom_fields td.custom_set_name {
-  width: 18em;
+  width: 14em;
 }
 #glz_custom_fields td.type {
-  width: 6em;
+  width: 7em;
 }
 #glz_custom_fields td.events {
   width: 12em;
@@ -137,5 +139,4 @@ td#article-col-1 #advanced p input.radio,
 td#article-col-1 #advanced p input.checkbox {
   width: auto;
 }
-</style>
 

@@ -1,9 +1,100 @@
 <?php
 
+
+// -------------------------------------------------------------
+// replaces the default custom fields under write tab
+function glz_custom_fields_replace($event, $step, $data, $rs) {
+  global $all_custom_sets, $date_picker;
+  // get all custom fields & keep only the ones which are set, filter by step
+  // and return date picker custom fields only if jquery.datePicker is in the right location
+  $arr_custom_fields = glz_check_custom_set($all_custom_sets, $step);
+
+  // DEBUG
+  // dmp($arr_custom_fields);
+
+  $out = ' ';
+
+  if ( is_array($arr_custom_fields) && !empty($arr_custom_fields) ) {
+    // get all custom fields values for this article
+    $arr_article_customs = glz_custom_fields_MySQL("article_customs", glz_get_article_id(), '', $arr_custom_fields);
+
+    // DEBUG
+    // dmp($arr_article_customs);
+
+    if ( is_array($arr_article_customs) )
+      extract($arr_article_customs);
+
+    // let's see which custom fields are set
+    foreach ( $arr_custom_fields as $custom => $custom_set ) {
+      // get all possible/default value(s) for this custom set from custom_fields table
+      $arr_custom_field_values = glz_custom_fields_MySQL("values", $custom, '', array('custom_set_name' => $custom_set['name']));
+
+      // DEBUG
+      // dmp($arr_custom_field_values);
+
+      //custom_set formatted for id e.g. custom_1_set => custom-1 - don't ask...
+      $custom_id = glz_custom_number($custom, "-");
+      //custom_set without "_set" e.g. custom_1_set => custom_1
+      $custom = glz_custom_number($custom);
+
+      // if current article holds no value for this custom field and we have no default value, make it empty
+      $custom_value = (!empty($$custom) ? $$custom : '');
+      // DEBUG
+      // dmp("custom_value: {$custom_value}");
+
+      // check if there is a default value
+      $default_value = glz_default_value($arr_custom_field_values);
+      // DEBUG
+      // dmp("default_value: {$default_value}");
+
+      // now that we've found our default, we need to clean our custom_field values
+      if (is_array($arr_custom_field_values))
+        array_walk($arr_custom_field_values, "glz_clean_default_array_values");
+
+      // the way our custom field value is going to look like
+      list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values, $custom_value, $default_value);
+
+      // DEBUG
+      //dmp($custom_set_value);
+
+      $out .= graf(
+        "<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\""
+      );
+    }
+  }
+
+  // DEBUG
+  // dmp($out);
+
+  // if we're writing textarea custom fields, we need to include the excerpt as well
+  if ($step == "excerpt")
+    $out = $data.$out;
+
+  return $out;
+}
+
+
+// -------------------------------------------------------------
+// prep our custom fields for the db (watch out for multi-selects, checkboxes & radios, they might have multiple values)
+function glz_custom_fields_before_save() {
+  // keep only the custom fields
+  foreach ($_POST as $key => $value) {
+    //check for custom fields with multiple values e.g. arrays
+    if ( strstr($key, 'custom_') && is_array($value) ) {
+      $value = implode($value, '|');
+      // feed our custom fields back into the $_POST
+      $_POST[$key] = $value;
+    }
+  }
+  // DEBUG
+  // dmp($_POST);
+}
+
+
 // -------------------------------------------------------------
 // adds the css & js we need
 function glz_custom_fields_css_js() {
-  global $glz_notice, $date_picker;
+  global $glz_notice, $date_picker, $prefs;
 
   // here come our custom stylesheetz
   $css = <<<EOF
@@ -17,7 +108,7 @@ Author : Gerhard Lazu
 URL : http://www.gerhardlazu.com/
 
 Created : 14th May 2007
-Last modified: 3rd June 2009
+Last modified: 28th September 2009
 
 - - - - - - - - - - - - - - - - - - - - - */
 
@@ -83,11 +174,14 @@ html[xmlns] .clearfix {
 #glz_custom_fields td.custom_set {
   width: 8em;
 }
+#glz_custom_fields td.custom_set_position {
+  width: 5em;
+}
 #glz_custom_fields td.custom_set_name {
-  width: 18em;
+  width: 14em;
 }
 #glz_custom_fields td.type {
-  width: 6em;
+  width: 7em;
 }
 #glz_custom_fields td.events {
   width: 12em;
@@ -169,7 +263,7 @@ $(document).ready(function() {
 
   // disable all custom field references in Advanced Prefs
   // prefs_ui doesn't offer support for this, getting the custom fields to display right here is not crucial at this point
-  var custom_field_tr = $("tr:has(label[for*=custom_]), tr:has(h2:contains('Custom Fields'))");
+  var custom_field_tr = $("tr[id*=prefs-custom_], tr:has(h2:contains('Custom Fields'))");
   if ( custom_field_tr ) {
     $.each (custom_field_tr, function() {
       $(this).hide();
@@ -193,6 +287,8 @@ $(document).ready(function() {
 
   // enable date-picker custom sets
   try {
+    Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
+    Date.format = '{$prefs['datepicker_format']}';
     $(".date-picker").datePicker();
   } catch(err) {
     console.error("Please download and enable the jQuery DatePicker plugin (check glz_custom_fields help for more information). http://www.kelvinluck.com/assets/jquery/datePicker");
@@ -247,7 +343,7 @@ EOF;
 
     $(document).ready(function() {
       // add our notices
-      $("#nav-primary table tbody tr td:first").html(\''.$glz_notice.'\');
+      $("#messagepane").html(\''.$glz_notice.'\');
     });
     //--><!]]>
     </script>';
@@ -302,15 +398,25 @@ function glz_custom_fields_install() {
   if ( !getRows("SHOW TABLES LIKE '".PFX."custom_fields'") ) {
    safe_query("
      CREATE TABLE `".PFX."custom_fields` (
+      `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
        `name` varchar(255) NOT NULL default '',
        `value` varchar(255) NOT NULL default '',
+       PRIMARY KEY (id),
        INDEX (`name`)
      ) TYPE=MyISAM
    ");
   }
   else {
+    // if there isn't and id column, add it
+    if ( !getRows("SHOW COLUMNS FROM ".PFX."custom_fields LIKE 'id'") ) {
+      safe_query("
+        ALTER TABLE `".PFX."custom_fields`
+          ADD `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT KEY
+      ");
+    }
+
    // if we have definitely migrated using this function, skip everything
-   if ( isset($prefs['glz_custom_fields_migrated']) )
+   if ( isset($prefs['migrated']) )
      return;
    // abort the migration if there are values in custom_fields table, we don't want to overwrite anything
    else if ( glz_custom_fields_MySQL('check_migration') > 0 ) {
@@ -377,35 +483,51 @@ function glz_custom_fields_install() {
     AND
       `html` = 'custom_set'
   ");
+
+  // we know this routine hasn't run, ther are no plugin preferences in the db
+  if ( !isset($prefs['values_ordering']) ) {
+    // default plugin preferences
+    $arr_plugin_preferences = array(
+      'values_ordering' => "custom",
+      'datepicker_format' => "dd/mm/yyyy",
+      'datepicker_first_day' => 1
+    );
+    glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
+  }
 }
 
 
 // -------------------------------------------------------------
 // uninstalls glz_custom_fields
-function glz_custom_fields_uninstall() {
-  global $all_custom_sets, $glz_notice;
+#function glz_custom_fields_uninstall() {
+#  global $all_custom_sets, $glz_notice;
 
-  // change all custom fields back to custom_set
-  foreach ($all_custom_sets as $custom_set) {
-    glz_custom_fields_MySQL("update", $custom, PFX."txp_prefs", array(
-      'custom_set_type'   => "custom_set",
-      'custom_set_name'   => $custom_set['name']
-    ));
+#  // change all custom fields back to custom_set
+#  foreach ($all_custom_sets as $custom_set) {
+#    glz_custom_fields_MySQL("update", $custom, PFX."txp_prefs", array(
+#      'custom_set_name'   => $custom_set['name'],
+#      'custom_set_type'   => "custom_set",
+#      'custom_set_position' => $custom_set['position']
+#    ));
 
-    // change all custom field columns back to varchar
-    glz_custom_fields_MySQL("update", $custom, PFX."textpattern", array(
-      'custom_set_type' => "custom_set",
-      'custom_field'    => glz_custom_number($custom_set['name'])
-    ));
-  }
-  $glz_notice[] = glz_custom_fields_gTxt("custom_sets_all_input");
+#    // change all custom field columns back to varchar
+#    glz_custom_fields_MySQL("update", $custom, PFX."textpattern", array(
+#      'custom_set_type' => "custom_set",
+#      'custom_field'    => glz_custom_number($custom)
+#    ));
+#  }
 
-  safe_query("
-    DROP TABLE `".PFX."custom_fields`
-  ");
+#  // update custom_fields number
+#  glz_custom_fields_update_count();
 
-  glz_custom_fields_MySQL("glz_unmark_migration");
-}
+#  $glz_notice[] = glz_custom_fields_gTxt("custom_sets_all_input");
+
+#  safe_query("
+#    DROP TABLE `".PFX."custom_fields`
+#  ");
+
+#  glz_custom_fields_MySQL("remove_plugin_preferences");
+#}
 
 ?>
 

@@ -13,7 +13,7 @@ function glz_next_empty_custom() {
 
 // -------------------------------------------------------------
 // edit/delete buttons in custom_fields table require a form each
-function glz_form_buttons($action, $value, $custom_set, $custom_set_name, $custom_set_type, $onsubmit='') {
+function glz_form_buttons($action, $value, $custom_set, $custom_set_name, $custom_set_type, $custom_set_position, $onsubmit='') {
   $onsubmit = ($onsubmit) ?
     'onsubmit="'.$onsubmit.'"' :
     '';
@@ -23,6 +23,7 @@ function glz_form_buttons($action, $value, $custom_set, $custom_set_name, $custo
       <input name="custom_set" value="'.$custom_set.'" type="hidden" />
       <input name="custom_set_name" value="'.$custom_set_name.'" type="hidden" />
       <input name="custom_set_type" value="'.$custom_set_type.'" type="hidden" />
+      <input name="custom_set_position" value="'.$custom_set_position.'" type="hidden" />
       <input name="event" value="glz_custom_fields" type="hidden" />
       <input name="'.$action.'" value="'.$value.'" type="submit" />
     </form>';
@@ -80,9 +81,9 @@ function glz_return_clean_default($value) {
 // -------------------------------------------------------------
 // return our default value from all custom_field values
 function glz_default_value($all_values) {
-  if (is_array($all_values)) {
+  if ( is_array($all_values) ) {
     preg_match("/(\{.*\})/", join(" ", $all_values), $default);
-    return ($default[0] ? $default[0] : '');
+    return ( (!empty($default) && $default[0]) ? $default[0] : '');
   }
 }
 
@@ -201,26 +202,19 @@ function glz_custom_fields_range($custom_value, $custom_set_name) {
 // -------------------------------------------------------------
 // returns the next available number for custom set
 function glz_custom_next($arr_custom_sets) {
-  // if the array is exactly 10, our next custom field is 11
-  if ( count($arr_custom_sets) == 10 ) {
-    return 11;
+  $arr_extra_custom_sets = array();
+  foreach ( array_keys($arr_custom_sets) as $extra_custom_set) {
+    $arr_extra_custom_sets[] = glz_custom_digit($extra_custom_set);
   }
-  // if not, slice the array with an offset of 10 (we don't want to look in custom fields < 10)
-  else {
-    $arr_extra_custom_sets = array();
-    foreach ( array_keys(array_slice($arr_custom_sets, 10)) as $extra_custom_set) {
-      // strip on _ and keep only the digit e.g. custom_11_set
-      $digit = split("_", $extra_custom_set);
-      $arr_extra_custom_sets[] = $digit['1'];
-    }
-    // order the array
-    sort($arr_extra_custom_sets);
+  // order the array
+  sort($arr_extra_custom_sets);
 
-    foreach ( $arr_extra_custom_sets as $extra_custom_set ) {
-      if (!in_array($extra_custom_set+1, $arr_extra_custom_sets))
-        return $extra_custom_set+1;
-    }
+  for ( $i=0; $i < count($arr_extra_custom_sets); $i++ ) {
+    if ($arr_extra_custom_sets[$i] > $i+1)
+      return $i+1;
   }
+
+  return count($arr_extra_custom_sets)+1;
 }
 
 
@@ -334,40 +328,48 @@ function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value =
 // -------------------------------------------------------------
 // had to duplicate the default checkbox() to keep the looping in here and check against existing value/s
 function glz_checkbox($name = '', $arr_values = '', $custom_value = '', $default_value = '') {
-  $out = array();
+  if ( is_array($arr_values) ) {
+    $out = array();
 
-  // if there is no custom_value coming from the article, let's use our default one
-  if ( empty($custom_value) )
-    $custom_value = $default_value;
+    // if there is no custom_value coming from the article, let's use our default one
+    if ( empty($custom_value) )
+      $custom_value = $default_value;
 
-  foreach ( $arr_values as $key => $value ) {
-    $checked = glz_selected_checked('checked', $key, $custom_value);
+    foreach ( $arr_values as $key => $value ) {
+      $checked = glz_selected_checked('checked', $key, $custom_value);
 
-    // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
-    $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"".glz_idify($key)."\"{$checked} /><label for=\"".glz_idify($key)."\">$value</label></span><br />";
+      // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
+      $out[] = "<span><input type=\"checkbox\" name=\"{$name}[]\" value=\"$key\" class=\"checkbox\" id=\"".glz_idify($key)."\"{$checked} /><label for=\"".glz_idify($key)."\">$value</label></span><br />";
+    }
+
+    return join('', $out);
   }
-
-  return join('', $out);
+  else
+    return glz_custom_fields_gTxt('field_problems', array('{custom_set_name}' => $name));
 }
 
 
 // -------------------------------------------------------------
 // had to duplicate the default radio() to keep the looping in here and check against existing value
 function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '', $default_value = '') {
-  $out = array();
+  if ( is_array($arr_values) ) {
+    $out = array();
 
-  // if there is no custom_value coming from the article, let's use our default one
-  if ( empty($custom_value) )
-    $custom_value = $default_value;
+    // if there is no custom_value coming from the article, let's use our default one
+    if ( empty($custom_value) )
+      $custom_value = $default_value;
 
-  foreach ( $arr_values as $key => $value ) {
-    $checked = glz_selected_checked('checked', $key, $custom_value);
+    foreach ( $arr_values as $key => $value ) {
+      $checked = glz_selected_checked('checked', $key, $custom_value);
 
-    // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
-    $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"{$id}_".glz_idify($key)."\"{$checked} /><label for=\"{$id}_".glz_idify($key)."\">$value</label></span><br />";
+      // Putting an additional span around the input and label combination so the two can be floated together as a pair for left-right, left-right,... arrangement of checkboxes and radio buttons. Thanks Julian!
+      $out[] = "<span><input type=\"radio\" name=\"$name\" value=\"$key\" class=\"radio\" id=\"{$id}_".glz_idify($key)."\"{$checked} /><label for=\"{$id}_".glz_idify($key)."\">$value</label></span><br />";
+    }
+
+    return join('', $out);
   }
-
-  return join('', $out);
+  else
+    return glz_custom_fields_gTxt('field_problems', array('{custom_set_name}' => $name));
 }
 
 
