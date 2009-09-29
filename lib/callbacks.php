@@ -152,16 +152,13 @@ html[xmlns] .clearfix {
 }
 
 #glz_custom_fields thead tr {
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-weight: 700;
-  background: #EEE;
+  background: #DDD;
 }
 
 #glz_custom_fields tbody tr.alt {
-  background: #FFC;
-}
-#glz_custom_fields tbody tr.over {
-  background: #FF6;
+  background: #EEE;
 }
 
 #glz_custom_fields td {
@@ -191,12 +188,6 @@ html[xmlns] .clearfix {
 
 /* FORMS
 -------------------------------------------------------------- */
-input:focus,
-select:focus,
-textarea:focus {
-  background: #FFC;
-}
-
 #glz_custom_fields td.events form {
   display: inline;
 }
@@ -205,8 +196,11 @@ textarea:focus {
   width: 50em;
   margin: 2em auto 0 auto;
 }
+#add_edit_custom_field fieldset {
+  padding: 10px;
+}
 #add_edit_custom_field legend {
-  font-size: 1.2em;
+  font-size: 1.1em;
   font-weight: 700;
 }
 #add_edit_custom_field label {
@@ -272,15 +266,15 @@ $(document).ready(function() {
 
   // toggle custom field value based on its type
   special_custom_types = ["text_input", "date-picker", "textarea"];
-  if ( $.inArray($("select#type option[selected]").attr("value"), special_custom_types) != -1 ) {
+  if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) != -1 ) {
     custom_field_value_off();
   };
-
-  $("select#type").click( function() {
-    if ( $.inArray($("select#type option[selected]").attr("value"), special_custom_types) == -1 && !$("textarea#value").length ) {
+  
+  $("select#custom_set_type").change( function() {
+    if ( $.inArray($("select#custom_set_type :selected").attr('value'), special_custom_types) == -1 && !$("textarea#value").length ) {
       custom_field_value_on();
     }
-    else if ( $.inArray($("select#type option[selected]").attr("value"), special_custom_types) != -1 && !$("input#value").length ) {
+    else if ( $.inArray($("select#custom_set_type :selected").attr('value'), special_custom_types) != -1 && !$("input#value").length ) {
       custom_field_value_off();
     }
   });
@@ -291,7 +285,7 @@ $(document).ready(function() {
     Date.format = '{$prefs['datepicker_format']}';
     $(".date-picker").datePicker();
   } catch(err) {
-    console.error("Please download and enable the jQuery DatePicker plugin (check glz_custom_fields help for more information). http://www.kelvinluck.com/assets/jquery/datePicker");
+    $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin&amp;step=plugin_help&amp;name=glz_custom_fields">Please configure the jQuery DatePicker plugin</a>');
   }
 
   // add a reset link to all radio custom fields
@@ -310,7 +304,8 @@ $(document).ready(function() {
       $(this).after("<input type=\"hidden\" value=\"\" name=\""+ custom_field_to_reset +"\" />");
       return false;
     });
-  }
+  }
+
 
   // ### RE-USABLE FUNCTIONS ###
 

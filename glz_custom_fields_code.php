@@ -254,13 +254,13 @@ function glz_custom_fields() {
       </p>'.n.
     ' <p>
         <label for="custom_set_type">Type:</label>
-        <select name="custom_set_type" id="type">
+        <select name="custom_set_type" id="custom_set_type">
     '.      $custom_set_types.'
         </select>
       </p>'.n.
     ' <p>
         <label for="custom_set_position">Position:</label>
-        <input name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_name" />
+        <input name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_position" />
       </p>'.n.
     ' <p>
         <label for="value">Value:<br /><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></label>
