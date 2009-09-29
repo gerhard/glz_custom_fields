@@ -1,4 +1,6 @@
-== V1.2.1 ==
+== TO-DO ==
+
+* filter custom fields depending on the section you choose
 
 * searches can either be displayed on the current page or on search section (user-configurable)
 
@@ -44,14 +46,3 @@ Text
 * other fields for the search form (checkbox, radio, input) - Husain Hakim - husainhk@gmail.com
 
 * idify label names & id - currently pages don't validate
-
-
-
-== N/A ==
-
-# TOO MUCH HASSLE FOR THIS - PROVIDING AN INTERFACE FOR THE PLUGIN IS NOT SOMETHING I WANT TO DO - TXP ON RAILS WILL ADDRESS THIS
-* split custom fields with a custom delimiter, not only |
-
-# STYLING ISSUE
-* Is there any way to limit the length of the multiple choice areas? I have big names on some of them and they expand the admin layout. Gonçalo Dumas - goncalo.dumas@gmail.com
-
