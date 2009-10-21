@@ -151,50 +151,69 @@ html[xmlns] .clearfix {
 
 /* TABLE
 -------------------------------------------------------------- */
-#glz_custom_fields {
-  width: 50em;
+.glz_custom_fields {
   margin: 0 auto;
   border: 1px solid #DDD;
+  width: 50em;
 }
 
-#glz_custom_fields thead tr {
+.glz_custom_fields thead tr {
   font-size: 1.1em;
   font-weight: 700;
   background: #DDD;
 }
 
-#glz_custom_fields tbody tr.alt {
+.glz_custom_fields tbody tr.alt {
   background: #EEE;
 }
 
-#glz_custom_fields td {
+.glz_custom_fields td {
   padding: 0.2em 1em;
   vertical-align: middle;
 }
-#glz_custom_fields thead td {
+.glz_custom_fields thead td {
   padding: 0.3em 0.8em;
 }
-#glz_custom_fields td.custom_set {
+.glz_custom_fields td.custom_set {
   width: 8em;
 }
-#glz_custom_fields td.custom_set_position {
+.glz_custom_fields td.custom_set_position {
   width: 5em;
 }
-#glz_custom_fields td.custom_set_name {
+.glz_custom_fields td.custom_set_name {
   width: 14em;
 }
-#glz_custom_fields td.type {
+.glz_custom_fields td.type {
   width: 7em;
 }
-#glz_custom_fields td.events {
+.glz_custom_fields td.events {
   width: 12em;
   text-align: right;
 }
 
+.glz_custom_fields_prefs {
+  width: 40em;
+}
+.glz_custom_fields_prefs#list tr th {
+  font-weight: normal;
+  text-align: right;
+  vertical-align: top;
+  width: 50%;
+}
+.glz_custom_fields_prefs tr td select,
+.glz_custom_fields_prefs tr td input {
+  width: 100%;
+}
+.glz_custom_fields_prefs tr td input.publish {
+  margin-left: 51%;
+  width: auto;
+}
+
+
 
 /* FORMS
 -------------------------------------------------------------- */
-#glz_custom_fields td.events form {
+.glz_custom_fields td.events form {
   display: inline;
 }
 
@@ -223,10 +242,10 @@ html[xmlns] .clearfix {
   width: 23em; height: 10em;
 }
 #add_edit_custom_field p span {
-  padding-left: 1em;
   width: 15em;
 }
-#add_edit_custom_field p em {
+#add_edit_custom_field p em,
+.glz_custom_fields_prefs tr em {
   font-size: 0.9em;
   font-weight: 500;
   color: #777;
@@ -260,7 +279,8 @@ EOF;
 try {
   Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
   Date.format = '{$prefs['datepicker_format']}';
-  $(".date-picker").datePicker();
+  Date.fullYearStart = '19';
+  $(".date-picker").datePicker({startDate:'{$prefs['datepicker_start_date']}'});
 } catch(err) {
   $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin&amp;step=plugin_help&amp;name=glz_custom_fields">Please configure the jQuery DatePicker plugin</a>');
 }
@@ -286,15 +306,17 @@ $(document).ready(function() {
 
   // toggle custom field value based on its type
   special_custom_types = ["text_input", "date-picker", "textarea"];
+  toggle_datepicker_link();
   if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) != -1 ) {
-    custom_field_value_off();
+    custom_field_value_off($("select#custom_set_type :selected").attr("value"));
   };
 
   $("select#custom_set_type").change( function() {
-    if ( $.inArray($("select#custom_set_type :selected").attr('value'), special_custom_types) == -1 && !$("textarea#value").length ) {
+    toggle_datepicker_link();
+    if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) == -1 ) {
       custom_field_value_on();
     }
-    else if ( $.inArray($("select#custom_set_type :selected").attr('value'), special_custom_types) != -1 && !$("input#value").length ) {
+    else {
       custom_field_value_off();
     }
   });
@@ -324,16 +346,26 @@ $(document).ready(function() {
   // ### RE-USABLE FUNCTIONS ###
 
   function custom_field_value_off() {
-    $("label[for=value] em").hide();
+    $("label[for=value]").parent().find('em').hide();
     $("textarea#value").remove();
-    $("label[for=value]").after('<input id="value" value="no value allowed" name="value" class="left" />');
-    $("input#value").attr("disabled", "disabled");
+    if (!$("input#value").length) {
+      $("label[for=value]").after('<input id="value" value="no value allowed" name="value" class="left" />');
+      $("input#value").attr("disabled", "disabled");
+    }
   }
 
   function custom_field_value_on() {
-    $("label[for=value] em").show();
+    $("label[for=value]").parent().find('em').show();
     $("input#value").remove();
-    $("label[for=value]").after('<textarea id="value" name="value" class="left"></textarea>');
+    if (!$("textarea#value").length)
+      $("label[for=value]").after('<textarea id="value" name="value" class="left"></textarea>');
+  }
+
+  function toggle_datepicker_link() {
+    if ($("select#custom_set_type :selected").attr("value") == "date-picker")
+      $("select#custom_set_type").parent().find('span').show();
+    else
+      $("select#custom_set_type").parent().find('span').hide();
   }
 
 });
@@ -410,7 +442,8 @@ function glz_custom_fields_install() {
     $arr_plugin_preferences = array(
       'values_ordering' => "custom",
       'datepicker_format' => "dd/mm/yyyy",
-      'datepicker_first_day' => 1
+      'datepicker_first_day' => 1,
+      'date_picker_start_date' => "01/01/1990"
     );
     glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
   }

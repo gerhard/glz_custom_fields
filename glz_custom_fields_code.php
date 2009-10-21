@@ -50,7 +50,7 @@ if (@txpinterface == "admin") {
 // -------------------------------------------------------------
 // everything is happening in this function... generates the content for Extensions > Custom Fields
 function glz_custom_fields() {
-  global $event, $all_custom_sets, $glz_notice;
+  global $event, $all_custom_sets, $glz_notice, $prefs;
 
   // we have $_POST, let's see if there is any CRUD
   if ( $_POST ) {
@@ -175,7 +175,7 @@ function glz_custom_fields() {
 
   // the table with all custom fields follows
   echo
-    n.'<table cellspacing="0" id="glz_custom_fields" class="stripeMe">'.n.
+    n.'<table cellspacing="0" class="glz_custom_fields stripeMe">'.n.
     ' <thead>'.n.
     '   <tr>'.n.
     '     <td>Custom set</td>'.n.
@@ -276,23 +276,24 @@ function glz_custom_fields() {
     ' <p class="clearfix">
         <label for="custom_set_name" class="left">Name:</label>
         <input name="custom_set_name" value="'.htmlspecialchars($custom_name).'" id="custom_set_name" class="left" />
-        <span class="left"><em>Only word characters allowed</em></span>
+        <span class="right"><em>Only word characters allowed</em></span>
       </p>'.n.
     ' <p class="clearfix">
         <label for="custom_set_type" class="left">Type:</label>
         <select name="custom_set_type" id="custom_set_type" class="left">
     '.      $custom_set_types.'
         </select>
+        <span class="right"><em><a href="http://'.$prefs['siteurl'].'/textpattern/?event=plugin_prefs.glz_custom_fields">Configure jQuery DatePicker</a></em></span>
       </p>'.n.
     ' <p class="clearfix">
         <label for="custom_set_position" class="left">Position:</label>
         <input name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_position" class="left" />
-        <span class="left"><em>Automatically assigned</em></span>
+        <span class="right"><em>Automatically assigned</em></span>
       </p>'.n.
     ' <p class="clearfix">
         <label for="value" class="left">Value:</label>
         <textarea name="value" id="value" class="left">'.$values.'</textarea>
-        <span class="left"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>
+        <span class="right"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>
       </p>'.n.
     ' '.$action.n.
     '</fieldset>'.n.
@@ -328,7 +329,7 @@ function glz_custom_fields_preferences() {
   $values_ordering .= "</select>";
 
   // jquery.datePicker
-  $arr_date_format = array("dd/mm/yyyy", "mm/dd/yyyy", "yyyy-mm-dd", "dd mmm yy");
+  $arr_date_format = array("dd/mm/yyyy", "mm/dd/yyyy", "yyyy-mm-dd", "dd mm yy");
   $date_format = '<select name="glz_custom_fields_prefs[datepicker_format]" id="glz_custom_fields_prefs_datepicker_format">';
   foreach ( $arr_date_format as $format ) {
     $selected = ($current_preferences['datepicker_format'] == $format) ? ' selected="selected"' : '';
@@ -344,9 +345,11 @@ function glz_custom_fields_preferences() {
   }
   $first_day .= "</select>";
 
+  $start_date = '<input type="text" name="glz_custom_fields_prefs[datepicker_start_date]" id="glz_custom_fields_prefs_datepicker_start_date" value="'.$current_preferences['datepicker_start_date'].'" />';
+
   $out = <<<EOF
 <form action="index.php" method="post">
-<table id="list" cellpadding="0" cellspacing="0" align="center">
+<table id="list" class="glz_custom_fields_prefs" cellpadding="0" cellspacing="0" align="center">
   <tbody>
     <tr>
       <td colspan="2"><h2 class="pref-heading">Custom Sets Ordering</h2></td>
@@ -365,6 +368,10 @@ function glz_custom_fields_preferences() {
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_datepicker_first_day">First day of week</th>
       <td>{$first_day}</td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_datepicker_start_date">Start date</th>
+      <td>{$start_date}<br /><em>MUST be the same as "Date format"</em></td>
     </tr>
     <tr>
       <td colspan="2" class="noline">
