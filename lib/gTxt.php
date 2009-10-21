@@ -6,6 +6,7 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
   $lang = array(
     'no_name'           => 'Ooops! <strong>custom set</strong> must have a name',
     'deleted'           => '<strong>{custom_set_name}</strong> was deleted',
+    'reset'             => '<strong>{custom_set_name}</strong> was reset',
     'created'           => '<strong>{custom_set_name}</strong> was created',
     'updated'           => '<strong>{custom_set_name}</strong> was updated',
     'exists'            => 'Ooops! <strong>{custom_set_name}</strong> already exists',

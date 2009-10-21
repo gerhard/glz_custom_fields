@@ -33,6 +33,10 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
         return glz_update_custom_field($name, $table, $extra);
         break;
 
+      case 'reset':
+        return glz_reset_custom_field($name, $table, $extra);
+        break;
+
       case 'delete':
         glz_delete_custom_field($name, $table);
         glz_custom_fields_update_count();
@@ -324,34 +328,60 @@ function glz_update_custom_field($name, $table, $extra) {
   }
 }
 
+function glz_reset_custom_field($name, $table, $extra) {
+  if ( is_array($extra) )
+    extract($extra);
 
-function glz_delete_custom_field($name, $table) {
-  if ( in_array($table, array(PFX."txp_prefs", PFX."txp_lang", PFX."custom_fields")) ) {
-    $query = "
-      DELETE FROM
-        `{$table}`
+  if ( $table == PFX."txp_prefs" ) {
+    safe_query("
+      UPDATE
+        `".PFX."txp_prefs`
+      SET
+        `val` = '',
+        `html` = 'text_input'
       WHERE
         `name`='{$name}'
-    ";
+    ");
   }
   else if ( $table == PFX."textpattern" ) {
-    $query = "
-      ALTER TABLE
-        `".PFX."textpattern`
-      DROP
-        `{$name}`
-    ";
+    safe_query("UPDATE `".PFX."textpattern` SET `{$name}` = ''");
+    safe_query("ALTER TABLE `".PFX."textpattern` MODIFY `{$custom_field}` VARCHAR(255) NOT NULL DEFAULT ''");
   }
-  else if ( ($table == PFX."custom_fields") ) {
-    $query = "
-      DELETE FROM
-        `{$table}`
-      WHERE
-        `name`='{$name}'
-    ";
-  }
+}
 
-  safe_query($query);
+function glz_delete_custom_field($name, $table) {
+  // remember, custom fields under 10 MUST NOT be deleted
+  if ( glz_custom_digit($name) > 10 ) {
+    if ( in_array($table, array(PFX."txp_prefs", PFX."txp_lang", PFX."custom_fields")) ) {
+      $query = "
+        DELETE FROM
+          `{$table}`
+        WHERE
+          `name`='{$name}'
+      ";
+    }
+    else if ( $table == PFX."textpattern" ) {
+      $query = "
+        ALTER TABLE
+          `".PFX."textpattern`
+        DROP
+          `{$name}`
+      ";
+    }
+    safe_query($query);
+  }
+  else {
+    if ( $table == PFX."txp_prefs" )
+      glz_custom_fields_MySQL("reset", $name, $table);
+    else if ( ($table == PFX."custom_fields") ) {
+      safe_query("
+        DELETE FROM
+          `{$table}`
+        WHERE
+          `name`='{$name}'
+      ");
+    }
+  }
 }
 
 

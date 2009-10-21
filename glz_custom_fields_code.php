@@ -72,6 +72,19 @@ function glz_custom_fields() {
       $glz_notice[] = glz_custom_fields_gTxt("deleted", array('{custom_set_name}' => $custom_set_name));
     }
 
+    // we are resetting one of the mighty 10
+    if ( gps('reset') ) {
+      glz_custom_fields_MySQL("reset", $custom_set, PFX."txp_prefs");
+      glz_custom_fields_MySQL("delete", $custom_set, PFX."custom_fields");
+
+      glz_custom_fields_MySQL("reset", glz_custom_number($custom_set), PFX."textpattern", array(
+        'custom_set_type' => $custom_set_type,
+        'custom_field' => glz_custom_number($custom_set)
+      ));
+
+      $glz_notice[] = glz_custom_fields_gTxt("reset", array('{custom_set_name}' => $custom_set_name));
+    }
+
     // we are adding a new custom field
     if ( gps("custom_field_number") ) {
       $custom_set_name = gps("custom_set_name");
@@ -171,9 +184,19 @@ function glz_custom_fields() {
     ' <tbody>'.n;
 
   // looping through all our custom fields to build the table
-
+  $i = 0;
   foreach ( $all_custom_sets as $custom => $custom_set ) {
-    $delete = glz_form_buttons("delete", "Delete", $custom, $custom_set['name'], $custom_set['type'], '', 'return confirm(\'By proceeding you will DELETE ALL data in `textpattern` and `custom_fields` tables for `'.$custom.'`. Are you sure?\');');
+    // first 10 fields cannot be deleted, just reset
+    if ( $i < 10 ) {
+      // can't reset a custom field that is not set
+      $reset_delete = ( $custom_set['name'] ) ?
+        glz_form_buttons("reset", "Reset", $custom, htmlspecialchars($custom_set['name']), $custom_set['type'], '', 'return confirm(\'By proceeding you will RESET ALL data in `textpattern` and `custom_fields` tables for `'.$custom.'`. Are you sure?\');') :
+        NULL;
+    }
+    else {
+      $reset_delete = glz_form_buttons("delete", "Delete", $custom, htmlspecialchars($custom_set['name']), $custom_set['type'], '', 'return confirm(\'By proceeding you will DELETE ALL data in `textpattern` and `custom_fields` tables for `'.$custom.'`. Are you sure?\');');
+    }
+
     $edit = glz_form_buttons("edit", "Edit", $custom, htmlspecialchars($custom_set['name']), $custom_set['type'], $custom_set['position']);
 
     echo
@@ -182,8 +205,10 @@ function glz_custom_fields() {
     '     <td class="custom_set_name">'.$custom_set['name'].'</td>'.n.
     '     <td class="type">'.(($custom_set['name']) ? glz_custom_fields_gTxt($custom_set['type']) : '').'</td>'.n.
     '     <td class="custom_set_position">'.$custom_set['position'].'</td>'.n.
-    '     <td class="events">'.$delete.sp.$edit.'</td>'.n.
+    '     <td class="events">'.$reset_delete.sp.$edit.'</td>'.n.
     '   </tr>'.n;
+
+    $i++;
   }
 
   echo
