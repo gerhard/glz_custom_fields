@@ -241,10 +241,20 @@ EOF;
 
   // and here come our javascriptz
   $js = '';
+  $date_picker_js = '';
   if ( $date_picker ) {
     foreach (array('date.js', 'jquery.datePicker.js') as $file) {
       $js .= '<script type="text/javascript" src="'.hu.'scripts/jquery.datePicker/'.$file.'"></script>'.n;
     }
+    $date_picker_js = <<<EOF
+try {
+  Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
+  Date.format = '{$prefs['datepicker_format']}';
+  $(".date-picker").datePicker();
+} catch(err) {
+  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin&amp;step=plugin_help&amp;name=glz_custom_fields">Please configure the jQuery DatePicker plugin</a>');
+}
+EOF;
   }
   $js .= <<<EOF
 <script type="text/javascript">
@@ -269,7 +279,7 @@ $(document).ready(function() {
   if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) != -1 ) {
     custom_field_value_off();
   };
-  
+
   $("select#custom_set_type").change( function() {
     if ( $.inArray($("select#custom_set_type :selected").attr('value'), special_custom_types) == -1 && !$("textarea#value").length ) {
       custom_field_value_on();
@@ -280,13 +290,7 @@ $(document).ready(function() {
   });
 
   // enable date-picker custom sets
-  try {
-    Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
-    Date.format = '{$prefs['datepicker_format']}';
-    $(".date-picker").datePicker();
-  } catch(err) {
-    $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin&amp;step=plugin_help&amp;name=glz_custom_fields">Please configure the jQuery DatePicker plugin</a>');
-  }
+  {$date_picker_js}
 
   // add a reset link to all radio custom fields
   if ($(".glz_custom_radio_field").length > 0) {
