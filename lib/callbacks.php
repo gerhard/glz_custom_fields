@@ -141,6 +141,12 @@ html[xmlns] .clearfix {
 .red {
   color: #C00;
 }
+.left {
+  float: left;
+}
+.right {
+  float: right;
+}
 
 
 /* TABLE
@@ -204,17 +210,21 @@ html[xmlns] .clearfix {
   font-weight: 700;
 }
 #add_edit_custom_field label {
-  float: left;
   width: 10em;
   font-weight: 700;
 }
 #add_edit_custom_field p input,
 #add_edit_custom_field p select {
-  width: 20em;
+  width: 23em;
 }
 #add_edit_custom_field p textarea {
-  width: 30em;
-  height: 10em;
+  font-size: 0.9em;
+  padding: 1px 0 1px 3px;
+  width: 23em; height: 10em;
+}
+#add_edit_custom_field p span {
+  padding-left: 1em;
+  width: 15em;
 }
 #add_edit_custom_field p em {
   font-size: 0.9em;
@@ -316,14 +326,14 @@ $(document).ready(function() {
   function custom_field_value_off() {
     $("label[for=value] em").hide();
     $("textarea#value").remove();
-    $("label[for=value]").after('<input id="value" value="no value allowed" name="value"/>');
+    $("label[for=value]").after('<input id="value" value="no value allowed" name="value" class="left" />');
     $("input#value").attr("disabled", "disabled");
   }
 
   function custom_field_value_on() {
     $("label[for=value] em").show();
     $("input#value").remove();
-    $("label[for=value]").after('<textarea id="value" name="value"></textarea>');
+    $("label[for=value]").after('<textarea id="value" name="value" class="left"></textarea>');
   }
 
 });

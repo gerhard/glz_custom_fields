@@ -273,23 +273,26 @@ function glz_custom_fields() {
     $custom_field.n.
     '<fieldset>'.n.
     ' <legend>'.$legend.'</legend>'.n.
-    ' <p>
-        <label for="custom_set_name">Name:</label>
-        <input name="custom_set_name" value="'.htmlspecialchars($custom_name).'" id="custom_set_name" />
+    ' <p class="clearfix">
+        <label for="custom_set_name" class="left">Name:</label>
+        <input name="custom_set_name" value="'.htmlspecialchars($custom_name).'" id="custom_set_name" class="left" />
+        <span class="left"><em>Only word characters allowed</em></span>
       </p>'.n.
-    ' <p>
-        <label for="custom_set_type">Type:</label>
-        <select name="custom_set_type" id="custom_set_type">
+    ' <p class="clearfix">
+        <label for="custom_set_type" class="left">Type:</label>
+        <select name="custom_set_type" id="custom_set_type" class="left">
     '.      $custom_set_types.'
         </select>
       </p>'.n.
-    ' <p>
-        <label for="custom_set_position">Position:</label>
-        <input name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_position" />
+    ' <p class="clearfix">
+        <label for="custom_set_position" class="left">Position:</label>
+        <input name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_position" class="left" />
+        <span class="left"><em>Automatically assigned</em></span>
       </p>'.n.
-    ' <p>
-        <label for="value">Value:<br /><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></label>
-        <textarea name="value" id="value">'.$values.'</textarea>
+    ' <p class="clearfix">
+        <label for="value" class="left">Value:</label>
+        <textarea name="value" id="value" class="left">'.$values.'</textarea>
+        <span class="left"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>
       </p>'.n.
     ' '.$action.n.
     '</fieldset>'.n.
