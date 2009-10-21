@@ -15,12 +15,9 @@ if (@txpinterface == "admin") {
   // checks if all tables exist and everything is setup properly
   register_callback("glz_custom_fields_install", "plugin_lifecycle.glz_custom_fields", "installed");
 
-  /**
-  * TODO
-  */
   // UNINSTALL ROUTINES
   // drops custom_fields table, takes all custom fields back to input & remove all glz_custom_fields preferences
-  // register_callback("glz_custom_fields_uninstall", "plugin_lifecycle.glz_custom_fields", "deleted");
+  register_callback("glz_custom_fields_uninstall", "plugin_lifecycle.glz_custom_fields", "deleted");
 
   // we'll be doing this only on the pages that we care about, not everywhere
   if ( in_array(gps('event'), array("article", "prefs", "glz_custom_fields", "plugin_prefs.glz_custom_fields")) ) {

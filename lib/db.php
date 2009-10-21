@@ -57,10 +57,6 @@ function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
       case 'update_plugin_preferences':
         return glz_update_plugin_preferences($name);
         break;
-
-      case 'remove_plugin_preferences':
-        return glz_remove_plugin_preferences();
-        break;
     }
   }
   else
@@ -406,9 +402,9 @@ function glz_custom_fields_update_count() {
 }
 
 // -------------------------------------------------------------
-// updates all plugin preferences
+// returns all plugin preferences
 function glz_plugin_preferences($arr_preferences) {
-	$r = safe_rows_start('name, val', PFX.'txp_prefs', "event = 'glz_custom_f'");
+	$r = safe_rows_start('name, val', 'txp_prefs', "event = 'glz_custom_f'");
 	if ($r) {
 		while ($a = nextRow($r)) {
 			$out[$a['name']] = $a['val'];
@@ -422,20 +418,6 @@ function glz_plugin_preferences($arr_preferences) {
 function glz_update_plugin_preferences($arr_preferences) {
   foreach ($arr_preferences as $preference => $value) {
     set_pref($preference, $value, "glz_custom_f");
-  }
-}
-
-
-// -------------------------------------------------------------
-// removes all plugin preferences
-function glz_remove_plugin_preferences() {
-  if (getRows("SELECT * FROM '".PFX."txp_prefs' WHERE `event` = 'glz_custom_f'")) {
-    safe_query("
-      DELETE FROM
-        `".PFX."txp_prefs`
-      WHERE
-        `event` = 'glz_custom_f'
-    ");
   }
 }
 

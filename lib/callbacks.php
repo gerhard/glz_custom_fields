@@ -499,35 +499,63 @@ function glz_custom_fields_install() {
 
 // -------------------------------------------------------------
 // uninstalls glz_custom_fields
-#function glz_custom_fields_uninstall() {
-#  global $all_custom_sets, $glz_notice;
+function glz_custom_fields_uninstall() {
+  $all_custom_sets = getRows("
+    SELECT
+      `name` AS custom_set,
+      `val` AS name,
+      `position`,
+      `html` AS type
+    FROM
+      `".PFX."txp_prefs`
+    WHERE
+      `event`='custom'
+    ORDER BY
+      `position`
+  ");
 
-#  // change all custom fields back to custom_set
-#  foreach ($all_custom_sets as $custom_set) {
-#    glz_custom_fields_MySQL("update", $custom, PFX."txp_prefs", array(
-#      'custom_set_name'   => $custom_set['name'],
-#      'custom_set_type'   => "custom_set",
-#      'custom_set_position' => $custom_set['position']
-#    ));
+  // change all custom fields back to custom_set
+  foreach ($all_custom_sets as $custom_set) {
+    $name = $custom_set['custom_set'];
+    $custom_set_name = $custom_set['name'];
+    $custom_set_position = $custom_set['position'];
 
-#    // change all custom field columns back to varchar
-#    glz_custom_fields_MySQL("update", $custom, PFX."textpattern", array(
-#      'custom_set_type' => "custom_set",
-#      'custom_field'    => glz_custom_number($custom)
-#    ));
-#  }
+    safe_query("
+      UPDATE
+        `".PFX."txp_prefs`
+      SET
+        `val` = '{$custom_set_name}',
+        `html` = 'custom_set',
+        `position` = '{$custom_set_position}'
+      WHERE
+        `name`='{$name}'
+    ");
 
-#  // update custom_fields number
-#  glz_custom_fields_update_count();
+    // change all custom field columns back to varchar
+    $custom_field = substr($name, 0, -4);
+    safe_query("
+      ALTER TABLE
+        `".PFX."textpattern`
+      MODIFY
+        `{$custom_field}` VARCHAR(255) NOT NULL DEFAULT ''
+    ");
+  }
 
-#  $glz_notice[] = glz_custom_fields_gTxt("custom_sets_all_input");
+  // remove custom_fields table
+  safe_query("
+    DROP TABLE `".PFX."custom_fields`
+  ");
 
-#  safe_query("
-#    DROP TABLE `".PFX."custom_fields`
-#  ");
-
-#  glz_custom_fields_MySQL("remove_plugin_preferences");
-#}
+  // remove all plugin preferences
+  if (getRows("SELECT * FROM `".PFX."txp_prefs` WHERE `event` = 'glz_custom_f'")) {
+    safe_query("
+      DELETE FROM
+        `".PFX."txp_prefs`
+      WHERE
+        `event` = 'glz_custom_f'
+    ");
+  }
+}
 
 ?>
 
