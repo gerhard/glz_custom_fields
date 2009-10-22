@@ -467,7 +467,7 @@ function glz_all_searchable_sections_categories($type) {
 // will leave only [A-Za-z0-9 ] in the string
 function glz_clean_string($string) {
   if ($string)
-    return preg_replace('/[^A-Za-z0-9\s]/', '', $string);
+    return preg_replace('/[^A-Za-z0-9\s\_\-]/', '', $string);
 }
 
 ?>
