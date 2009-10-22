@@ -1,5 +1,6 @@
 <?php
 
+// -------------------------------------------------------------
 // I would do this through a factory class, but some folks are still running PHP4...
 function glz_custom_fields_MySQL($do, $name='', $table='', $extra='') {
   if ( !empty($do) ) {
@@ -400,7 +401,6 @@ function glz_check_migration() {
 // -------------------------------------------------------------
 // make a note of glz_custom_fields migration in txp_prefs
 function glz_mark_migration() {
-  #  set_pref($name, $val, $event='publish',  $type=0, $html='text_input', $position=0, $is_private=PREF_GLOBAL)
   set_pref("migrated", "1", "glz_custom_f");
 }
 
@@ -447,7 +447,9 @@ function glz_plugin_preferences($arr_preferences) {
 // updates all plugin preferences
 function glz_update_plugin_preferences($arr_preferences) {
   foreach ($arr_preferences as $preference => $value) {
-    set_pref($preference, $value, "glz_custom_f");
+    // if there is a preference which doesn't exist, create it
+    if ( !isset($prefs[$preference]) )
+      set_pref($preference, $value, "glz_custom_f");
   }
 }
 

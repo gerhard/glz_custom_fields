@@ -1,6 +1,5 @@
 <?php
 
-
 // -------------------------------------------------------------
 // replaces the default custom fields under write tab
 function glz_custom_fields_replace($event, $step, $data, $rs) {
@@ -436,17 +435,14 @@ function glz_custom_fields_install() {
       `html` = 'custom_set'
   ");
 
-  // we know this routine hasn't run, ther are no plugin preferences in the db
-  if ( !isset($prefs['values_ordering']) ) {
-    // default plugin preferences
-    $arr_plugin_preferences = array(
-      'values_ordering' => "custom",
-      'datepicker_format' => "dd/mm/yyyy",
-      'datepicker_first_day' => 1,
-      'date_picker_start_date' => "01/01/1990"
-    );
-    glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
-  }
+  // set plugin preferences
+  $arr_plugin_preferences = array(
+    'values_ordering' => "custom",
+    'datepicker_format' => "dd/mm/yyyy",
+    'datepicker_first_day' => 1,
+    'date_picker_start_date' => "01/01/1990"
+  );
+  glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 
   // if we don't have a search section, let's create it because we'll need it when searching by custom fields
   if( !getRow("SELECT name FROM `".PFX."txp_section` WHERE name='search'") ) {
@@ -536,67 +532,6 @@ function glz_custom_fields_install() {
 
    // make a note of this migration in txp_prefs
    glz_custom_fields_MySQL('mark_migration');
-  }
-}
-
-
-// -------------------------------------------------------------
-// uninstalls glz_custom_fields
-function glz_custom_fields_uninstall() {
-  $all_custom_sets = getRows("
-    SELECT
-      `name` AS custom_set,
-      `val` AS name,
-      `position`,
-      `html` AS type
-    FROM
-      `".PFX."txp_prefs`
-    WHERE
-      `event`='custom'
-    ORDER BY
-      `position`
-  ");
-
-  // change all custom fields back to custom_set
-  foreach ($all_custom_sets as $custom_set) {
-    $name = $custom_set['custom_set'];
-    $custom_set_name = $custom_set['name'];
-    $custom_set_position = $custom_set['position'];
-
-    safe_query("
-      UPDATE
-        `".PFX."txp_prefs`
-      SET
-        `val` = '{$custom_set_name}',
-        `html` = 'custom_set',
-        `position` = '{$custom_set_position}'
-      WHERE
-        `name`='{$name}'
-    ");
-
-    // change all custom field columns back to varchar
-    $custom_field = substr($name, 0, -4);
-    safe_query("
-      ALTER TABLE
-        `".PFX."textpattern`
-      MODIFY
-        `{$custom_field}` VARCHAR(255) NOT NULL DEFAULT ''
-    ");
-  }
-
-  // remove custom_fields table
-  safe_query("
-    DROP TABLE `".PFX."custom_fields`
-  ");
-
-  // remove all plugin preferences
-  if (getRows("SELECT * FROM `".PFX."txp_prefs` WHERE `event` = 'glz_custom_f'")) {
-    safe_query("
-      DELETE FROM
-        `".PFX."txp_prefs`
-      WHERE
-        `event` = 'glz_custom_f'
-    ");
   }
 }
 
