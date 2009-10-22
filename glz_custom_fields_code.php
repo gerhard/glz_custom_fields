@@ -282,12 +282,12 @@ function glz_custom_fields() {
         <select name="custom_set_type" id="custom_set_type" class="left">
     '.      $custom_set_types.'
         </select>
-        <span class="right"><em><a href="http://'.$prefs['siteurl'].'/textpattern/?event=plugin_prefs.glz_custom_fields">Configure jQuery DatePicker</a></em></span>
+        <span class="right"><em><a href="http://'.$prefs['siteurl'].'/textpattern/?event=plugin_prefs.glz_custom_fields">Configure jQuery datePicker</a></em></span>
       </p>'.n.
     ' <p class="clearfix">
         <label for="custom_set_position" class="left">Position:</label>
         <input name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_position" class="left" />
-        <span class="right"><em>Automatically assigned</em></span>
+        <span class="right"><em>Automatically assigned if blank</em></span>
       </p>'.n.
     ' <p class="clearfix">
         <label for="value" class="left">Value:</label>
@@ -350,15 +350,15 @@ function glz_custom_fields_preferences() {
 <form action="index.php" method="post">
 <table id="list" class="glz_custom_fields_prefs" cellpadding="0" cellspacing="0" align="center">
   <tbody>
-    <tr>
+    <tr class="heading">
       <td colspan="2"><h2 class="pref-heading">Custom Sets Ordering</h2></td>
     </tr>
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_values_ordering">Order for custom field values</th>
       <td>{$values_ordering}</td>
     </tr>
-    <tr>
-      <td colspan="2"><h2 class="pref-heading">Date Picker</h2></td>
+    <tr class="heading">
+      <td colspan="2"><h2 class="pref-heading left">Date Picker</h2> <a href="http://www.kelvinluck.com/assets/jquery/datePicker/v2/demo/index.html" title="A flexible unobtrusive calendar component for jQuery" class="right">jQuery datePicker home</a></td>
     </tr>
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_datepicker_format">Date format</th>

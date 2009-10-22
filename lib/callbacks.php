@@ -203,6 +203,12 @@ html[xmlns] .clearfix {
   vertical-align: top;
   width: 50%;
 }
+.glz_custom_fields_prefs#list tr.heading td {
+  padding-top: 30px;
+}
+.glz_custom_fields_prefs#list tr.heading td h2 {
+  margin-top: 0
+}
 .glz_custom_fields_prefs tr td select,
 .glz_custom_fields_prefs tr td input {
   width: 100%;
@@ -444,7 +450,7 @@ function glz_custom_fields_install() {
     'values_ordering' => "custom",
     'datepicker_format' => "dd/mm/yyyy",
     'datepicker_first_day' => 1,
-    'date_picker_start_date' => "01/01/1990"
+    'datepicker_start_date' => "01/01/1990"
   );
   glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 
