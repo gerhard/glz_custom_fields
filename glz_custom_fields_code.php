@@ -95,7 +95,7 @@ function glz_custom_fields() {
       if ( !$custom_set_name )
         $glz_notice[] = glz_custom_fields_gTxt("no_name");
       else {
-        $custom_set_name = preg_replace('/[^A-Za-z0-9\s]/', '', $custom_set_name);
+        $custom_set_name = glz_clean_string($custom_set_name);
 
         $name_exists = glz_check_custom_set_name($all_custom_sets, $custom_set_name);
 
@@ -133,7 +133,7 @@ function glz_custom_fields() {
     // we are editing an existing custom field
     if ( gps('save') ) {
       if ( !empty($custom_set_name) ) {
-        $custom_set_name = preg_replace('/[^A-Za-z0-9\s]/', '', $custom_set_name);
+        $custom_set_name = glz_clean_string($custom_set_name);
         $name_exists = glz_check_custom_set_name($all_custom_sets, $custom_set_name, $custom_set);
         // if name doesn't exist
         if ( $name_exists == FALSE ) {
