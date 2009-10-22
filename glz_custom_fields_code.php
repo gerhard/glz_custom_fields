@@ -22,28 +22,30 @@ if (@txpinterface == "admin") {
   // we'll be doing this only on the pages that we care about, not everywhere
   if ( in_array(gps('event'), array("article", "prefs", "glz_custom_fields", "plugin_prefs.glz_custom_fields")) ) {
     // we need some stylesheets & JS
-    add_privs('glz_custom_fields_css_js', "1");
+    add_privs('glz_custom_fields_css_js', "1,2,3,4,5,6");
     register_callback('glz_custom_fields_css_js', "admin_side", 'head_end');
 
     // we need to make sure that all custom field values will be converted to strings first - think checkboxes & multi-selects
     if ( (gps("step") == "edit") || (gps("step") == "create") ) {
-      add_privs('glz_custom_fields_before_save', "1");
+      add_privs('glz_custom_fields_before_save', "1,2,3,4,5,6");
       register_callback('glz_custom_fields_before_save', "article", '', 1);
     }
   }
 
   // Custom Fields tab under Extensions
-  add_privs('glz_custom_fields', "1");
+  add_privs('glz_custom_fields', "1,2");
   register_tab("extensions", 'glz_custom_fields', "Custom Fields");
   register_callback('glz_custom_fields', "glz_custom_fields");
 
-  add_privs('plugin_prefs.glz_custom_fields', "1");
+  add_privs('plugin_prefs.glz_custom_fields', "1,2");
   register_callback('glz_custom_fields_preferences', 'plugin_prefs.glz_custom_fields');
 
 
   // YES, finally the default custom fields are replaced by the new, pimped ones : )
+  add_privs('glz_custom_fields_replace', "1,2,3,4,5,6");
   register_callback('glz_custom_fields_replace', 'article_ui', 'custom_fields');
   // YES, now we have textarea custom fields as well ; )
+  add_privs('glz_custom_fields_replace', "1,2,3,4,5,6");
   register_callback('glz_custom_fields_replace', 'article_ui', 'excerpt');
 }
 
