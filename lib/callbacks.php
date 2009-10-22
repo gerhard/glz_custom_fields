@@ -42,7 +42,8 @@ function glz_custom_fields_replace($event, $step, $data, $rs) {
       // dmp("custom_value: {$custom_value}");
 
       // check if there is a default value
-      $default_value = glz_default_value($arr_custom_field_values);
+      // if there is, strip the { }
+      $default_value = glz_return_clean_default(glz_default_value($arr_custom_field_values));
       // DEBUG
       // dmp("default_value: {$default_value}");
 
@@ -50,11 +51,14 @@ function glz_custom_fields_replace($event, $step, $data, $rs) {
       if (is_array($arr_custom_field_values))
         array_walk($arr_custom_field_values, "glz_clean_default_array_values");
 
+      // DEBUG
+      // dmp($arr_custom_field_values);
+
       // the way our custom field value is going to look like
       list($custom_set_value, $custom_class) = glz_format_custom_set_by_type($custom, $custom_id, $custom_set['type'], $arr_custom_field_values, $custom_value, $default_value);
 
       // DEBUG
-      //dmp($custom_set_value);
+      // dmp($custom_set_value);
 
       $out .= graf(
         "<label for=\"$custom_id\">{$custom_set['name']}</label><br />$custom_set_value", " class=\"$custom_class\""

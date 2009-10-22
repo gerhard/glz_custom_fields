@@ -90,7 +90,7 @@ function glz_default_value($all_values) {
 
 // -------------------------------------------------------------
 // calling the above function in an array context
-function glz_clean_default_array_values(&$value, $key) {
+function glz_clean_default_array_values(&$value) {
   $value = glz_return_clean_default($value);
 }
 

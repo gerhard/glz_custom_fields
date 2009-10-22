@@ -129,7 +129,7 @@ function glz_values_custom_field($name, $extra) {
       if ( count($arr_values) > 0 ) {
         // decode all special characters e.g. ", & etc. and use them for keys
         foreach ( $arr_values as $key => $value )
-          $arr_values_formatted[htmlspecialchars($value)] = stripslashes($value);
+          $arr_values_formatted[glz_return_clean_default(htmlspecialchars($value))] = stripslashes($value);
 
         // if this is a range, format ranges accordingly
         return glz_format_ranges($arr_values_formatted, $custom_set_name);
