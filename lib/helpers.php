@@ -292,9 +292,10 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
 
 
 // -------------------------------------------------------------
-// had to duplicate the default selectInput() because trimming \t and \n didn't work + some other mods
+// had to duplicate the default selectInput() because trimming \t and \n didn't work + some other mods & multi-select
 function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value = '', $default_value = '', $multi = '') {
   if ( is_array($arr_values) ) {
+    global $prefs;
     $out = array();
 
     // if there is no custom_value coming from the article, let's use our default one
@@ -307,11 +308,8 @@ function glz_selectInput($name = '', $id = '', $arr_values = '', $custom_value =
     }
 
     // we'll need the extra attributes as well as a name that will produce an array
-    /**
-      TODO Make this user-configurable
-    */
     if ($multi) {
-      $multi = ' multiple="multiple" size="3"';
+      $multi = ' multiple="multiple" size="'.$prefs['multiselect_size'].'"';
       $name .= "[]";
     }
 

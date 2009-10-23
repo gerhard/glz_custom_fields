@@ -306,7 +306,7 @@ $(document).ready(function() {
 
   // disable all custom field references in Advanced Prefs
   // prefs_ui doesn't offer support for this, getting the custom fields to display right here is not crucial at this point
-  var custom_field_tr = $("tr[id*=prefs-custom_], tr:has(h2:contains('Custom Fields'))");
+  var custom_field_tr = $("tr[id*=prefs-custom_], tr:has(h2:contains('Custom Fields'))").not('.glz_custom_fields_prefs tr:has(h2)');
   if ( custom_field_tr ) {
     $.each (custom_field_tr, function() {
       $(this).hide();
@@ -315,13 +315,13 @@ $(document).ready(function() {
 
   // toggle custom field value based on its type
   special_custom_types = ["text_input", "date-picker", "textarea"];
-  toggle_datepicker_link();
+  toggle_type_link();
   if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) != -1 ) {
     custom_field_value_off($("select#custom_set_type :selected").attr("value"));
   };
 
   $("select#custom_set_type").change( function() {
-    toggle_datepicker_link();
+    toggle_type_link();
     if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) == -1 ) {
       custom_field_value_on();
     }
@@ -351,7 +351,6 @@ $(document).ready(function() {
     });
   }
 
-
   // ### RE-USABLE FUNCTIONS ###
 
   function custom_field_value_off() {
@@ -370,11 +369,12 @@ $(document).ready(function() {
       $("label[for=value]").after('<textarea id="value" name="value" class="left"></textarea>');
   }
 
-  function toggle_datepicker_link() {
+  function toggle_type_link() {
+    $("select#custom_set_type").parent().find('span').remove();
     if ($("select#custom_set_type :selected").attr("value") == "date-picker")
-      $("select#custom_set_type").parent().find('span').show();
-    else
-      $("select#custom_set_type").parent().find('span').hide();
+      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure jQuery datePicker</a></em></span>");
+    else if ($("select#custom_set_type :selected").attr("value") == "multi-select")
+      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure Multi-select</a></em></span>");
   }
 
 });
@@ -448,6 +448,7 @@ function glz_custom_fields_install() {
   // set plugin preferences
   $arr_plugin_preferences = array(
     'values_ordering' => "custom",
+    'multiselect_size' => "5",
     'datepicker_format' => "dd/mm/yyyy",
     'datepicker_first_day' => 1,
     'datepicker_start_date' => "01/01/1990"

@@ -282,7 +282,6 @@ function glz_custom_fields() {
         <select name="custom_set_type" id="custom_set_type" class="left">
     '.      $custom_set_types.'
         </select>
-        <span class="right"><em><a href="http://'.$prefs['siteurl'].'/textpattern/?event=plugin_prefs.glz_custom_fields">Configure jQuery datePicker</a></em></span>
       </p>'.n.
     ' <p class="clearfix">
         <label for="custom_set_position" class="left">Position:</label>
@@ -314,7 +313,7 @@ function glz_custom_fields_preferences() {
 
   pagetop("glz_custom_fields Preferences");
 
-  // ordering values
+  // custom_fields
   $arr_values_ordering = array(
     'ascending'   => "Ascending",
     'descending'  => "Descending",
@@ -326,6 +325,7 @@ function glz_custom_fields_preferences() {
     $values_ordering .= "<option value=\"$value\"$selected>$title</option>";
   }
   $values_ordering .= "</select>";
+  $multiselect_size = '<input type="text" name="glz_custom_fields_prefs[multiselect_size]" id="glz_custom_fields_prefs_multiselect_size" value="'.$current_preferences['multiselect_size'].'" />';
 
   // jquery.datePicker
   $arr_date_format = array("dd/mm/yyyy", "mm/dd/yyyy", "yyyy-mm-dd", "dd mm yy");
@@ -351,11 +351,15 @@ function glz_custom_fields_preferences() {
 <table id="list" class="glz_custom_fields_prefs" cellpadding="0" cellspacing="0" align="center">
   <tbody>
     <tr class="heading">
-      <td colspan="2"><h2 class="pref-heading">Custom Sets Ordering</h2></td>
+      <td colspan="2"><h2 class="pref-heading">Custom Fields</h2></td>
     </tr>
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_values_ordering">Order for custom field values</th>
       <td>{$values_ordering}</td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_multiselect_size">Multi-select field size</th>
+      <td>{$multiselect_size}</td>
     </tr>
     <tr class="heading">
       <td colspan="2"><h2 class="pref-heading left">Date Picker</h2> <a href="http://www.kelvinluck.com/assets/jquery/datePicker/v2/demo/index.html" title="A flexible unobtrusive calendar component for jQuery" class="right">jQuery datePicker home</a></td>
