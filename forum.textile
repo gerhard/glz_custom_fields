@@ -1,43 +1,24 @@
-(continued from "drop down lists for custom fields":http://forum.textpattern.com/viewtopic.php?pid=157829#p157829)
+h1. glz_custom_fields, unlimited super special custom fields
 
-"glz_custom_fields was finally launched (Limitless Pimped Custom Fields)":http://gerhardlazu.com/blog/50/glz_custom_fields-unveiled
+*Most recent version is v1.2.3. If you've already contributed towards the plugin, head over to the "private glz_custom_fields Google Group":http://groups.google.com/group/glz_custom_fields. Even though all discussion is happening on the TXP forum, this is a great place for downloading the plugin (v1.2 is there, as is v1.2.2 & v1.2.3). So just in case you've misplaced your glz_custom_fields copy (even if it is a previous version), all you have to do is login there.*
 
-This plugin sits under the Extensions tab in the back-end and gives your custom fields new life. You can finally have custom fields that are selects, multi-selects, checkboxes or radios (and the default input fields) and you can predefine some values for those. Rather then constantly typing in the same thing over and over again, just select or check it and you're set. It doesn't require any hacking of TXP, it's a straight install with instant gratification.
+This plugin sits under the Extensions tab in the back-end and gives your custom fields new life. You can finally have custom fields that are selects, multi-selects, checkboxes, radios and textareas - besides the default input fields. You can predefine values for custom fields and you can select a single default value (selects, multi-selects, checkboxes and radios only). Rather then constantly typing in the same thing over and over again, just select or check it and you're set.
 
-To see the plugin in action on a clean TXP 4.0.5 install, download this screencast: "glz_custom_fields_unveiled.mov(Limitless Pimped Custom Fields Screencast)":http://gerhardlazu.com/file_download/15/glz_custom_fields_unveiled.mov . It's a hefty 10MB file so you'll have to be patient. A few screenshots while you're waiting for the screencast to download:
+The plugin doesn't require any hacking of TXP, it's a straight install with instant gratification. Also there's support for special custom fields as well. The first of them is the Date Picker custom field, but more will follow.
 
-!http://gerhardlazu.com/visual/glz_custom_fields/extensions_thumb.jpg!:http://gerhardlazu.com/visual/glz_custom_fields/extensions.png !http://gerhardlazu.com/visual/glz_custom_fields/edit_thumb.jpg!:http://gerhardlazu.com/visual/glz_custom_fields/edit.png !http://gerhardlazu.com/visual/glz_custom_fields/article_thumb.jpg!:http://gerhardlazu.com/visual/glz_custom_fields/article.png !http://gerhardlazu.com/visual/glz_custom_fields/article_save_thumb.jpg!:http://gerhardlazu.com/visual/glz_custom_fields/article_save.png
+As you might realize, this plugin took quiet some time to put together. Contribute &pound;10 (the equivalent of $20 or &euro;10) to get updates for life and use the plugin on as many websites as you want.
 
-As you might realize, this plugin took quiet some time to put together. Rather than setting a ransom fee and waiting for it to be met before making it public, "it's up for grabs for £10":http://gerhardlazu.com/blog/50/glz_custom_fields-unveiled (the equivalent of $20 or €15). The £10 will get you updates for life and, obviously, you can use it on as many websites as you want.
+"Contribute now and get a download link instantly!":https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9111805
 
-h2. *glz_custom_fields 1.1.3* - 5.03.2008
+h1. Upcoming Features
 
-* an improved help (explanations in French, German, Spanish, Italian, Greek & Russian to follow shortly)
-* a @jquery.js@ fix suggested by Sam Weiss. I gave up the idea of using the latest jquery from code.jquery.com becuse I found it to be too much hassle (permissions, offline websites etc.)
-* @glz_custom_field@ and @glz_if_custom_field@ tags work nicely with custom fields that contain multiple values. Custom fields > 10 on single articles "need a hack to work":http://gerhardlazu.com/blog/51/glz_custom_fields-11-released
-* plays nicely now with "sed_section_fields":http://txp-plugins.netcarving.com/plugins/section-fields
-* TXP 4.0.6 compatible. If - for whatever reason - you didn't upgrade TXP to 4.0.6, make sure @jquery.js@ under the textpattern folder is at least 1.2. Upgrade to 4.0.6 *strongly* recommended.
-* a custom field can be a multi-select as well (the only one remaining is textarea, planned for v1.3)
-* @glz_if_custom_field@ is not a self closing tag, fixed Help which was stating otherwise
-* custom field settings were no longer hidden in Advanced Preferences. It was a jQuery bug, selectors have slightly changed since jQuery 1.2
-* ironed out all problems with filtering articles by custom field (supports multiple custom fields as well)
-* bug that ignored empty values for text input custom fields > 10 when saving
-* bug with deleting custom field sets on tables with prefixes
+These are the features which I'm working on next. In no particular order:
 
-h2. Features for v1.2
+h2. SED_SECTION_FIELDS INTEGRATION
 
-* improved installation script (if custom set is different from text input, all values in @textpattern@ table for this custom field will be set as pre-defined values)
-* set a default value for a custom field as per "this request":http://forum.textpattern.com/viewtopic.php?pid=157974#p157974
-* @glz_search_custom_fields@ will raise an alert if no search criterion was selected
-* @glz_search_custom_fields@ will have input fields, check and radio boxes as well as selects
+These 2 plugins have become unseparable. Joining these plugins and making them work as a whole comes pretty high on my priority list.
 
-h2. Features for v1.3
-
-* textarea values (the only ones missing from v1.1)
-* each custom field will have its own help where the admin can write usage instructions as per "this":http://forum.textpattern.com/viewtopic.php?pid=158009#p158009 and "this":http://forum.textpattern.com/viewtopic.php?pid=158122#p158122
-* insert new values from within the article (e.g. an input field after the custom field pre-set values where users can specify new values, not defined yet). When saving the article, the new value(s) will be added automatically to the custom field values. Only unique values will be saved (duplicates will be removed).
-
-TRIGGER WORDS:
+h2. TRIGGER WORDS
 
 * *|Image Categories|* (select with all existing image categories)
 * *|File Categories|* (select with all existing image categories)
@@ -48,11 +29,15 @@ TRIGGER WORDS:
 * *|Listings Section|* (listings is the section name here and it will return all article titles belonging to that section)
 * *|Date Picker|* (jQuery date picker as per "this request":http://gerhardlazu.com/blog/50/glz_custom_fields-unveiled#c000042)
 
-h2. Features for v2.0
+h2. INLINE HELP
 
-This will be a major overhaul from v1.x. It will be based on the principles of "xpattern":http://xpattern.net/. Rather than having custom field data in the @textpattern@ table, we'll have a separate table, @custom_fields_values@. This will improve the database structure when it comes to multiple values for individual custom fields (e.g. custom_1: value 1|value 2|value 3) and it will make installs smoother. Legacy data in custom_x columns will be preserved, the only thing that this plugin will directly modify is the data in @txp_prefs@ (although I might be able to come with a solution for that as well). Moving custom field values in a separate table opens the door to section-specific custom fields - I can already hear the ovations : ).
+Each custom field will have its own help where the admin can write usage instructions as per "this":http://forum.textpattern.com/viewtopic.php?pid=158009#p158009 and "this":http://forum.textpattern.com/viewtopic.php?pid=158122#p158122
 
-List of features:
+h1. glz_custom_fields v1.2.3 screenshots
 
-* section-specific custom fields
-* improved installation script (legacy data preservation)
+!http://gerhardlazu.com/visual/glz_custom_fields/v1.2/add_new_custom_field.png!
+!http://gerhardlazu.com/visual/glz_custom_fields/v1.2/edit_custom_field.png!
+!http://gerhardlazu.com/visual/glz_custom_fields/v1.2/configure_plugin.png!
+!http://gerhardlazu.com/visual/glz_custom_fields/v1.2/super_special_custom_fields.png!
+!http://gerhardlazu.com/visual/glz_custom_fields/v1.2/textarea_custom_fields.png!
+
