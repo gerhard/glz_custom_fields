@@ -5,13 +5,13 @@
 // $ php abc_myplugin.php > abc_myplugin-0.1.txt
 
 # $plugin['name']         = "glz_custom_fields";
-$plugin['help_file']    = '/var/www/glz_custom_fields/glz_custom_fields_help.html';
-$plugin['code_file']    = '/var/www/glz_custom_fields/glz_custom_fields_code.php';
+$plugin['code_file']    = realpath('glz_custom_fields_code.php');
+$plugin['help_file']    = realpath('glz_custom_fields_help.html');
 $plugin['version']      = "1.2.3";
 $plugin['description']  = "Unlimited, super special custom fields.";
 $plugin['author']       = "Gerhard Lazu";
 $plugin['author_uri']   = "http://gerhardlazu.com";
-$plugin['contributors'] = "Randy Levine, Sam Weiss, redbot, Manfre, Vladimir, Julian Reisenberger, Steve Dickinson, Stef Dawson";
+$plugin['contributors'] = "Randy Levine, Sam Weiss, Luca Botti, Manfre, Vladimir Siljkovic, Julian Reisenberger, Steve Dickinson, Stef Dawson";
 $plugin['compatiblity'] = "4.2.0 (r3275)";
 
 // Plugin load order:
