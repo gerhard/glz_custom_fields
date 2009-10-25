@@ -11,7 +11,7 @@ $plugin['version']      = "1.2.3";
 $plugin['description']  = "Unlimited, super special custom fields.";
 $plugin['author']       = "Gerhard Lazu";
 $plugin['author_uri']   = "http://gerhardlazu.com";
-$plugin['contributors'] = "Randy Levine, Sam Weiss, Luca Botti, Manfre, Vladimir Siljkovic, Julian Reisenberger, Steve Dickinson, Stef Dawson";
+$plugin['contributors'] = "Randy Levine, Sam Weiss, Luca Botti, Manfre, Vladimir Siljkovic, Julian Reisenberger, Steve Dickinson, Stef Dawson, Jean-Pol Dupont";
 $plugin['compatiblity'] = "4.2.0 (r3275)";
 
 // Plugin load order:
