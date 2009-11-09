@@ -1,10 +1,12 @@
 == TO-DO ==
 
+* enable users to 
+
+* Textilize textarea custom fields
+
 * filter custom fields depending on the section you choose
 
 * searches can either be displayed on the current page or on search section (user-configurable)
-
-* sort values alphabetically or as they were entered
 
 * Also, I am using the the_video plugin which has an one- or two-letter code for each video host option. Is it possible to have the name of the video host show up in the dropdown but output the code instead of the name when the custom field is called up? For example, a selection of "Google Video" would store and eventually output the value "G". - Alicia Lane - alicialane@gmail.com
 
@@ -13,8 +15,6 @@
 * perform searches via GET, not POST so that we can mimic the safe-search functionality
 
 * paginate search results
-
-* ask how many are still using PHP4. Would like to turn most of the helpers into a class, same for the MySQL functions
 
 
 == DONE ==
