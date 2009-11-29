@@ -234,7 +234,7 @@ function glz_article_custom_fields($name, $extra) {
   }
   else
     trigger_error(glz_custom_fields_gTxt('not_specified', array('{what}' => "extra attributes")));
-}
+}
 
 function glz_new_custom_field($name, $table, $extra) {
   if ( is_array($extra) ) {

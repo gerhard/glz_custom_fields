@@ -455,6 +455,16 @@ function glz_custom_fields_install() {
   );
   glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 
+  // let's update plugin preferences, make sure they won't appear under Admin > Preferences
+  safe_query("
+    UPDATE
+      `".PFX."txp_prefs`
+    SET
+      `type` = '10'
+    WHERE
+      `event` = 'glz_custom_f'
+  ");
+
   // if we don't have a search section, let's create it because we'll need it when searching by custom fields
   if( !getRow("SELECT name FROM `".PFX."txp_section` WHERE name='search'") ) {
     safe_query("
