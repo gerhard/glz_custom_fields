@@ -12,34 +12,7 @@ As you might realize, this plugin took quiet some time to put together. Contribu
 
 h1. Upcoming Features
 
-These are the features which I'm working on next. In no particular order:
-
-h2. INTERNATIONALISATION SUPPORT
-
-Full internationalisation support, MLP compatibility.
-
-h2. CUSTOM FIELDS GROUPING
-
-Group custom fields into headings, similar to Advanced Options under Write tab. Select whether custom fields get displayed in the left column or in the main column.
-
-h2. SED_SECTION_FIELDS INTEGRATION
-
-These 2 plugins have become unseparable. Joining these plugins and making them work as a whole comes pretty high on my priority list.
-
-h2. TRIGGER WORDS
-
-* *|Image Categories|* (select with all existing image categories)
-* *|File Categories|* (select with all existing image categories)
-* *|Article Categories|* (will include the nice tree view that is available under Category tab)
-* *|Schools Category Article|* (will return a list of all article titles belonging to "schools" category)
-* *|Holiday Category Image|* (will return a list of all image names belonging to "holiday" category)
-* *|Portfolio Category File|* (will return a list of all file names belonging to "portfolio" category)
-* *|Listings Section|* (listings is the section name here and it will return all article titles belonging to that section)
-* *|Date Picker|* (jQuery date picker as per "this request":http://gerhardlazu.com/blog/50/glz_custom_fields-unveiled#c000042)
-
-h2. INLINE HELP
-
-Each custom field will have its own help where the admin can write usage instructions as per "this":http://forum.textpattern.com/viewtopic.php?pid=158009#p158009 and "this":http://forum.textpattern.com/viewtopic.php?pid=158122#p158122
+These have now moved to the "github glz_custom_fields public issues page":http://github.com/gerhard/glz_custom_fields_public/issues.
 
 h1. glz_custom_fields v1.2.3 screenshots
 
