@@ -101,7 +101,7 @@ function glz_custom_fields_css_js() {
 
   // here come our custom stylesheetz
   $css = <<<EOF
-<style type="text/css" media="screen">
+<style type="text/css" media="all">
 /* - - - - - - - - - - - - - - - - - - - - -
 
 ### TEXTPATTERN CUSTOM FIELDS ###

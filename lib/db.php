@@ -449,7 +449,8 @@ function glz_update_plugin_preferences($arr_preferences) {
   foreach ($arr_preferences as $preference => $value) {
     // if there is a preference which doesn't exist, create it
     if ( !isset($prefs[$preference]) )
-      set_pref($preference, $value, "glz_custom_f");
+      // we're setting 10 for the type of preference so that it won't appear under TXP's prefs tab
+      set_pref($preference, $value, "glz_custom_f", 10);
   }
 }
 
