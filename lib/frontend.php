@@ -155,9 +155,8 @@ function glz_custom_fields_search_form($atts) {
     return join($out);
   }
   else
-    return trigger_error(glz_custom_fields_gTxt('searchby_not_set'));;
+    return trigger_error(glz_custom_fields_gTxt('searchby_not_set'));
 }
 
 
 ?>
-

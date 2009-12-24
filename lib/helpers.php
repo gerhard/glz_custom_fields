@@ -469,4 +469,3 @@ function glz_clean_string($string) {
 }
 
 ?>
-

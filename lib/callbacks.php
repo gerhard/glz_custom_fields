@@ -300,6 +300,11 @@ EOF;
 <!--//--><![CDATA[//><!--
 
 $(document).ready(function() {
+  // creating a global object to store variables, functions etc.
+  var GLZ_CUSTOM_FIELDS;
+  if (GLZ_CUSTOM_FIELDS == undefined)
+    GLZ_CUSTOM_FIELDS = {};
+  
   // sweet jQuery table striping
   $(".stripeMe tr").mouseover(function() { $(this).addClass("over"); }).mouseout(function() { $(this).removeClass("over"); });
   $(".stripeMe tr:even").addClass("alt");
@@ -355,6 +360,8 @@ $(document).ready(function() {
 
   function custom_field_value_off() {
     $("label[for=value]").parent().find('em').hide();
+    // storing these values if we'll need them later
+    GLZ_CUSTOM_FIELDS.textarea_value = $("textarea#value").html();
     $("textarea#value").remove();
     if (!$("input#value").length) {
       $("label[for=value]").after('<input id="value" value="no value allowed" name="value" class="left" />');
@@ -367,6 +374,8 @@ $(document).ready(function() {
     $("input#value").remove();
     if (!$("textarea#value").length)
       $("label[for=value]").after('<textarea id="value" name="value" class="left"></textarea>');
+    if (GLZ_CUSTOM_FIELDS.textarea_value)
+      $("textarea#value").html(GLZ_CUSTOM_FIELDS.textarea_value);
   }
 
   function toggle_type_link() {

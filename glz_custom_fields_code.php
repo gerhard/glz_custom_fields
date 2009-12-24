@@ -146,8 +146,8 @@ function glz_custom_fields() {
             'custom_field' => glz_custom_number($custom_set)
           ));
 
-          // there are custom fields for which we do not need to touch custom_fields table
-          if ( !in_array($custom_set_type, array("textarea", "text_input")) ) {
+          //  for textareas we do  not need to touch custom_fields table
+          if ( $custom_set_type = "textarea" ) {
             glz_custom_fields_MySQL("delete", $custom_set, PFX."custom_fields");
             glz_custom_fields_MySQL("new", $custom_set_name, PFX."custom_fields", array(
               'custom_set'  => $custom_set,
@@ -253,7 +253,11 @@ function glz_custom_fields() {
   }
   // fetching the values for this custom field
   if ( gps('edit') ) {
-    $arr_values = glz_custom_fields_MySQL("values", $custom_set, '', array('custom_set_name' => $custom_field['custom_set_name']));
+    if ( $custom_set_type == "text_input" )
+      $arr_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom_set), '', array('custom_set_name' => $custom_set_name, 'status' => 4));
+    else
+      $arr_values = glz_custom_fields_MySQL("values", $custom_set, '', array('custom_set_name' => $custom_set_name));
+    
     $values = ( $arr_values ) ?
       implode("\r\n", $arr_values) :
       '';
