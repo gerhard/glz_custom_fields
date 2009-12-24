@@ -272,17 +272,18 @@ function glz_new_custom_field($name, $table, $extra) {
       ";
     }
     else if ( $table == PFX."custom_fields" ) {
-      $arr_values = array_filter(explode("\r\n", $value), 'glz_arr_empty_values');
+      $arr_values = array_unique(array_filter(explode("\r\n", $value), 'glz_arr_empty_values'));
+
       if ( is_array($arr_values) && !empty($arr_values) ) {
-        // initialize null
+        $size_arr_values = count($arr_values);
         $insert = '';
-        foreach ( $arr_values as $value ) {
+        foreach ( $arr_values as $key => $value ) {
           // don't insert empty values
           if ( !empty($value) )
             // make sure special characters are escaped before inserting them in the database
             $value = addslashes(addslashes(trim($value)));
             // if this is the last value, query will have to be different
-            $insert .= (addslashes(addslashes(end($arr_values))) != $value ) ?
+            $insert .= ($key+1 != $size_arr_values ) ?
               "('{$custom_set}','{$value}'), " :
               "('{$custom_set}','{$value}')";
         }
