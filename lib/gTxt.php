@@ -20,6 +20,7 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'checkbox'          => 'Checkbox',
     'radio'             => 'Radio',
     'date-picker'       => 'Date Picker',
+    'time-picker'       => 'Time Picker',
     'type_not_supported'=> 'Type not supported',
     'no_do'             => 'Ooops! No action specified for method, abort.',
     'not_specified'     => 'Ooops! {what} is not specified',

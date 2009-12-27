@@ -97,7 +97,7 @@ function glz_custom_fields_before_save() {
 // -------------------------------------------------------------
 // adds the css & js we need
 function glz_custom_fields_css_js() {
-  global $glz_notice, $date_picker, $prefs;
+  global $glz_notice, $date_picker, $time_picker, $prefs;
 
   // here come our custom stylesheetz
   $css = <<<EOF
@@ -274,14 +274,12 @@ td#article-col-1 #advanced p input.checkbox {
 }
 </style>
 EOF;
-  if ( $date_picker )
-    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.hu.'scripts/jquery.datePicker/datePicker.css" />'.n;
-
   // and here come our javascriptz
   $js = '';
   $date_picker_js = '';
   if ( $date_picker ) {
-    foreach (array('date.js', 'jquery.datePicker.js') as $file) {
+    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.hu.'scripts/jquery.datePicker/datePicker.css" />'.n;
+    foreach (array('date.js', 'datePicker.js') as $file) {
       $js .= '<script type="text/javascript" src="'.hu.'scripts/jquery.datePicker/'.$file.'"></script>'.n;
     }
     $date_picker_js = <<<EOF
@@ -295,6 +293,23 @@ try {
 }
 EOF;
   }
+  $time_picker_js = '';
+  if ( $time_picker ) {
+    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.hu.'scripts/jquery.timePicker/timePicker.css" />'.n;
+    $js .= '<script type="text/javascript" src="'.hu.'scripts/jquery.timePicker/timePicker.js"></script>'.n;
+    $time_picker_js = <<<EOF
+try {
+  $(".time-picker").timePicker({
+    startTime:'{$prefs['timepicker_start_time']}',
+    endTime: '{$prefs['timepicker_end_time']}',
+    step: {$prefs['timepicker_step']},
+    show24Hours: {$prefs['timepicker_show_24']}
+  });
+} catch(err) {
+  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin&amp;step=plugin_help&amp;name=glz_custom_fields">Please configure the jQuery TimePicker plugin</a>');
+}
+EOF;
+  }
   $js .= <<<EOF
 <script type="text/javascript">
 <!--//--><![CDATA[//><!--
@@ -304,6 +319,8 @@ $(document).ready(function() {
   var GLZ_CUSTOM_FIELDS;
   if (GLZ_CUSTOM_FIELDS == undefined)
     GLZ_CUSTOM_FIELDS = {};
+  GLZ_CUSTOM_FIELDS.special_custom_types = ["date-picker", "time-picker"];
+  GLZ_CUSTOM_FIELDS.no_value_custom_types = ["text_input", "textarea"];
   
   // sweet jQuery table striping
   $(".stripeMe tr").mouseover(function() { $(this).addClass("over"); }).mouseout(function() { $(this).removeClass("over"); });
@@ -319,24 +336,27 @@ $(document).ready(function() {
   };
 
   // toggle custom field value based on its type
-  special_custom_types = ["text_input", "date-picker", "textarea"];
+  
   toggle_type_link();
-  if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) != -1 ) {
+  if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, GLZ_CUSTOM_FIELDS.no_value_custom_types)) != -1 ) {
     custom_field_value_off($("select#custom_set_type :selected").attr("value"));
   };
 
   $("select#custom_set_type").change( function() {
     toggle_type_link();
-    if ( $.inArray($("select#custom_set_type :selected").attr("value"), special_custom_types) == -1 ) {
-      custom_field_value_on();
+    if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, GLZ_CUSTOM_FIELDS.no_value_custom_types)) != -1 ) {
+      custom_field_value_off();
     }
     else {
-      custom_field_value_off();
+      custom_field_value_on();
     }
   });
 
   // enable date-picker custom sets
   {$date_picker_js}
+  
+  // enable time-picker custom sets
+  {$time_picker_js}
 
   // add a reset link to all radio custom fields
   if ($(".glz_custom_radio_field").length > 0) {
@@ -380,10 +400,8 @@ $(document).ready(function() {
 
   function toggle_type_link() {
     $("select#custom_set_type").parent().find('span').remove();
-    if ($("select#custom_set_type :selected").attr("value") == "date-picker")
+    if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, ["multi-select"])) != -1 )
       $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure jQuery datePicker</a></em></span>");
-    else if ($("select#custom_set_type :selected").attr("value") == "multi-select")
-      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure Multi-select</a></em></span>");
   }
 
 });
@@ -416,7 +434,7 @@ EOF;
 // we are setting up the pre-requisite values for glz_custom_fields
 function before_glz_custom_fields() {
   // we will be reusing these globals across the whole plugin
-  global $all_custom_sets, $glz_notice, $prefs, $date_picker;
+  global $all_custom_sets, $glz_notice, $prefs, $date_picker, $time_picker;
 
   // glz_notice collects all plugin notices
   $glz_notice = array();
@@ -426,6 +444,9 @@ function before_glz_custom_fields() {
 
   // let's see if we have a date-picker custom field (first of the special ones)
   $date_picker = glz_custom_fields_MySQL("custom_set_exists", "date-picker");
+  
+  // let's see if we have a time-picker custom field
+  $time_picker = glz_custom_fields_MySQL("custom_set_exists", "time-picker");
 }
 
 
@@ -456,11 +477,15 @@ function glz_custom_fields_install() {
 
   // set plugin preferences
   $arr_plugin_preferences = array(
-    'values_ordering' => "custom",
-    'multiselect_size' => "5",
-    'datepicker_format' => "dd/mm/yyyy",
-    'datepicker_first_day' => 1,
-    'datepicker_start_date' => "01/01/1990"
+    'values_ordering'       => "custom",
+    'multiselect_size'      => "5",
+    'datepicker_format'     => "dd/mm/yyyy",
+    'datepicker_first_day'  => 1,
+    'datepicker_start_date' => "01/01/1990",
+    'timepicker_start_time' => "00:00",
+    'timepicker_end_time'   => "23:30",
+    'timepicker_step'       => 30,
+    'timepicker_show_24'    => true
   );
   glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 

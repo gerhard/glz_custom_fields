@@ -15,7 +15,7 @@ if (@txpinterface == "admin") {
   // checks if all tables exist and everything is setup properly
   add_privs('glz_custom_fields_install', "1");
   register_callback("glz_custom_fields_install", "plugin_lifecycle.glz_custom_fields", "installed");
-
+  
   // we'll be doing this only on the pages that we care about, not everywhere
   if ( in_array(gps('event'), array("article", "prefs", "glz_custom_fields", "plugin_prefs.glz_custom_fields")) ) {
     // we need some stylesheets & JS
@@ -146,7 +146,7 @@ function glz_custom_fields() {
             'custom_field' => glz_custom_number($custom_set)
           ));
 
-          //  for textareas we do  not need to touch custom_fields table
+          // for textareas we do not need to touch custom_fields table
           if ( $custom_set_type = "textarea" ) {
             glz_custom_fields_MySQL("delete", $custom_set, PFX."custom_fields");
             glz_custom_fields_MySQL("new", $custom_set_name, PFX."custom_fields", array(
@@ -349,6 +349,15 @@ function glz_custom_fields_preferences() {
   $first_day .= "</select>";
 
   $start_date = '<input type="text" name="glz_custom_fields_prefs[datepicker_start_date]" id="glz_custom_fields_prefs_datepicker_start_date" value="'.$current_preferences['datepicker_start_date'].'" />';
+  
+  // jquery.timePicker
+  $arr_time_format = array('true' => "24 hours", 'false' => "12 hours");
+  $show_24 = '<select name="glz_custom_fields_prefs[timepicker_show_24]" id="glz_custom_fields_prefs_timepicker_show_24">';
+  foreach ( $arr_time_format as $value => $title ) {
+    $selected = ($current_preferences['timepicker_show_24'] == $value) ? ' selected="selected"' : '';
+    $show_24 .= "<option value=\"$value\"$selected>$title</option>";
+  }
+  $show_24 .= "</select>";
 
   $out = <<<EOF
 <form action="index.php" method="post">
@@ -365,8 +374,9 @@ function glz_custom_fields_preferences() {
       <th scope="row"><label for="glz_custom_fields_prefs_multiselect_size">Multi-select field size</th>
       <td>{$multiselect_size}</td>
     </tr>
+    
     <tr class="heading">
-      <td colspan="2"><h2 class="pref-heading left">Date Picker</h2> <a href="http://www.kelvinluck.com/assets/jquery/datePicker/v2/demo/index.html" title="A flexible unobtrusive calendar component for jQuery" class="right">jQuery datePicker home</a></td>
+      <td colspan="2"><h2 class="pref-heading left">Date Picker</h2> <a href="http://www.kelvinluck.com/assets/jquery/datePicker/v2/demo/index.html" title="A flexible unobtrusive calendar component for jQuery" class="right">jQuery datePicker</a></td>
     </tr>
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_datepicker_format">Date format</th>
@@ -380,6 +390,27 @@ function glz_custom_fields_preferences() {
       <th scope="row"><label for="glz_custom_fields_prefs_datepicker_start_date">Start date</th>
       <td>{$start_date}<br /><em>MUST be the same as "Date format"</em></td>
     </tr>
+    
+    <tr class="heading">
+      <td colspan="2"><h2 class="pref-heading left">Time Picker</h2> <a href="http://labs.perifer.se/timedatepicker/" title="jQuery time picker" class="right">jQuery timePicker</a></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_timepicker_start_time">Start time</th>
+      <td><input type="text" name="glz_custom_fields_prefs[timepicker_start_time]" id="glz_custom_fields_prefs_timepicker_start_time" value="{$current_preferences['timepicker_start_time']}" /></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_timepicker_end_time">End time</th>
+      <td><input type="text" name="glz_custom_fields_prefs[timepicker_end_time]" id="glz_custom_fields_prefs_timepicker_end_time" value="{$current_preferences['timepicker_end_time']}" /></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_timepicker_step">Step</th>
+      <td><input type="text" name="glz_custom_fields_prefs[timepicker_step]" id="glz_custom_fields_prefs_timepicker_step" value="{$current_preferences['timepicker_step']}" /></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_timepicker_step">Time format</th>
+      <td>{$show_24}</td>
+    </tr>
+
     <tr>
       <td colspan="2" class="noline">
         <input class="publish" type="submit" name="save" value="Save" />

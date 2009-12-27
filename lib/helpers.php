@@ -42,7 +42,8 @@ function glz_custom_set_types() {
       'multi-select',
       'textarea'),
     'special' => array(
-      'date-picker')
+      'date-picker',
+      'time-picker')
   );
 }
 
@@ -280,6 +281,13 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
         fInput("text", $custom, $custom_value, "edit date-picker", "", "", "22", "", $custom_id),
         'glz_custom_date-picker_field clearfix'
       );
+    
+    case "time-picker":
+      return array(
+        fInput("text", $custom, $custom_value, "edit time-picker", "", "", "22", "", $custom_id),
+        'glz_custom_time-picker_field clearfix'
+      );
+
 
     // a type has been passed that is not supported yet
     default:
