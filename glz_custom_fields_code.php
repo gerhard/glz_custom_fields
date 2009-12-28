@@ -1,6 +1,6 @@
 <?php
 
-// Including helper files. If we can't have classes, we will use gems : )
+// Including helper files. If we can't have classes, we will use includes
 require_once('lib/gTxt.php');
 require_once('lib/db.php');
 require_once('lib/helpers.php');
@@ -22,7 +22,7 @@ if (@txpinterface == "admin") {
     add_privs('glz_custom_fields_css_js', "1,2,3,4,5,6");
     register_callback('glz_custom_fields_css_js', "admin_side", 'head_end');
 
-    // we need to make sure that all custom field values will be converted to strings first - think checkboxes & multi-selects
+    // we need to make sure that all custom field values will be converted to strings first - think checkboxes & multi-selects etc.
     if ( (gps("step") == "edit") || (gps("step") == "create") ) {
       add_privs('glz_custom_fields_before_save', "1,2,3,4,5,6");
       register_callback('glz_custom_fields_before_save', "article", '', 1);
@@ -34,6 +34,7 @@ if (@txpinterface == "admin") {
   register_tab("extensions", 'glz_custom_fields', "Custom Fields");
   register_callback('glz_custom_fields', "glz_custom_fields");
 
+  // plugin preferences
   add_privs('plugin_prefs.glz_custom_fields', "1,2");
   register_callback('glz_custom_fields_preferences', 'plugin_prefs.glz_custom_fields');
 
@@ -54,6 +55,8 @@ function glz_custom_fields() {
   // we have $_POST, let's see if there is any CRUD
   if ( $_POST ) {
     $incoming = stripPost();
+    // DEBUG
+    // die(dmp($incoming));
     extract($incoming);
 
     // create an empty $value if it's not set in the $_POST
@@ -132,7 +135,7 @@ function glz_custom_fields() {
       if ( !empty($custom_set_name) ) {
         $custom_set_name = glz_clean_string($custom_set_name);
         $name_exists = glz_check_custom_set_name($all_custom_sets, $custom_set_name, $custom_set);
-        // if name doesn't exist
+        // if name doesn't exist we'll need to create a new custom_set
         if ( $name_exists == FALSE ) {
           glz_custom_fields_MySQL("update", $custom_set, PFX."txp_prefs", array(
             'custom_set_name'     => $custom_set_name,
@@ -147,7 +150,7 @@ function glz_custom_fields() {
           ));
 
           // for textareas we do not need to touch custom_fields table
-          if ( $custom_set_type = "textarea" ) {
+          if ( $custom_set_type != "textarea" ) {
             glz_custom_fields_MySQL("delete", $custom_set, PFX."custom_fields");
             glz_custom_fields_MySQL("new", $custom_set_name, PFX."custom_fields", array(
               'custom_set'  => $custom_set,
@@ -177,10 +180,10 @@ function glz_custom_fields() {
     n.'<table cellspacing="0" class="glz_custom_fields stripeMe">'.n.
     ' <thead>'.n.
     '   <tr>'.n.
-    '     <td>Custom set</td>'.n.
+    '     <td>Position</td>'.n.
     '     <td>Name</td>'.n.
     '     <td>Type</td>'.n.
-    '     <td colspan="2">Position</td>'.n.
+    '     <td>&nbsp;</td>'.n.
     '   </tr>'.n.
     ' </thead>'.n.
     ' <tbody>'.n;
@@ -203,10 +206,9 @@ function glz_custom_fields() {
 
     echo
     '   <tr>'.n.
-    '     <td class="custom_set">'.$custom.'</td>'.n.
+    '     <td class="custom_set_position">'.$custom_set['position'].'</td>'.n.
     '     <td class="custom_set_name">'.$custom_set['name'].'</td>'.n.
     '     <td class="type">'.(($custom_set['name']) ? glz_custom_fields_gTxt($custom_set['type']) : '').'</td>'.n.
-    '     <td class="custom_set_position">'.$custom_set['position'].'</td>'.n.
     '     <td class="events">'.$reset_delete.sp.$edit.'</td>'.n.
     '   </tr>'.n;
 
@@ -264,11 +266,15 @@ function glz_custom_fields() {
   }
   else
     $values = '';
-
+  
   $action = gps('edit') ?
     '<input name="save" value="Save" type="submit" class="publish" />' :
     '<input name="add_new" value="Add new" type="submit" class="publish" />';
-
+  // this needs to be different for a script
+  $value = ($custom_set_type == "custom-script") ?
+    '<input name="value" id="value" value="'.$values.'" class="left"/><span class="right"><em>Full path to your script</em></span>' :
+    '<textarea name="value" id="value" class="left">'.$values.'</textarea><span class="right"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>';
+  
   // ok, all is set, let's build the form
   echo
     '<form method="post" action="index.php" id="add_edit_custom_field">'.n.
@@ -294,8 +300,7 @@ function glz_custom_fields() {
       </p>'.n.
     ' <p class="clearfix">
         <label for="value" class="left">Value:</label>
-        <textarea name="value" id="value" class="left">'.$values.'</textarea>
-        <span class="right"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>
+    '.  $value.'
       </p>'.n.
     ' '.$action.n.
     '</fieldset>'.n.

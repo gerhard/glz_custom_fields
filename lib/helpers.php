@@ -43,7 +43,8 @@ function glz_custom_set_types() {
       'textarea'),
     'special' => array(
       'date-picker',
-      'time-picker')
+      'time-picker',
+      'custom-script')
   );
 }
 
@@ -286,6 +287,12 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
       return array(
         fInput("text", $custom, $custom_value, "edit time-picker", "", "", "22", "", $custom_id),
         'glz_custom_time-picker_field clearfix'
+      );
+    
+    case "custom-script":
+      return array(
+        fInput("text", $custom, $custom_value, "edit custom-script", "", "", "22", "", $custom_id),
+        'glz_custom_custom-script_field clearfix'
       );
 
 

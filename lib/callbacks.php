@@ -157,7 +157,7 @@ html[xmlns] .clearfix {
 .glz_custom_fields {
   margin: 0 auto;
   border: 1px solid #DDD;
-  width: 50em;
+  width: 600px;
 }
 
 .glz_custom_fields thead tr {
@@ -171,31 +171,29 @@ html[xmlns] .clearfix {
 }
 
 .glz_custom_fields td {
-  padding: 0.2em 1em;
+  padding: 2px 10px;
   vertical-align: middle;
 }
 .glz_custom_fields thead td {
-  padding: 0.3em 0.8em;
-}
-.glz_custom_fields td.custom_set {
-  width: 8em;
+  padding: 2px 8px 3px 8px;
 }
 .glz_custom_fields td.custom_set_position {
-  width: 5em;
+  text-align: right;
+  width: 10%;
 }
 .glz_custom_fields td.custom_set_name {
-  width: 14em;
+  width: 30%;
 }
 .glz_custom_fields td.type {
-  width: 7em;
+  width: 30%;
 }
 .glz_custom_fields td.events {
-  width: 12em;
+  width: 30%;
   text-align: right;
 }
 
 .glz_custom_fields_prefs {
-  width: 40em;
+  width: 500px;
 }
 .glz_custom_fields_prefs#list tr th {
   font-weight: normal;
@@ -227,7 +225,7 @@ html[xmlns] .clearfix {
 }
 
 #add_edit_custom_field {
-  width: 50em;
+  width: 600px;
   margin: 2em auto 0 auto;
 }
 #add_edit_custom_field fieldset {
@@ -238,20 +236,21 @@ html[xmlns] .clearfix {
   font-weight: 700;
 }
 #add_edit_custom_field label {
-  width: 10em;
+  width: 20%;
   font-weight: 700;
 }
 #add_edit_custom_field p input,
 #add_edit_custom_field p select {
-  width: 23em;
+  width: 40%;
 }
 #add_edit_custom_field p textarea {
   font-size: 0.9em;
   padding: 1px 0 1px 3px;
-  width: 23em; height: 10em;
+  width: 40%; height: 100px;
 }
 #add_edit_custom_field p span {
-  width: 15em;
+  padding-top: 3px;
+  width: 210px;
 }
 #add_edit_custom_field p em,
 .glz_custom_fields_prefs tr em {
@@ -260,7 +259,7 @@ html[xmlns] .clearfix {
   color: #777;
 }
 #add_edit_custom_field input.publish {
-  margin-left: 11em;
+  margin-left: 110px;
 }
 
 /* select on write tab for the custom fields */
@@ -314,14 +313,18 @@ EOF;
 <script type="text/javascript">
 <!--//--><![CDATA[//><!--
 
-$(document).ready(function() {
+$(function() {
   // creating a global object to store variables, functions etc.
   var GLZ_CUSTOM_FIELDS;
   if (GLZ_CUSTOM_FIELDS == undefined)
     GLZ_CUSTOM_FIELDS = {};
   GLZ_CUSTOM_FIELDS.special_custom_types = ["date-picker", "time-picker"];
   GLZ_CUSTOM_FIELDS.no_value_custom_types = ["text_input", "textarea"];
-  
+  GLZ_CUSTOM_FIELDS.messages = {
+    'textarea' : "<em>Each value on a separate line</em><br /><em>One {default} value allowed</em>",
+    'script' : "<em>Full path to your script</em>"
+  }
+
   // sweet jQuery table striping
   $(".stripeMe tr").mouseover(function() { $(this).addClass("over"); }).mouseout(function() { $(this).removeClass("over"); });
   $(".stripeMe tr:even").addClass("alt");
@@ -333,20 +336,24 @@ $(document).ready(function() {
     $.each (custom_field_tr, function() {
       $(this).hide();
     });
-  };
+  }
 
   // toggle custom field value based on its type
   
   toggle_type_link();
   if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, GLZ_CUSTOM_FIELDS.no_value_custom_types)) != -1 ) {
-    custom_field_value_off($("select#custom_set_type :selected").attr("value"));
-  };
+    custom_field_value_off();
+  }
+  else if ( $("select#custom_set_type :selected").attr("value") == "custom-script" )
+    custom_field_value_path();
 
   $("select#custom_set_type").change( function() {
     toggle_type_link();
     if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, GLZ_CUSTOM_FIELDS.no_value_custom_types)) != -1 ) {
       custom_field_value_off();
     }
+    else if ( $("select#custom_set_type :selected").attr("value") == "custom-script" )
+      custom_field_value_path();
     else {
       custom_field_value_on();
     }
@@ -379,29 +386,46 @@ $(document).ready(function() {
   // ### RE-USABLE FUNCTIONS ###
 
   function custom_field_value_off() {
-    $("label[for=value]").parent().find('em').hide();
-    // storing these values if we'll need them later
-    GLZ_CUSTOM_FIELDS.textarea_value = $("textarea#value").html();
-    $("textarea#value").remove();
-    if (!$("input#value").length) {
-      $("label[for=value]").after('<input id="value" value="no value allowed" name="value" class="left" />');
-      $("input#value").attr("disabled", "disabled");
+    if ($("textarea#value").length) {
+      GLZ_CUSTOM_FIELDS.textarea_value = $("textarea#value").html();
+      $("textarea#value + span.right").html('');
+      $("textarea#value").remove();
     }
+    
+    if (!$("input#value").length)
+      $("label[for=value]").after('<input id="value" name="value" class="left" />');
+    $("input#value").attr('value', "no value allowed").attr('disabled', "disabled");
+    $("input#value + span.right").html('');
   }
 
   function custom_field_value_on() {
-    $("label[for=value]").parent().find('em').show();
-    $("input#value").remove();
-    if (!$("textarea#value").length)
+    if ( $("input#value").length )
+      $("input#value").remove();
+    if ( !$("textarea#value").length ) {
       $("label[for=value]").after('<textarea id="value" name="value" class="left"></textarea>');
-    if (GLZ_CUSTOM_FIELDS.textarea_value)
+      $("textarea#value + span.right").html(GLZ_CUSTOM_FIELDS.messages['textarea']);
+    }
+    if ( GLZ_CUSTOM_FIELDS.textarea_value )
       $("textarea#value").html(GLZ_CUSTOM_FIELDS.textarea_value);
+  }
+
+  function custom_field_value_path() {
+    if ($("textarea#value").length) {
+      $("textarea#value + span.right").html('');
+      $("textarea#value").remove();
+    }
+    if (!$("input#value").length)
+      $("label[for=value]").after('<input id="value" name="value" class="left" />');
+    if ( $.inArray($("input#value").attr('value'), ["", "no value allowed"]) != -1 )
+      $("input#value").attr('value', "{$prefs['path_to_site']}/scripts/")
+    $("input#value").attr('disabled', "");
+    $("input#value + span.right").html(GLZ_CUSTOM_FIELDS.messages['script']);
   }
 
   function toggle_type_link() {
     $("select#custom_set_type").parent().find('span').remove();
     if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, ["multi-select"])) != -1 )
-      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure jQuery datePicker</a></em></span>");
+      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure plugin</a></em></span>");
   }
 
 });
