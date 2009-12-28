@@ -271,7 +271,7 @@ function glz_custom_fields() {
     '<input name="save" value="Save" type="submit" class="publish" />' :
     '<input name="add_new" value="Add new" type="submit" class="publish" />';
   // this needs to be different for a script
-  $value = ($custom_set_type == "custom-script") ?
+  $value = ( isset($custom_set_type) && $custom_set_type == "custom-script" ) ?
     '<input name="value" id="value" value="'.$values.'" class="left"/><span class="right"><em>Full path to your script</em></span>' :
     '<textarea name="value" id="value" class="left">'.$values.'</textarea><span class="right"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>';
   
