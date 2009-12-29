@@ -33,7 +33,9 @@ function glz_custom_fields_gTxt($get, $atts = array()) {
     'migration_skip'    => '<strong>custom_fields</strong> table already has data in it, migration skipped.',
     'search_section_created'  => '<strong>search</strong> section has been created',
     'custom_sets_all_input'   => 'All custom sets have been set back to input',
-    'preferences_updated'     => 'Plugin preferences have been updated'
+    'preferences_updated'     => 'Plugin preferences have been updated',
+    'not_found'         => 'Ooops! <strong>{file}</strong> cannot be found, check path',
+    'not_callable'      => 'Ooops! <strong>{function}()</strong> cannot be called. Ensure <strong>{file}</strong> can be executed.'
   );
 
   $out = ( strstr($lang[$get], "Ooops!") ) ? // Ooops! would appear 0 in the string...

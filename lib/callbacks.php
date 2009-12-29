@@ -241,7 +241,7 @@ html[xmlns] .clearfix {
 }
 #add_edit_custom_field p input,
 #add_edit_custom_field p select {
-  width: 40%;
+  width: 50%;
 }
 #add_edit_custom_field p textarea {
   font-size: 0.9em;
@@ -250,7 +250,7 @@ html[xmlns] .clearfix {
 }
 #add_edit_custom_field p span {
   padding-top: 3px;
-  width: 210px;
+  width: 27%;
 }
 #add_edit_custom_field p em,
 .glz_custom_fields_prefs tr em {

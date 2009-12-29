@@ -286,15 +286,14 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
     case "time-picker":
       return array(
         fInput("text", $custom, $custom_value, "edit time-picker", "", "", "22", "", $custom_id),
-        'glz_custom_time-picker_field clearfix'
+        'glz_custom_time-picker_field'
       );
     
     case "custom-script":
       return array(
-        fInput("text", $custom, $custom_value, "edit custom-script", "", "", "22", "", $custom_id),
-        'glz_custom_custom-script_field clearfix'
+        glz_custom_script(reset($arr_custom_field_values), $custom, $custom_value, $default_value),
+        'glz_custom_field_script'
       );
-
 
     // a type has been passed that is not supported yet
     default:
@@ -420,6 +419,24 @@ function glz_fButton($type, $name, $contents='Submit', $value, $class='', $id=''
   $o .= $contents;
   $o .= '</button>';
   return $o;
+}
+
+
+//-------------------------------------------------------------
+// evals a PHP script and feeds its output into glz_format_custom_set_by_type
+function glz_custom_script($script, $custom, $custom_value, $default_value) {
+  if ( is_file($script) ) {
+    include($script);
+    $custom_function = basename($script, ".php");
+    if ( is_callable($custom_function) ) {
+      // code...
+    }
+    else
+      return glz_custom_fields_gTxt('not_callable', array('{function}' => $custom_function, '{file}' => $script));
+  }
+  else
+    return glz_custom_fields_gTxt('not_found', array('{file}' => $script));
+
 }
 
 
