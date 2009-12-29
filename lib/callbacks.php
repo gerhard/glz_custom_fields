@@ -249,7 +249,7 @@ html[xmlns] .clearfix {
 #add_edit_custom_field p textarea {
   font-size: 0.9em;
   padding: 1px 0 1px 3px;
-  width: 40%; height: 100px;
+  width: 50%; height: 100px;
 }
 #add_edit_custom_field p span {
   padding-top: 3px;
@@ -427,7 +427,7 @@ $(function() {
   function toggle_type_link() {
     $("select#custom_set_type").parent().find('span').remove();
     if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, ["multi-select"])) != -1 )
-      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure plugin</a></em></span>");
+      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure glz_custom_fields</a></em></span>");
   }
 
 });
