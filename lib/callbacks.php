@@ -259,7 +259,7 @@ html[xmlns] .clearfix {
   color: #777;
 }
 #add_edit_custom_field input.publish {
-  margin-left: 110px;
+  margin-left: 117px;
 }
 
 /* select on write tab for the custom fields */
