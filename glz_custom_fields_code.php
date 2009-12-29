@@ -15,7 +15,7 @@ if (@txpinterface == "admin") {
   // checks if all tables exist and everything is setup properly
   add_privs('glz_custom_fields_install', "1");
   register_callback("glz_custom_fields_install", "plugin_lifecycle.glz_custom_fields", "installed");
-  
+
   // we'll be doing this only on the pages that we care about, not everywhere
   if ( in_array(gps('event'), array("article", "prefs", "glz_custom_fields", "plugin_prefs.glz_custom_fields")) ) {
     // we need some stylesheets & JS
@@ -335,8 +335,14 @@ function glz_custom_fields_preferences() {
   }
   $values_ordering .= "</select>";
   $multiselect_size = '<input type="text" name="glz_custom_fields_prefs[multiselect_size]" id="glz_custom_fields_prefs_multiselect_size" value="'.$current_preferences['multiselect_size'].'" />';
+  $custom_scripts_path_error = ( @fopen($current_preferences['custom_scripts_path'], "r") ) ?
+    '' :
+    '<br /><em class="red">Folder does not exist, please create it.</em>';
 
   // jquery.datePicker
+  $datepicker_url_error = ( @fopen($current_preferences['datepicker_url'], "r") ) ?
+    '' :
+    '<br /><em class="red">Folder does not exist, please create it.</em>';
   $arr_date_format = array("dd/mm/yyyy", "mm/dd/yyyy", "yyyy-mm-dd", "dd mm yy");
   $date_format = '<select name="glz_custom_fields_prefs[datepicker_format]" id="glz_custom_fields_prefs_datepicker_format">';
   foreach ( $arr_date_format as $format ) {
@@ -356,6 +362,9 @@ function glz_custom_fields_preferences() {
   $start_date = '<input type="text" name="glz_custom_fields_prefs[datepicker_start_date]" id="glz_custom_fields_prefs_datepicker_start_date" value="'.$current_preferences['datepicker_start_date'].'" />';
   
   // jquery.timePicker
+  $timepicker_url_error = ( @fopen($current_preferences['timepicker_url'], "r") ) ?
+    '' :
+    '<br /><em class="red">Folder does not exist, please create it.</em>';
   $arr_time_format = array('true' => "24 hours", 'false' => "12 hours");
   $show_24 = '<select name="glz_custom_fields_prefs[timepicker_show_24]" id="glz_custom_fields_prefs_timepicker_show_24">';
   foreach ( $arr_time_format as $value => $title ) {
@@ -379,9 +388,17 @@ function glz_custom_fields_preferences() {
       <th scope="row"><label for="glz_custom_fields_prefs_multiselect_size">Multi-select field size</th>
       <td>{$multiselect_size}</td>
     </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_custom_scripts_path">Custom scripts path</th>
+      <td><input type="text" name="glz_custom_fields_prefs[custom_scripts_path]" id="glz_custom_fields_prefs_custom_scripts_path" value="{$current_preferences['custom_scripts_path']}" />{$custom_scripts_path_error}</td>
+    </tr>
     
     <tr class="heading">
       <td colspan="2"><h2 class="pref-heading left">Date Picker</h2> <a href="http://www.kelvinluck.com/assets/jquery/datePicker/v2/demo/index.html" title="A flexible unobtrusive calendar component for jQuery" class="right">jQuery datePicker</a></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_datepicker_url">Date Picker plugin URL</th>
+      <td><input type="text" name="glz_custom_fields_prefs[datepicker_url]" id="glz_custom_fields_prefs_datepicker_url" value="{$current_preferences['datepicker_url']}" />{$datepicker_url_error}</td>
     </tr>
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_datepicker_format">Date format</th>
@@ -393,11 +410,15 @@ function glz_custom_fields_preferences() {
     </tr>
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_datepicker_start_date">Start date</th>
-      <td>{$start_date}<br /><em>MUST be the same as "Date format"</em></td>
+      <td>{$start_date}<br /><em class="grey">MUST be the same as "Date format"</em></td>
     </tr>
     
     <tr class="heading">
       <td colspan="2"><h2 class="pref-heading left">Time Picker</h2> <a href="http://labs.perifer.se/timedatepicker/" title="jQuery time picker" class="right">jQuery timePicker</a></td>
+    </tr>
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_timepicker_url">Time Picker plugin URL</th>
+      <td><input type="text" name="glz_custom_fields_prefs[timepicker_url]" id="glz_custom_fields_prefs_timepicker_url" value="{$current_preferences['timepicker_url']}" />{$timepicker_url_error}</td>
     </tr>
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_timepicker_start_time">Start time</th>
@@ -415,7 +436,7 @@ function glz_custom_fields_preferences() {
       <th scope="row"><label for="glz_custom_fields_prefs_timepicker_step">Time format</th>
       <td>{$show_24}</td>
     </tr>
-
+    
     <tr>
       <td colspan="2" class="noline">
         <input class="publish" type="submit" name="save" value="Save" />

@@ -144,6 +144,9 @@ html[xmlns] .clearfix {
 .red {
   color: #C00;
 }
+.grey {
+  color: #777;
+}
 .left {
   float: left;
 }
@@ -256,7 +259,6 @@ html[xmlns] .clearfix {
 .glz_custom_fields_prefs tr em {
   font-size: 0.9em;
   font-weight: 500;
-  color: #777;
 }
 #add_edit_custom_field input.publish {
   margin-left: 117px;
@@ -277,9 +279,9 @@ EOF;
   $js = '';
   $date_picker_js = '';
   if ( $date_picker ) {
-    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.hu.'scripts/jquery.datePicker/datePicker.css" />'.n;
+    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['datepicker_url'].'/datePicker.css" />'.n;
     foreach (array('date.js', 'datePicker.js') as $file) {
-      $js .= '<script type="text/javascript" src="'.hu.'scripts/jquery.datePicker/'.$file.'"></script>'.n;
+      $js .= '<script type="text/javascript" src="'.$prefs['datepicker_url'].'/'.$file.'"></script>'.n;
     }
     $date_picker_js = <<<EOF
 try {
@@ -288,14 +290,14 @@ try {
   Date.fullYearStart = '19';
   $(".date-picker").datePicker({startDate:'{$prefs['datepicker_start_date']}'});
 } catch(err) {
-  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin&amp;step=plugin_help&amp;name=glz_custom_fields">Please configure the jQuery DatePicker plugin</a>');
+  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
 }
 EOF;
   }
   $time_picker_js = '';
   if ( $time_picker ) {
-    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.hu.'scripts/jquery.timePicker/timePicker.css" />'.n;
-    $js .= '<script type="text/javascript" src="'.hu.'scripts/jquery.timePicker/timePicker.js"></script>'.n;
+    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['timepicker_url'].'/timePicker.css" />'.n;
+    $js .= '<script type="text/javascript" src="'.$prefs['timepicker_url'].'/timePicker.js"></script>'.n;
     $time_picker_js = <<<EOF
 try {
   $(".time-picker").timePicker({
@@ -305,8 +307,8 @@ try {
     show24Hours: {$prefs['timepicker_show_24']}
   });
 } catch(err) {
-  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin&amp;step=plugin_help&amp;name=glz_custom_fields">Please configure the jQuery TimePicker plugin</a>');
-}
+  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
+} 
 EOF;
   }
   $js .= <<<EOF
@@ -417,7 +419,7 @@ $(function() {
     if (!$("input#value").length)
       $("label[for=value]").after('<input id="value" name="value" class="left" />');
     if ( $.inArray($("input#value").attr('value'), ["", "no value allowed"]) != -1 )
-      $("input#value").attr('value', "{$prefs['path_to_site']}/scripts/")
+      $("input#value").attr('value', "{$prefs['custom_scripts_path']}/")
     $("input#value").attr('disabled', "");
     $("input#value + span.right").html(GLZ_CUSTOM_FIELDS.messages['script']);
   }
@@ -503,13 +505,16 @@ function glz_custom_fields_install() {
   $arr_plugin_preferences = array(
     'values_ordering'       => "custom",
     'multiselect_size'      => "5",
+    'datepicker_url'       => hu."scripts/glz_custom_fields/jquery.datePicker",
     'datepicker_format'     => "dd/mm/yyyy",
     'datepicker_first_day'  => 1,
     'datepicker_start_date' => "01/01/1990",
+    'timepicker_url'       => hu."scripts/glz_custom_fields/jquery.timePicker",
     'timepicker_start_time' => "00:00",
     'timepicker_end_time'   => "23:30",
     'timepicker_step'       => 30,
-    'timepicker_show_24'    => true
+    'timepicker_show_24'    => true,
+    'custom_scripts_path'   => $prefs['path_to_site']."/scripts/glz_custom_fields/",
   );
   glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 
