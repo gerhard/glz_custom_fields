@@ -236,6 +236,7 @@ function glz_article_custom_fields($name, $extra) {
     trigger_error(glz_custom_fields_gTxt('not_specified', array('{what}' => "extra attributes")));
 }
 
+
 function glz_new_custom_field($name, $table, $extra) {
   if ( is_array($extra) ) {
     extract($extra);
@@ -330,6 +331,7 @@ function glz_update_custom_field($name, $table, $extra) {
   }
 }
 
+
 function glz_reset_custom_field($name, $table, $extra) {
   if ( is_array($extra) )
     extract($extra);
@@ -350,6 +352,7 @@ function glz_reset_custom_field($name, $table, $extra) {
     safe_query("ALTER TABLE `".PFX."textpattern` MODIFY `{$custom_field}` VARCHAR(255) NOT NULL DEFAULT ''");
   }
 }
+
 
 function glz_delete_custom_field($name, $table) {
   // remember, custom fields under 10 MUST NOT be deleted

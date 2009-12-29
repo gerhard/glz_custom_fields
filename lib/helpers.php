@@ -291,7 +291,7 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
     
     case "custom-script":
       return array(
-        glz_custom_script(reset($arr_custom_field_values), $custom, $custom_value, $default_value),
+        glz_custom_script(reset($arr_custom_field_values), $custom, $custom_id, $custom_value),
         'glz_custom_field_script'
       );
 
@@ -362,7 +362,7 @@ function glz_checkbox($name = '', $arr_values = '', $custom_value = '', $default
 
 
 // -------------------------------------------------------------
-// had to duplicate the default radio() to keep the looping in here and check against existing value
+// had to duplicate the default radio() to keep the looping in here and check against existing value/s
 function glz_radio($name = '', $id = '', $arr_values = '', $custom_value = '', $default_value = '') {
   if ( is_array($arr_values) ) {
     $out = array();
@@ -423,13 +423,13 @@ function glz_fButton($type, $name, $contents='Submit', $value, $class='', $id=''
 
 
 //-------------------------------------------------------------
-// evals a PHP script and feeds its output into glz_format_custom_set_by_type
-function glz_custom_script($script, $custom, $custom_value, $default_value) {
+// evals a PHP script and displays output right under the custom field label
+function glz_custom_script($script, $custom, $custom_id, $custom_value) {
   if ( is_file($script) ) {
     include($script);
     $custom_function = basename($script, ".php");
     if ( is_callable($custom_function) ) {
-      // code...
+      return call_user_func_array($custom_function, array($custom, $custom_id, $custom_value));
     }
     else
       return glz_custom_fields_gTxt('not_callable', array('{function}' => $custom_function, '{file}' => $script));

@@ -419,7 +419,7 @@ $(function() {
     if (!$("input#value").length)
       $("label[for=value]").after('<input id="value" name="value" class="left" />');
     if ( $.inArray($("input#value").attr('value'), ["", "no value allowed"]) != -1 )
-      $("input#value").attr('value', "{$prefs['custom_scripts_path']}/")
+      $("input#value").attr('value', "{$prefs['custom_scripts_path']}")
     $("input#value").attr('disabled', "");
     $("input#value + span.right").html(GLZ_CUSTOM_FIELDS.messages['script']);
   }
