@@ -441,7 +441,7 @@ function glz_plugin_preferences($arr_preferences) {
 	$r = safe_rows_start('name, val', 'txp_prefs', "event = 'glz_custom_f'");
 	if ($r) {
 		while ($a = nextRow($r)) {
-			$out[$a['name']] = $a['val'];
+			$out[$a['name']] = stripslashes($a['val']);
 		}
 	}
   return $out;
@@ -450,11 +450,11 @@ function glz_plugin_preferences($arr_preferences) {
 // -------------------------------------------------------------
 // updates all plugin preferences
 function glz_update_plugin_preferences($arr_preferences) {
+  // die(dmp($arr_preferences));
   foreach ($arr_preferences as $preference => $value) {
     // if there is a preference which doesn't exist, create it
     if ( !isset($prefs[$preference]) )
-      // we're setting 10 for the type of preference so that it won't appear under TXP's prefs tab
-      set_pref($preference, $value, "glz_custom_f", 10);
+      set_pref($preference, addslashes(addslashes(trim($value))), "glz_custom_f", 10); // 10 so that it won't appear under TXP's prefs tab
   }
 }
 

@@ -5,7 +5,6 @@
 function glz_custom_fields_replace($event, $step, $data, $rs) {
   global $all_custom_sets, $date_picker;
   // get all custom fields & keep only the ones which are set, filter by step
-  // and return date picker custom fields only if jquery.datePicker is in the right location
   $arr_custom_fields = glz_check_custom_set($all_custom_sets, $step);
 
   // DEBUG
@@ -279,9 +278,9 @@ EOF;
   $js = '';
   $date_picker_js = '';
   if ( $date_picker ) {
-    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['datepicker_url'].'/datePicker.css" />'.n;
+    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['datepicker_url'].'datePicker.css" />'.n;
     foreach (array('date.js', 'datePicker.js') as $file) {
-      $js .= '<script type="text/javascript" src="'.$prefs['datepicker_url'].'/'.$file.'"></script>'.n;
+      $js .= '<script type="text/javascript" src="'.$prefs['datepicker_url'].$file.'"></script>'.n;
     }
     $date_picker_js = <<<EOF
 try {
@@ -296,8 +295,8 @@ EOF;
   }
   $time_picker_js = '';
   if ( $time_picker ) {
-    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['timepicker_url'].'/timePicker.css" />'.n;
-    $js .= '<script type="text/javascript" src="'.$prefs['timepicker_url'].'/timePicker.js"></script>'.n;
+    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['timepicker_url'].'timePicker.css" />'.n;
+    $js .= '<script type="text/javascript" src="'.$prefs['timepicker_url'].'timePicker.js"></script>'.n;
     $time_picker_js = <<<EOF
 try {
   $(".time-picker").timePicker({
@@ -505,11 +504,11 @@ function glz_custom_fields_install() {
   $arr_plugin_preferences = array(
     'values_ordering'       => "custom",
     'multiselect_size'      => "5",
-    'datepicker_url'       => hu."scripts/glz_custom_fields/jquery.datePicker",
+    'datepicker_url'        => hu."scripts/glz_custom_fields/jquery.datePicker/",
     'datepicker_format'     => "dd/mm/yyyy",
     'datepicker_first_day'  => 1,
     'datepicker_start_date' => "01/01/1990",
-    'timepicker_url'       => hu."scripts/glz_custom_fields/jquery.timePicker",
+    'timepicker_url'        => hu."scripts/glz_custom_fields/jquery.timePicker/",
     'timepicker_start_time' => "00:00",
     'timepicker_end_time'   => "23:30",
     'timepicker_step'       => 30,

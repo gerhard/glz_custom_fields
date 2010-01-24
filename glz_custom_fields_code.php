@@ -340,7 +340,7 @@ function glz_custom_fields_preferences() {
     '<br /><em class="red">Folder does not exist, please create it.</em>';
 
   // jquery.datePicker
-  $datepicker_url_error = ( @fopen($current_preferences['datepicker_url'], "r") ) ?
+  $datepicker_url_error = ( @fopen($current_preferences['datepicker_url']."datePicker.js", "r") ) ?
     '' :
     '<br /><em class="red">Folder does not exist, please create it.</em>';
   $arr_date_format = array("dd/mm/yyyy", "mm/dd/yyyy", "yyyy-mm-dd", "dd mm yy");
@@ -362,7 +362,7 @@ function glz_custom_fields_preferences() {
   $start_date = '<input type="text" name="glz_custom_fields_prefs[datepicker_start_date]" id="glz_custom_fields_prefs_datepicker_start_date" value="'.$current_preferences['datepicker_start_date'].'" />';
   
   // jquery.timePicker
-  $timepicker_url_error = ( @fopen($current_preferences['timepicker_url'], "r") ) ?
+  $timepicker_url_error = ( @fopen($current_preferences['timepicker_url']."timePicker.js", "r") ) ?
     '' :
     '<br /><em class="red">Folder does not exist, please create it.</em>';
   $arr_time_format = array('true' => "24 hours", 'false' => "12 hours");
