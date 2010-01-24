@@ -12,7 +12,7 @@ $plugin['description']  = "Unlimited, super special custom fields.";
 $plugin['author']       = "Gerhard Lazu";
 $plugin['author_uri']   = "http://gerhardlazu.com";
 $plugin['contributors'] = "Randy Levine, Sam Weiss, Luca Botti, Manfre, Vladimir Siljkovic, Julian Reisenberger, Steve Dickinson, Stef Dawson, Jean-Pol Dupont";
-$plugin['compatiblity'] = "4.2.0 (r3275)";
+$plugin['compatibility'] = "4.2.0";
 
 // Plugin load order:
 // The default value of 5 would fit most plugins, while for instance comment spam evaluators or URL redirectors

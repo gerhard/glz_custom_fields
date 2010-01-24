@@ -482,7 +482,7 @@ function glz_custom_fields_install() {
 
   // if jQuery is not present, trigger error
   // improvement courtesy of Sam Weiss
-  if ( !file_exists($GLOBALS['txpcfg']['txpath'].'/jquery.js') ) {
+  if ( !@fopen($GLOBALS['txpcfg']['txpath'].'/jquery.js', "r") ) {
     trigger_error(glz_custom_fields_gTxt('jquery_missing'));
     trigger_error(glz_custom_fields_gTxt('check_path'));
   }
