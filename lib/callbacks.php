@@ -264,12 +264,15 @@ html[xmlns] .clearfix {
 }
 
 /* select on write tab for the custom fields */
-td#article-col-1 #advanced p select.list {
+td#article-col-1 #advanced p select.list,
+td#article-col-1 #custom_field_group select.list {
   width: 100%;
 }
 
 td#article-col-1 #advanced p input.radio,
-td#article-col-1 #advanced p input.checkbox {
+td#article-col-1 #custom_field_group input.radio,
+td#article-col-1 #advanced p input.checkbox,
+td#article-col-1 #custom_field_group input.checkbox {
   width: auto;
 }
 </style>
@@ -307,7 +310,7 @@ try {
   });
 } catch(err) {
   $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
-} 
+}
 EOF;
   }
   $js .= <<<EOF
@@ -340,7 +343,7 @@ $(function() {
   }
 
   // toggle custom field value based on its type
-  
+
   toggle_type_link();
   if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, GLZ_CUSTOM_FIELDS.no_value_custom_types)) != -1 ) {
     custom_field_value_off();
@@ -362,7 +365,7 @@ $(function() {
 
   // enable date-picker custom sets
   {$date_picker_js}
-  
+
   // enable time-picker custom sets
   {$time_picker_js}
 
@@ -392,7 +395,7 @@ $(function() {
       $("textarea#value + span.right").html('');
       $("textarea#value").remove();
     }
-    
+
     if (!$("input#value").length)
       $("label[for=value]").after('<input id="value" name="value" class="left" />');
     $("input#value").attr('value', "no value allowed").attr('disabled', "disabled");
@@ -469,7 +472,7 @@ function before_glz_custom_fields() {
 
   // let's see if we have a date-picker custom field (first of the special ones)
   $date_picker = glz_custom_fields_MySQL("custom_set_exists", "date-picker");
-  
+
   // let's see if we have a time-picker custom field
   $time_picker = glz_custom_fields_MySQL("custom_set_exists", "time-picker");
 }
