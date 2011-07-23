@@ -259,22 +259,22 @@ function glz_custom_fields() {
       $arr_values = glz_custom_fields_MySQL('all_values', glz_custom_number($custom_set), '', array('custom_set_name' => $custom_set_name, 'status' => 4));
     else
       $arr_values = glz_custom_fields_MySQL("values", $custom_set, '', array('custom_set_name' => $custom_set_name));
-    
+
     $values = ( $arr_values ) ?
       implode("\r\n", $arr_values) :
       '';
   }
   else
     $values = '';
-  
+
   $action = gps('edit') ?
     '<input name="save" value="Save" type="submit" class="publish" />' :
     '<input name="add_new" value="Add new" type="submit" class="publish" />';
   // this needs to be different for a script
   $value = ( isset($custom_set_type) && $custom_set_type == "custom-script" ) ?
-    '<input name="value" id="value" value="'.$values.'" class="left"/><span class="right"><em>Full path to your script</em></span>' :
+    '<input name="value" id="value" value="'.$values.'" class="left"/><span class="right"><em>Relative path from your website\'s public folder</em></span>' :
     '<textarea name="value" id="value" class="left">'.$values.'</textarea><span class="right"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>';
-  
+
   // ok, all is set, let's build the form
   echo
     '<form method="post" action="index.php" id="add_edit_custom_field">'.n.

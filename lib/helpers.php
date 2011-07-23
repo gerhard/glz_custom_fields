@@ -1,6 +1,7 @@
 <?php
 
-// this function doesn't seem to be currently used, remove or make it useful
+// -------------------------------------------------------------
+// goes through all custom sets, returns the first one which is not being used
 function glz_next_empty_custom() {
   global $all_custom_sets;
 
@@ -279,13 +280,13 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
         fInput("text", $custom, $custom_value, "edit date-picker", "", "", "22", "", $custom_id),
         'glz_custom_date-picker_field clearfix'
       );
-    
+
     case "time-picker":
       return array(
         fInput("text", $custom, $custom_value, "edit time-picker", "", "", "22", "", $custom_id),
         'glz_custom_time-picker_field'
       );
-    
+
     case "custom-script":
       return array(
         glz_custom_script(reset($arr_custom_field_values), $custom, $custom_id, $custom_value),
@@ -423,7 +424,7 @@ function glz_fButton($type, $name, $contents='Submit', $value, $class='', $id=''
 // evals a PHP script and displays output right under the custom field label
 function glz_custom_script($script, $custom, $custom_id, $custom_value) {
   if ( is_file($script) ) {
-    include($script);
+    include_once($script);
     $custom_function = basename($script, ".php");
     if ( is_callable($custom_function) ) {
       return call_user_func_array($custom_function, array($custom, $custom_id, $custom_value));

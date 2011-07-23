@@ -544,15 +544,15 @@ function glz_custom_fields_install() {
 
   // if we don't have the custom_fields table, let's create it
   if ( !getRows("SHOW TABLES LIKE '".PFX."custom_fields'") ) {
-   safe_query("
-     CREATE TABLE `".PFX."custom_fields` (
-      `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-       `name` varchar(255) NOT NULL default '',
-       `value` varchar(255) NOT NULL default '',
-       PRIMARY KEY (id),
-       INDEX (`name`)
-     ) TYPE=MyISAM
-   ");
+    safe_query("
+      CREATE TABLE `".PFX."custom_fields` (
+        `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+        `name` varchar(255) NOT NULL default '',
+        `value` varchar(255) NOT NULL default '',
+        PRIMARY KEY (id),
+        KEY (`name`)
+      ) ENGINE=MyISAM
+    ");
   }
   else {
     // if there isn't and id column, add it
