@@ -57,7 +57,7 @@ function glz_check_custom_set($all_custom_sets, $step) {
 
   foreach ($all_custom_sets as $key => $custom_field) {
     if (!empty($custom_field['name'])) {
-      if ( ($step == "excerpt") && ($custom_field['type'] == "textarea") )
+      if ( ($step == "body") && ($custom_field['type'] == "textarea") )
         $out[$key] = $custom_field;
       else if ( ($step == "custom_fields") && ($custom_field['type'] != "textarea") ) {
         $out[$key] = $custom_field;
@@ -288,8 +288,9 @@ function glz_format_custom_set_by_type($custom, $custom_id, $custom_set_type, $a
       );
 
     case "custom-script":
+      global $custom_scripts_path;
       return array(
-        glz_custom_script(reset($arr_custom_field_values), $custom, $custom_id, $custom_value),
+        glz_custom_script($custom_scripts_path."/".reset($arr_custom_field_values), $custom, $custom_id, $custom_value),
         'glz_custom_field_script'
       );
 

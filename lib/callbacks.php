@@ -69,8 +69,9 @@ function glz_custom_fields_replace($event, $step, $data, $rs) {
   // dmp($out);
 
   // if we're writing textarea custom fields, we need to include the excerpt as well
-  if ($step == "excerpt")
+  if ($step == "body") {
     $out = $data.$out;
+  }
 
   return $out;
 }
@@ -99,344 +100,63 @@ function glz_custom_fields_css_js() {
   global $glz_notice, $date_picker, $time_picker, $prefs;
 
   // here come our custom stylesheetz
-  $css = <<<EOF
-<style type="text/css" media="all">
-/* - - - - - - - - - - - - - - - - - - - - -
-
-### TEXTPATTERN CUSTOM FIELDS ###
-
-Title : glz_custom_fields stylesheet
-Author : Gerhard Lazu
-URL : http://www.gerhardlazu.com/
-
-Created : 14th May 2007
-Last modified: 28th September 2009
-
-- - - - - - - - - - - - - - - - - - - - - */
-
-.clearfix:after {
-  content: ".";
-  display: block;
-  clear: both;
-  visibility: hidden;
-  line-height: 0;
-  height: 0;
-}
-
-.clearfix {
-  display: inline-block;
-}
-
-html[xmlns] .clearfix {
-  display: block;
-}
-
-* html .clearfix {
-  height: 1%;
-}
-
-/* CLASSES
--------------------------------------------------------------- */
-.green {
-  color: #6B3;
-}
-.red {
-  color: #C00;
-}
-.grey {
-  color: #777;
-}
-.left {
-  float: left;
-}
-.right {
-  float: right;
-}
-
-
-/* TABLE
--------------------------------------------------------------- */
-.glz_custom_fields {
-  margin: 0 auto;
-  border: 1px solid #DDD;
-  width: 600px;
-}
-
-.glz_custom_fields thead tr {
-  font-size: 1.1em;
-  font-weight: 700;
-  background: #DDD;
-}
-
-.glz_custom_fields tbody tr.alt {
-  background: #EEE;
-}
-
-.glz_custom_fields td {
-  padding: 2px 10px;
-  vertical-align: middle;
-}
-.glz_custom_fields thead td {
-  padding: 2px 8px 3px 8px;
-}
-.glz_custom_fields td.custom_set_position {
-  text-align: right;
-  width: 10%;
-}
-.glz_custom_fields td.custom_set_name {
-  width: 30%;
-}
-.glz_custom_fields td.type {
-  width: 30%;
-}
-.glz_custom_fields td.events {
-  width: 30%;
-  text-align: right;
-}
-
-.glz_custom_fields_prefs {
-  width: 500px;
-}
-.glz_custom_fields_prefs#list tr th {
-  font-weight: normal;
-  text-align: right;
-  vertical-align: top;
-  width: 50%;
-}
-.glz_custom_fields_prefs#list tr.heading td {
-  padding-top: 30px;
-}
-.glz_custom_fields_prefs#list tr.heading td h2 {
-  margin-top: 0
-}
-.glz_custom_fields_prefs tr td select,
-.glz_custom_fields_prefs tr td input {
-  width: 100%;
-}
-.glz_custom_fields_prefs tr td input.publish {
-  margin-left: 51%;
-  width: auto;
-}
-
-
-
-/* FORMS
--------------------------------------------------------------- */
-.glz_custom_fields td.events form {
-  display: inline;
-}
-
-#add_edit_custom_field {
-  width: 600px;
-  margin: 2em auto 0 auto;
-}
-#add_edit_custom_field fieldset {
-  padding: 10px;
-}
-#add_edit_custom_field legend {
-  font-size: 1.1em;
-  font-weight: 700;
-}
-#add_edit_custom_field label {
-  width: 20%;
-  font-weight: 700;
-}
-#add_edit_custom_field p input,
-#add_edit_custom_field p select {
-  width: 50%;
-}
-#add_edit_custom_field p textarea {
-  font-size: 0.9em;
-  padding: 1px 0 1px 3px;
-  width: 50%; height: 100px;
-}
-#add_edit_custom_field p span {
-  padding-top: 3px;
-  width: 27%;
-}
-#add_edit_custom_field p em,
-.glz_custom_fields_prefs tr em {
-  font-size: 0.9em;
-  font-weight: 500;
-}
-#add_edit_custom_field input.publish {
-  margin-left: 117px;
-}
-
-/* select on write tab for the custom fields */
-td#article-col-1 #advanced p select.list,
-td#article-col-1 #custom_field_group select.list {
-  width: 100%;
-}
-
-td#article-col-1 #advanced p input.radio,
-td#article-col-1 #custom_field_group input.radio,
-td#article-col-1 #advanced p input.checkbox,
-td#article-col-1 #custom_field_group input.checkbox {
-  width: auto;
-}
-</style>
-EOF;
+  $css = '<link rel="stylesheet" type="text/css" media="all" href="http://'.$prefs['siteurl'].'/plugins/glz_custom_fields/glz_custom_fields.css">'.n;
   // and here come our javascriptz
-  $js = '';
-  $date_picker_js = '';
-  if ( $date_picker ) {
-    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['datepicker_url'].'datePicker.css" />'.n;
-    foreach (array('date.js', 'datePicker.js') as $file) {
-      $js .= '<script type="text/javascript" src="'.$prefs['datepicker_url'].$file.'"></script>'.n;
-    }
-    $date_picker_js = <<<EOF
-try {
-  Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
-  Date.format = '{$prefs['datepicker_format']}';
-  Date.fullYearStart = '19';
-  $(".date-picker").datePicker({startDate:'{$prefs['datepicker_start_date']}'});
-} catch(err) {
-  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
-}
-EOF;
-  }
-  $time_picker_js = '';
-  if ( $time_picker ) {
-    $css .= '<link rel="stylesheet" type="text/css" media="screen" href="'.$prefs['timepicker_url'].'timePicker.css" />'.n;
-    $js .= '<script type="text/javascript" src="'.$prefs['timepicker_url'].'timePicker.js"></script>'.n;
-    $time_picker_js = <<<EOF
-try {
-  $(".time-picker").timePicker({
-    startTime:'{$prefs['timepicker_start_time']}',
-    endTime: '{$prefs['timepicker_end_time']}',
-    step: {$prefs['timepicker_step']},
-    show24Hours: {$prefs['timepicker_show_24']}
-  });
-} catch(err) {
-  $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
-}
-EOF;
-  }
-  $js .= <<<EOF
+  $js = <<<EOF
 <script type="text/javascript">
-<!--//--><![CDATA[//><!--
-
-$(function() {
-  // creating a global object to store variables, functions etc.
-  var GLZ_CUSTOM_FIELDS;
-  if (GLZ_CUSTOM_FIELDS == undefined)
-    GLZ_CUSTOM_FIELDS = {};
-  GLZ_CUSTOM_FIELDS.special_custom_types = ["date-picker", "time-picker"];
-  GLZ_CUSTOM_FIELDS.no_value_custom_types = ["text_input", "textarea"];
-  GLZ_CUSTOM_FIELDS.messages = {
-    'textarea' : "<em>Each value on a separate line</em><br /><em>One {default} value allowed</em>",
-    'script' : "<em>Full path to your script</em>"
-  }
-
-  // sweet jQuery table striping
-  $(".stripeMe tr").mouseover(function() { $(this).addClass("over"); }).mouseout(function() { $(this).removeClass("over"); });
-  $(".stripeMe tr:even").addClass("alt");
-
-  // disable all custom field references in Advanced Prefs
-  // prefs_ui doesn't offer support for this, getting the custom fields to display right here is not crucial at this point
-  var custom_field_tr = $("tr[id*=prefs-custom_], tr:has(h2:contains('Custom Fields'))").not('.glz_custom_fields_prefs tr:has(h2)');
-  if ( custom_field_tr ) {
-    $.each (custom_field_tr, function() {
-      $(this).hide();
-    });
-  }
-
-  // toggle custom field value based on its type
-
-  toggle_type_link();
-  if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, GLZ_CUSTOM_FIELDS.no_value_custom_types)) != -1 ) {
-    custom_field_value_off();
-  }
-  else if ( $("select#custom_set_type :selected").attr("value") == "custom-script" )
-    custom_field_value_path();
-
-  $("select#custom_set_type").change( function() {
-    toggle_type_link();
-    if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, GLZ_CUSTOM_FIELDS.no_value_custom_types)) != -1 ) {
-      custom_field_value_off();
-    }
-    else if ( $("select#custom_set_type :selected").attr("value") == "custom-script" )
-      custom_field_value_path();
-    else {
-      custom_field_value_on();
-    }
-  });
-
-  // enable date-picker custom sets
-  {$date_picker_js}
-
-  // enable time-picker custom sets
-  {$time_picker_js}
-
-  // add a reset link to all radio custom fields
-  if ($(".glz_custom_radio_field").length > 0) {
-    $(".glz_custom_radio_field").each(function() {
-      custom_field_to_reset = $(this).find("input:first").attr("name");
-      $(this).find("label:first").after(" <span class=\"small\">[<a href=\"#\" class=\"glz_custom_field_reset\" name=\"" + custom_field_to_reset +"\">Reset</a>]</span>");
-    });
-
-    // catch the reset action for the above link
-    $(".glz_custom_field_reset").click(function() {
-      custom_field_to_reset = $(this).attr("name");
-      // reset our radio input
-      $("input[name=" + custom_field_to_reset + "]").attr("checked", false);
-      // add an empty value with the same ID so that it saves the value as empty in the db
-      $(this).after("<input type=\"hidden\" value=\"\" name=\""+ custom_field_to_reset +"\" />");
-      return false;
-    });
-  }
-
-  // ### RE-USABLE FUNCTIONS ###
-
-  function custom_field_value_off() {
-    if ($("textarea#value").length) {
-      GLZ_CUSTOM_FIELDS.textarea_value = $("textarea#value").html();
-      $("textarea#value + span.right").html('');
-      $("textarea#value").remove();
-    }
-
-    if (!$("input#value").length)
-      $("label[for=value]").after('<input id="value" name="value" class="left" />');
-    $("input#value").attr('value', "no value allowed").attr('disabled', "disabled");
-    $("input#value + span.right").html('');
-  }
-
-  function custom_field_value_on() {
-    if ( $("input#value").length )
-      $("input#value").remove();
-    if ( !$("textarea#value").length ) {
-      $("label[for=value]").after('<textarea id="value" name="value" class="left"></textarea>');
-      $("textarea#value + span.right").html(GLZ_CUSTOM_FIELDS.messages['textarea']);
-    }
-    if ( GLZ_CUSTOM_FIELDS.textarea_value )
-      $("textarea#value").html(GLZ_CUSTOM_FIELDS.textarea_value);
-  }
-
-  function custom_field_value_path() {
-    if ($("textarea#value").length) {
-      $("textarea#value + span.right").html('');
-      $("textarea#value").remove();
-    }
-    if (!$("input#value").length)
-      $("label[for=value]").after('<input id="value" name="value" class="left" />');
-    if ( $.inArray($("input#value").attr('value'), ["", "no value allowed"]) != -1 )
-      $("input#value").attr('value', "{$prefs['custom_scripts_path']}")
-    $("input#value").attr('disabled', "");
-    $("input#value + span.right").html(GLZ_CUSTOM_FIELDS.messages['script']);
-  }
-
-  function toggle_type_link() {
-    $("select#custom_set_type").parent().find('span').remove();
-    if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, ["multi-select"])) != -1 )
-      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://{$prefs['siteurl']}/textpattern?event=plugin_prefs.glz_custom_fields\">Configure glz_custom_fields</a></em></span>");
-  }
-
-});
-
-//--><!]]>
+    var GoSquared={};
+    GoSquared.acct = "GSN-697480-U";
+    (function(w){
+        function gs(){
+            w._gstc_lt=+(new Date); var d=document;
+            var g = d.createElement("script"); g.type = "text/javascript"; g.async = true; g.src = "//d1l6p2sc9645hc.cloudfront.net/tracker.js";
+            var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(g, s);
+        }
+        w.addEventListener?w.addEventListener("load",gs,false):w.attachEvent("onload",gs);
+    })(window);
 </script>
 EOF;
+  if ( $date_picker ) {
+    $css .= '<link rel="stylesheet" type="text/css" media="all" href="'.$prefs['datepicker_url'].'/datePicker.css" />'.n;
+    foreach (array('date.js', 'datePicker.js') as $file) {
+      $js .= '<script type="text/javascript" src="'.$prefs['datepicker_url']."/".$file.'"></script>'.n;
+    }
+    $js .= <<<EOF
+<script type="text/javascript">
+$(function() {
+  try {
+    Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
+    Date.format = '{$prefs['datepicker_format']}';
+    Date.fullYearStart = '19';
+    $(".date-picker").datePicker({startDate:'{$prefs['datepicker_start_date']}'});
+  } catch(err) {
+    $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
+  }
+});
+</script>
+EOF;
+  }
+  if ( $time_picker ) {
+    $css .= '<link rel="stylesheet" type="text/css" media="all" href="'.$prefs['timepicker_url'].'/timePicker.css" />'.n;
+    $js .= '<script type="text/javascript" src="'.$prefs['timepicker_url'].'/timePicker.js"></script>'.n;
+    $js .= <<<EOF
+<script type="text/javascript">
+$(function() {
+  try {
+    $(".time-picker").timePicker({
+      startTime:'{$prefs['timepicker_start_time']}',
+      endTime: '{$prefs['timepicker_end_time']}',
+      step: {$prefs['timepicker_step']},
+      show24Hours: {$prefs['timepicker_show_24']}
+    });
+  } catch(err) {
+    $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
+  }
+});
+</script>
+EOF;
+  }
+  $js .= '<script type="text/javascript" src="http://'.$prefs['siteurl'].'/plugins/glz_custom_fields/glz_custom_fields.js"></script>';
 
   // displays the notices we have gathered throughout the entire plugin
   if ( count($glz_notice) > 0 ) {
@@ -483,13 +203,6 @@ function before_glz_custom_fields() {
 function glz_custom_fields_install() {
   global $all_custom_sets, $glz_notice, $prefs;
 
-  // if jQuery is not present, trigger error
-  // improvement courtesy of Sam Weiss
-  if ( !@fopen($GLOBALS['txpcfg']['txpath'].'/jquery.js', "r") ) {
-    trigger_error(glz_custom_fields_gTxt('jquery_missing'));
-    trigger_error(glz_custom_fields_gTxt('check_path'));
-  }
-
   // default custom fields are set to custom_set
   // need to change this because it confuses our set_types()
   safe_query("
@@ -507,16 +220,16 @@ function glz_custom_fields_install() {
   $arr_plugin_preferences = array(
     'values_ordering'       => "custom",
     'multiselect_size'      => "5",
-    'datepicker_url'        => hu."scripts/glz_custom_fields/jquery.datePicker/",
+    'datepicker_url'        => hu."plugins/glz_custom_fields/jquery.datePicker",
     'datepicker_format'     => "dd/mm/yyyy",
     'datepicker_first_day'  => 1,
     'datepicker_start_date' => "01/01/1990",
-    'timepicker_url'        => hu."scripts/glz_custom_fields/jquery.timePicker/",
+    'timepicker_url'        => hu."plugins/glz_custom_fields/jquery.timePicker",
     'timepicker_start_time' => "00:00",
     'timepicker_end_time'   => "23:30",
     'timepicker_step'       => 30,
     'timepicker_show_24'    => true,
-    'custom_scripts_path'   => $prefs['path_to_site']."/scripts/glz_custom_fields/",
+    'custom_scripts_path'   => $prefs['path_to_site']."/plugins/glz_custom_fields",
   );
   glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 

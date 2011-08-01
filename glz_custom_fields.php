@@ -43,4 +43,3 @@ if (!defined('txpinterface'))
   include_once('.txp_plugin_template/zem_tpl.php');
 
 ?>
-

@@ -6,6 +6,8 @@ require_once('lib/db.php');
 require_once('lib/helpers.php');
 require_once('lib/callbacks.php');
 
+global $event;
+
 // globals, expensive operations mostly
 before_glz_custom_fields();
 
@@ -17,7 +19,7 @@ if (@txpinterface == "admin") {
   register_callback("glz_custom_fields_install", "plugin_lifecycle.glz_custom_fields", "installed");
 
   // we'll be doing this only on the pages that we care about, not everywhere
-  if ( in_array(gps('event'), array("article", "prefs", "glz_custom_fields", "plugin_prefs.glz_custom_fields")) ) {
+  if ( in_array($event, array("article", "prefs", "glz_custom_fields", "plugin_prefs.glz_custom_fields")) ) {
     // we need some stylesheets & JS
     add_privs('glz_custom_fields_css_js', "1,2,3,4,5,6");
     register_callback('glz_custom_fields_css_js', "admin_side", 'head_end');
@@ -43,8 +45,7 @@ if (@txpinterface == "admin") {
   add_privs('glz_custom_fields_replace', "1,2,3,4,5,6");
   register_callback('glz_custom_fields_replace', 'article_ui', 'custom_fields');
   // YES, now we have textarea custom fields as well ; )
-  add_privs('glz_custom_fields_replace', "1,2,3,4,5,6");
-  register_callback('glz_custom_fields_replace', 'article_ui', 'excerpt');
+  register_callback('glz_custom_fields_replace', 'article_ui', 'body');
 }
 
 // -------------------------------------------------------------
@@ -362,7 +363,7 @@ function glz_custom_fields_preferences() {
   $start_date = '<input type="text" name="glz_custom_fields_prefs[datepicker_start_date]" id="glz_custom_fields_prefs_datepicker_start_date" value="'.$current_preferences['datepicker_start_date'].'" />';
   
   // jquery.timePicker
-  $timepicker_url_error = ( @fopen($current_preferences['timepicker_url']."timePicker.js", "r") ) ?
+  $timepicker_url_error = ( @fopen($current_preferences['timepicker_url']."/timePicker.js", "r") ) ?
     '' :
     '<br /><em class="red">Folder does not exist, please create it.</em>';
   $arr_time_format = array('true' => "24 hours", 'false' => "12 hours");
