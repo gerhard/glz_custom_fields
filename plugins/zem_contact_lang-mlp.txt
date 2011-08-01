@@ -1,0 +1,63 @@
+# Name        : zem_contact_lang-mlp 
+# Version     : 4.0.3.6-MLP.10
+# Description : MLP strings plug-in for Zem Contact Reborn
+# Author      : Netcarver & the TXP Community
+# URL         : http://forum.textpattern.com/viewtopic.php?id=12956
+# Type        : Public only 
+# ......................................................................
+# Revision    : ed5786305fcceae770f928c9d7b52ba2c9d2a811
+# Branch      : master
+# ......................................................................
+# Compressed  : Yes
+# ......................................................................
+# This is a plugin for Textpattern - http://textpattern.com/
+# To install: textpattern > admin > plugins
+# Paste the following text into the 'Install plugin' box:
+# ......................................................................
+
+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
