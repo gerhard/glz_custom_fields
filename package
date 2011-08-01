@@ -1,0 +1,25 @@
+#!/bin/bash
+
+if [ ! $1 ]; then
+  echo "Must specify a version number"
+  exit 1
+fi
+
+VERSION=$1
+CODE=glz_custom_fields-$VERSION.gz.txt
+PLUGIN=glz_custom_fields-$VERSION.tgz
+FILES=(CHANGELOG.md INSTALL.md $CODE glz_custom_fields)
+
+# prepare plugin code...
+php glz_custom_fields.php > releases/$CODE
+
+cd releases
+
+# remove same-version plugin package
+[ -e $PLUGIN ] && rm $PLUGIN
+
+# package plugin
+tar zcvf $PLUGIN --exclude="*un~" ${FILES[*]}
+
+# cleanup
+rm $CODE

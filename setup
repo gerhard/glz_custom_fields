@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PLUGIN_DIR=$(pwd)
+TXP_DIR="$PLUGIN_DIR/../textpattern"
+
+if [[ $@ =~ "--glz" ]]; then
+  ln -nfs $PLUGIN_DIR/plugins $TXP_DIR/plugins
+  echo "...adding glz_custom_fields EDGE"
+else
+  [ -L $TXP_DIR/plugins ] && rm $TXP_DIR/plugins
+  echo "...removing glz_custom_fields EDGE"
+fi
+
+cp -f $PLUGIN_DIR/config.php $TXP_DIR/textpattern/config.php
+
+echo "TXP is now prepped for local development!"
+
+cd $TXP_DIR && git status -s
