@@ -7,19 +7,29 @@ fi
 
 VERSION=$1
 CODE=glz_custom_fields-$VERSION.gz.txt
-PLUGIN=glz_custom_fields-$VERSION.tgz
+ARCHIVES=(tgz zip)
 FILES=(CHANGELOG.md INSTALL.md $CODE glz_custom_fields)
 
 # prepare plugin code...
+#
 php glz_custom_fields.php > releases/$CODE
 
 cd releases
 
-# remove same-version plugin package
-[ -e $PLUGIN ] && rm $PLUGIN
+# re/package plugin
+#
+for archive in ${ARCHIVES[*]}
+do
+  plugin="glz_custom_fields-$VERSION.$archive"
+  [ -e $plugin ] && rm $plugin
 
-# package plugin
-tar zcvf $PLUGIN --exclude="*un~" --exclude="*DS_Store" ${FILES[*]}
+  case $archive in
+  tgz ) echo -e "\nCreating $plugin ..."
+    tar zcvf $plugin --exclude="*un~" --exclude="*DS_Store" ${FILES[*]} ;;
+  zip ) echo -e "\nCreating $plugin ..."
+    zip -r $plugin $CODE ${FILES[*]} -x \*un~ \*DS_Store
+  esac
+done
 
 # cleanup
 rm $CODE
