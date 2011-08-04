@@ -19,7 +19,7 @@ cd releases
 [ -e $PLUGIN ] && rm $PLUGIN
 
 # package plugin
-tar zcvf $PLUGIN --exclude="*un~" ${FILES[*]}
+tar zcvf $PLUGIN --exclude="*un~" --exclude="*DS_Store" ${FILES[*]}
 
 # cleanup
 rm $CODE
