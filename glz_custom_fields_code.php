@@ -339,9 +339,19 @@ function glz_custom_fields_preferences() {
   $custom_scripts_path_error = ( @fopen($current_preferences['custom_scripts_path'], "r") ) ?
     '' :
     '<br /><em class="red">Folder does not exist, please create it.</em>';
+  $arr_livestats = array(
+    'Yes' => "enabled",
+    'No'  => ""
+  );
+  $livestats = '<select name="glz_custom_fields_prefs[livestats]" id="glz_custom_fields_prefs_livestats">';
+  foreach ( $arr_livestats as $title => $value ) {
+    $selected = ($current_preferences['livestats'] == $value) ? ' selected="selected"' : '';
+    $livestats .= "<option value=\"$value\"$selected>$title</option>";
+  }
+  $livestats .= "</select>";
 
   // jquery.datePicker
-  $datepicker_url_error = ( @fopen($current_preferences['datepicker_url']."datePicker.js", "r") ) ?
+  $datepicker_url_error = ( @fopen($current_preferences['datepicker_url']."/datePicker.js", "r") ) ?
     '' :
     '<br /><em class="red">Folder does not exist, please create it.</em>';
   $arr_date_format = array("dd/mm/yyyy", "mm/dd/yyyy", "yyyy-mm-dd", "dd mm yy");
@@ -361,7 +371,7 @@ function glz_custom_fields_preferences() {
   $first_day .= "</select>";
 
   $start_date = '<input type="text" name="glz_custom_fields_prefs[datepicker_start_date]" id="glz_custom_fields_prefs_datepicker_start_date" value="'.$current_preferences['datepicker_start_date'].'" />';
-  
+
   // jquery.timePicker
   $timepicker_url_error = ( @fopen($current_preferences['timepicker_url']."/timePicker.js", "r") ) ?
     '' :
@@ -393,7 +403,11 @@ function glz_custom_fields_preferences() {
       <th scope="row"><label for="glz_custom_fields_prefs_custom_scripts_path">Custom scripts path</th>
       <td><input type="text" name="glz_custom_fields_prefs[custom_scripts_path]" id="glz_custom_fields_prefs_custom_scripts_path" value="{$current_preferences['custom_scripts_path']}" />{$custom_scripts_path_error}</td>
     </tr>
-    
+    <tr>
+      <th scope="row"><label for="glz_custom_fields_prefs_livestats">Contribute to livestats?</th>
+      <td>{$livestats}<br /><a href="http://map.cf.gerhardlazu.com">glz_custom_fields world map</a></td>
+    </tr>
+
     <tr class="heading">
       <td colspan="2"><h2 class="pref-heading left">Date Picker</h2> <a href="http://www.kelvinluck.com/assets/jquery/datePicker/v2/demo/index.html" title="A flexible unobtrusive calendar component for jQuery" class="right">jQuery datePicker</a></td>
     </tr>
@@ -413,7 +427,7 @@ function glz_custom_fields_preferences() {
       <th scope="row"><label for="glz_custom_fields_prefs_datepicker_start_date">Start date</th>
       <td>{$start_date}<br /><em class="grey">MUST be the same as "Date format"</em></td>
     </tr>
-    
+
     <tr class="heading">
       <td colspan="2"><h2 class="pref-heading left">Time Picker</h2> <a href="http://labs.perifer.se/timedatepicker/" title="jQuery time picker" class="right">jQuery timePicker</a></td>
     </tr>
@@ -437,7 +451,7 @@ function glz_custom_fields_preferences() {
       <th scope="row"><label for="glz_custom_fields_prefs_timepicker_step">Time format</th>
       <td>{$show_24}</td>
     </tr>
-    
+
     <tr>
       <td colspan="2" class="noline">
         <input class="publish" type="submit" name="save" value="Save" />

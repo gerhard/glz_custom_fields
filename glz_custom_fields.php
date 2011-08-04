@@ -7,7 +7,7 @@
 # $plugin['name']       = "glz_custom_fields";
 $plugin['code_file']    = realpath('glz_custom_fields_code.php');
 $plugin['help_file']    = realpath('glz_custom_fields_help.html');
-$plugin['version']      = "1.2.5";
+$plugin['version']      = "1.3.0";
 $plugin['description']  = "Unlimited, super special custom fields.";
 $plugin['author']       = "Gerhard Lazu";
 $plugin['author_uri']   = "http://gerhardlazu.com";

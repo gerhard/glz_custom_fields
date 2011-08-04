@@ -102,7 +102,8 @@ function glz_custom_fields_css_js() {
   // here come our custom stylesheetz
   $css = '<link rel="stylesheet" type="text/css" media="all" href="http://'.$prefs['siteurl'].'/plugins/glz_custom_fields/glz_custom_fields.css">'.n;
   // and here come our javascriptz
-  $js = <<<EOF
+  // only add livestats if user enabled them
+  $js = !$prefs['livestats'] ? '' : <<<EOF
 <script type="text/javascript">
     var GoSquared={};
     GoSquared.acct = "GSN-697480-U";
@@ -230,6 +231,7 @@ function glz_custom_fields_install() {
     'timepicker_step'       => 30,
     'timepicker_show_24'    => true,
     'custom_scripts_path'   => $prefs['path_to_site']."/plugins/glz_custom_fields",
+    'livestats'             => ""
   );
   glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 

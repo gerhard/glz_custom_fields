@@ -10,44 +10,46 @@ $(function() {
     'script' : "<em>File name in your custom scripts path</em>"
   }
 
-  // ping GS map
-  var storage;
-  try {
-    if (localStorage.getItem) {
-      storage = localStorage;
-    }
-  } catch(e) {}
-
-  function ping_gs(ipaddress) {
-    $.ajax("http://map.gosquared.com/dot", {
-      crossDomain: true,
-      dataType: "jsonp",
-      data: {
-        sid: "GSN-697480-U",
-        ip: ipaddress
+  // ping GS map if livestats enabled
+  if ( typeof GoSquared !== 'undefined' ) {
+    var storage;
+    try {
+      if (localStorage.getItem) {
+        storage = localStorage;
       }
-    });
+    } catch(e) {}
+
+    function ping_gs(ipaddress) {
+      $("body").append(
+        '<iframe '+
+          'src="http://map.gosquared.com/dot/?sid=GSN-697480-U&ip='+ipaddress+'" '+
+          'width="0" '+
+          'height="0" '+
+          'frameborder="0">'+
+        '</iframe>'
+      );
+    }
+
+    function get_ip() {
+      $.ajax("http://jsonip.appspot.com", {
+          crossDomain:  true,
+          dataType:     "jsonp",
+          success:      function(json) {
+            var ipaddress = String(json.ip);
+
+            if (storage)
+              storage.setItem('ipaddress', ipaddress);
+
+            ping_gs(ipaddress);
+          }
+      });
+    }
+
+    if ( storage && storage.getItem('ipaddress') )
+      ping_gs(storage.getItem('ipaddress'));
+    else
+      get_ip();
   }
-
-  function get_ip() {
-    $.ajax("http://jsonip.appspot.com", {
-        crossDomain:  true,
-        dataType:     "jsonp",
-        success:      function(json) {
-          var ipaddress = String(json.ip);
-
-          if (storage)
-            storage.setItem('ipaddress', ipaddress);
-
-          ping_gs(ipaddress);
-        }
-    });
-  }
-
-  if ( storage && storage.getItem('ipaddress') )
-    ping_gs(storage.getItem('ipaddress'));
-  else
-    get_ip();
 
   // sweet jQuery table striping
   $(".stripeMe tr").mouseover(function() { $(this).addClass("over"); }).mouseout(function() { $(this).removeClass("over"); });
