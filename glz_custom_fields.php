@@ -7,12 +7,12 @@
 # $plugin['name']       = "glz_custom_fields";
 $plugin['code_file']    = realpath('glz_custom_fields_code.php');
 $plugin['help_file']    = realpath('glz_custom_fields_help.html');
-$plugin['version']      = "1.3.0";
+$plugin['version']      = "1.4.0";
 $plugin['description']  = "Unlimited, super special custom fields.";
 $plugin['author']       = "Gerhard Lazu";
 $plugin['author_uri']   = "http://gerhardlazu.com";
 $plugin['contributors'] = "Randy Levine, Sam Weiss, Luca Botti, Manfre, Vladimir Siljkovic, Julian Reisenberger, Steve Dickinson, Stef Dawson, Jean-Pol Dupont";
-$plugin['compatibility'] = "4.4.1";
+$plugin['compatibility'] = "4.5.1";
 
 // Plugin load order:
 // The default value of 5 would fit most plugins, while for instance comment spam evaluators or URL redirectors
