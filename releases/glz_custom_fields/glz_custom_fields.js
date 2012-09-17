@@ -144,7 +144,7 @@ $(function() {
   function toggle_type_link() {
     $("select#custom_set_type").parent().find('span').remove();
     if ( $.inArray($("select#custom_set_type :selected").attr("value"), [].concat(GLZ_CUSTOM_FIELDS.special_custom_types, ["multi-select", "custom-script"])) != -1 )
-      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://"+window.location.host+"/textpattern?event=plugin_prefs.glz_custom_fields\">Configure glz_custom_fields</a></em></span>");
+      $("select#custom_set_type").after("<span class=\"right\"><em><a href=\"http://"+window.location.host+window.location.pathname+"?event=plugin_prefs.glz_custom_fields\">Configure glz_custom_fields</a></em></span>");
   }
 
 });
