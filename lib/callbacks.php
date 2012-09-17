@@ -125,13 +125,15 @@ EOF;
     $js .= <<<EOF
 <script type="text/javascript">
 $(function() {
-  try {
-    Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
-    Date.format = '{$prefs['datepicker_format']}';
-    Date.fullYearStart = '19';
-    $(".date-picker").datePicker({startDate:'{$prefs['datepicker_start_date']}'});
-  } catch(err) {
-    $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
+  if ($(".date-picker").length > 0) {
+    try {
+      Date.firstDayOfWeek = {$prefs['datepicker_first_day']};
+      Date.format = '{$prefs['datepicker_format']}';
+      Date.fullYearStart = '19';
+      $(".date-picker").datePicker({startDate:'{$prefs['datepicker_start_date']}'});
+    } catch(err) {
+      $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix the DatePicker jQuery plugin</a>');
+    }
   }
 });
 </script>
@@ -143,15 +145,17 @@ EOF;
     $js .= <<<EOF
 <script type="text/javascript">
 $(function() {
-  try {
-    $(".time-picker").timePicker({
-      startTime:'{$prefs['timepicker_start_time']}',
-      endTime: '{$prefs['timepicker_end_time']}',
-      step: {$prefs['timepicker_step']},
-      show24Hours: {$prefs['timepicker_show_24']}
-    });
-  } catch(err) {
-    $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix glz_custom_fields configuration</a>');
+  if ($(".time-picker").length > 0) {
+    try {
+      $(".time-picker").timePicker({
+        startTime:'{$prefs['timepicker_start_time']}',
+        endTime: '{$prefs['timepicker_end_time']}',
+        step: {$prefs['timepicker_step']},
+        show24Hours: {$prefs['timepicker_show_24']}
+      });
+    } catch(err) {
+      $('#messagepane').html('<a href="http://{$prefs['siteurl']}/textpattern/?event=plugin_prefs.glz_custom_fields">Fix the TimePicker jQuery plugin</a>');
+    }
   }
 });
 </script>
