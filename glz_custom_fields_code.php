@@ -339,16 +339,6 @@ function glz_custom_fields_preferences() {
   $custom_scripts_path_error = ( @fopen($current_preferences['custom_scripts_path'], "r") ) ?
     '' :
     '<br /><em class="red">Folder does not exist, please create it.</em>';
-  $arr_livestats = array(
-    'Yes' => "enabled",
-    'No'  => ""
-  );
-  $livestats = '<select name="glz_custom_fields_prefs[livestats]" id="glz_custom_fields_prefs_livestats">';
-  foreach ( $arr_livestats as $title => $value ) {
-    $selected = ($current_preferences['livestats'] == $value) ? ' selected="selected"' : '';
-    $livestats .= "<option value=\"$value\"$selected>$title</option>";
-  }
-  $livestats .= "</select>";
 
   // jquery.datePicker
   $datepicker_url_error = ( @fopen($current_preferences['datepicker_url']."/datePicker.js", "r") ) ?
@@ -402,10 +392,6 @@ function glz_custom_fields_preferences() {
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_custom_scripts_path">Custom scripts path</th>
       <td><input type="text" name="glz_custom_fields_prefs[custom_scripts_path]" id="glz_custom_fields_prefs_custom_scripts_path" value="{$current_preferences['custom_scripts_path']}" />{$custom_scripts_path_error}</td>
-    </tr>
-    <tr>
-      <th scope="row"><label for="glz_custom_fields_prefs_livestats">Contribute to livestats?</th>
-      <td>{$livestats}<br /><a href="http://map.cf.gerhardlazu.com">glz_custom_fields world map</a></td>
     </tr>
 
     <tr class="heading">
