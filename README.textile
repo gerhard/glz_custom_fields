@@ -1,0 +1,9 @@
+h1. glz_custom_fields, unlimited super-special custom fields for Textpattern CMS
+
+This plugin sits under the 'Extensions' tab in the back-end and gives your custom fields new life. You can finally have custom fields that are selects, multi-selects, checkboxes, radios and textareas - besides the default input fields. You can predefine values for custom fields and you can select a single default value (selects, multi-selects, checkboxes and radios only). Rather then constantly typing in the same thing over and over again, just select or check it and you're set.
+
+The plugin doesn't require any hacking of TXP, it's a straight install with instant gratification. Also there's support for special custom fields as well. The first of them is the Date Picker custom field, but more will follow.
+
+h2. Licence
+
+TO BE CLARIFIED
