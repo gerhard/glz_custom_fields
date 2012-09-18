@@ -1,15 +1,21 @@
 /*
  * A time picker for jQuery
- * Based on original timePicker by Sam Collet (http://www.texotela.co.uk) -
- * copyright (c) 2006 Sam Collett (http://www.texotela.co.uk)
  *
  * Dual licensed under the MIT and GPL licenses.
  * Copyright (c) 2009 Anders Fajerson
  * @name     timePicker
- * @version  0.2
  * @author   Anders Fajerson (http://perifer.se)
  * @example  $("#mytime").timePicker();
  * @example  $("#mytime").timePicker({step:30, startTime:"15:00", endTime:"18:00"});
+ *
+ * Based on timePicker by Sam Collet (http://www.texotela.co.uk/code/jquery/timepicker/)
+ *
+ * Options:
+ *   step: # of minutes to step the time by
+ *   startTime: beginning of the range of acceptable times
+ *   endTime: end of the range of acceptable times
+ *   separator: separator string to use between hours and minutes (e.g. ':')
+ *   show24Hours: use a 24-hour scheme
  */
 
 (function($){
@@ -27,12 +33,16 @@
     return e.timePicker || (e.timePicker = new jQuery._timePicker(e, settings));
   };
 
+  $.timePicker.version = '0.3';
+
   $._timePicker = function(elm, settings) {
 
     var tpOver = false;
     var keyDown = false;
     var startTime = timeToDate(settings.startTime, settings);
     var endTime = timeToDate(settings.endTime, settings);
+    var selectedClass = "selected";
+    var selectedSelector = "li." + selectedClass;
 
     $(elm).attr('autocomplete', 'OFF'); // Disable browser autocomplete
 
@@ -52,8 +62,7 @@
     }
     $tpDiv.append($tpList);
     // Append the timPicker to the body and position it.
-    var elmOffset = $(elm).offset();
-    $tpDiv.appendTo('body').css({'top':elmOffset.top, 'left':elmOffset.left}).hide();
+    $tpDiv.appendTo('body').hide();
 
     // Store the mouse state, used by the blur event. Use mouseover instead of
     // mousedown since Opera fires blur before mousedown.
@@ -65,8 +74,8 @@
 
     $("li", $tpList).mouseover(function() {
       if (!keyDown) {
-        $("li.selected", $tpDiv).removeClass("selected");
-        $(this).addClass("selected");
+        $(selectedSelector, $tpDiv).removeClass(selectedClass);
+        $(this).addClass(selectedClass);
       }
     }).mousedown(function() {
        tpOver = true;
@@ -79,7 +88,11 @@
       if ($tpDiv.is(":visible")) {
         return false;
       }
-      $("li", $tpDiv).removeClass("selected");
+      $("li", $tpDiv).removeClass(selectedClass);
+
+      // Position
+      var elmOffset = $(elm).offset();
+      $tpDiv.css({'top':elmOffset.top + elm.offsetHeight, 'left':elmOffset.left});
 
       // Show picker. This has to be done before scrollTop is set since that
       // can't be done on hidden elements.
@@ -95,7 +108,7 @@
       var $matchedTime = $("li:contains(" + formatTime(roundTime, settings) + ")", $tpDiv);
 
       if ($matchedTime.length) {
-        $matchedTime.addClass("selected");
+        $matchedTime.addClass(selectedClass);
         // Scroll to matched time.
         $tpDiv[0].scrollTop = $matchedTime[0].offsetTop;
       }
@@ -125,10 +138,10 @@
           if (showPicker()) {
             return false;
           };
-          $selected = $("li.selected", $tpList);
-          var prev = $selected.prev().addClass("selected")[0];
+          $selected = $(selectedSelector, $tpList);
+          var prev = $selected.prev().addClass(selectedClass)[0];
           if (prev) {
-            $selected.removeClass("selected");
+            $selected.removeClass(selectedClass);
             // Scroll item into view.
             if (prev.offsetTop < top) {
               $tpDiv[0].scrollTop = top - prev.offsetHeight;
@@ -136,8 +149,8 @@
           }
           else {
             // Loop to next item.
-            $selected.removeClass("selected");
-            prev = $("li:last", $tpList).addClass("selected")[0];
+            $selected.removeClass(selectedClass);
+            prev = $("li:last", $tpList).addClass(selectedClass)[0];
             $tpDiv[0].scrollTop = prev.offsetTop - prev.offsetHeight;
           }
           return false;
@@ -146,24 +159,24 @@
           if (showPicker()) {
             return false;
           };
-          $selected = $("li.selected", $tpList);
-          var next = $selected.next().addClass("selected")[0];
+          $selected = $(selectedSelector, $tpList);
+          var next = $selected.next().addClass(selectedClass)[0];
           if (next) {
-            $selected.removeClass("selected");
+            $selected.removeClass(selectedClass);
             if (next.offsetTop + next.offsetHeight > top + $tpDiv[0].offsetHeight) {
               $tpDiv[0].scrollTop = top + next.offsetHeight;
             }
           }
           else {
-            $selected.removeClass("selected");
-            next = $("li:first", $tpList).addClass("selected")[0];
+            $selected.removeClass(selectedClass);
+            next = $("li:first", $tpList).addClass(selectedClass)[0];
             $tpDiv[0].scrollTop = 0;
           }
           return false;
           break;
         case 13: // Enter
           if ($tpDiv.is(":visible")) {
-            var sel = $("li.selected", $tpList)[0];
+            var sel = $(selectedSelector, $tpList)[0];
             setTimeVal(elm, sel, $tpDiv, settings);
           }
           return false;
@@ -184,9 +197,9 @@
       return timeStringToDate(elm.value, settings);
     };
     // Helper function to set a time input.
-    // Takes a Date object.
+    // Takes a Date object or string.
     this.setTime = function(time) {
-      elm.value = formatTime(normaliseTime(time), settings);
+      elm.value = formatTime(timeToDate(time, settings), settings);
       // Trigger element's change events.
       $(elm).change();
     };
@@ -240,7 +253,7 @@
 
       // Convert AM/PM hour to 24-hour format.
       if (!settings.show24Hours) {
-        if (hours === 12 && input.substr('AM') !== -1) {
+        if (hours === 12 && input.indexOf('AM') !== -1) {
           hours = 0;
         }
         else if (hours !== 12 && input.indexOf('PM') !== -1) {
