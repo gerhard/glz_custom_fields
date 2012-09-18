@@ -238,9 +238,9 @@ function glz_custom_fields_install() {
   if( !getRow("SELECT name FROM `".PFX."txp_section` WHERE name='search'") ) {
     safe_query("
       INSERT INTO
-        `".PFX."txp_section` (`name`, `page`, `css`, `is_default`, `in_rss`, `on_frontpage`, `searchable`, `title`)
+        `".PFX."txp_section` (`name`, `page`, `css`, `in_rss`, `on_frontpage`, `searchable`, `title`)
       VALUES
-        ('search', 'default', 'default', '0', '0', '0', '0', 'Search')
+        ('search', 'default', 'default', '0', '0', '0', 'Search')
     ");
     // add a notice that search section has bee created
     $glz_notice[] = glz_custom_fields_gTxt("search_section_created");
