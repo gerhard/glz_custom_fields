@@ -9,9 +9,6 @@ $(function() {
     'textarea' : "<em>Each value on a separate line</em><br /><em>One {default} value allowed</em>",
     'script' : "<em>File name in your custom scripts path</em>"
   }
-  // sweet jQuery table striping
-  $(".stripeMe tr").mouseover(function() { $(this).addClass("over"); }).mouseout(function() { $(this).removeClass("over"); });
-  $(".stripeMe tr:even").addClass("alt");
 
   // disable all custom field references in Advanced Prefs
   // prefs_ui doesn't offer support for this, getting the custom fields to display right here is not crucial at this point
@@ -70,7 +67,7 @@ $(function() {
     }
 
     if (!$("input#value").length)
-      $("label[for=value]").after('<input id="value" name="value" class="left" />');
+      $("label[for=value]").after('<input type="text" id="value" name="value" class="left" />');
     $("input#value").attr('value', "no value allowed").attr('disabled', true);
     $("input#value + span.right").html('');
   }
@@ -92,7 +89,7 @@ $(function() {
       $("textarea#value").remove();
     }
     if (!$("input#value").length)
-      $("label[for=value]").after('<input id="value" name="value" class="left" />');
+      $("label[for=value]").after('<input type="text" id="value" name="value" class="left" />');
     if ( $.inArray($("input#value").attr('value'), ["", "no value allowed"]) != -1 )
       $("input#value").attr('value', "");
     $("input#value").attr('disabled', false);
