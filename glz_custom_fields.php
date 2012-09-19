@@ -4,10 +4,11 @@
 // run this file at the command line to produce a plugin for distribution:
 // $ php abc_myplugin.php > abc_myplugin-0.1.txt
 
-# $plugin['name']       = "glz_custom_fields";
+$version = isset($_ENV["PLUGIN_VERSION"]) ? $_ENV["PLUGIN_VERSION"] : "1.4.0";
+
 $plugin['code_file']    = realpath('glz_custom_fields_code.php');
 $plugin['help_file']    = realpath('glz_custom_fields_help.html');
-$plugin['version']      = "1.4.0";
+$plugin['version']      = $version;
 $plugin['description']  = "Unlimited, super special custom fields.";
 $plugin['author']       = "Gerhard Lazu";
 $plugin['author_uri']   = "http://gerhardlazu.com";

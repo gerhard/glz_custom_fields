@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ -z "$1" ]]
 then
@@ -7,6 +7,8 @@ then
 fi
 
 version="$1"
+export PLUGIN_VERSION="$version"
+
 code="glz_custom_fields-$version"
 archives=(tgz zip)
 files=(CHANGELOG.md INSTALL.md $code glz_custom_fields)
@@ -32,9 +34,9 @@ do
       echo -e "\n ----> Creating $plugin"
       zip -r $plugin $code ${files[*]} -x \*un~ \*DS_Store
     esac
-done
-
+done &&
 # cleanup
-rm $code
-
+rm $code &&
 echo -e "\nglz_custom_fields $version successfully packaged\n"
+
+unset PLUGIN_VERSION
