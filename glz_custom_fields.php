@@ -22,11 +22,18 @@ $plugin['compatibility'] = "4.5.1";
 $plugin['order'] = '9';
 
 // Plugin 'type' defines where the plugin is loaded
-// 0 = public       : only on the public side of the website (default)
-// 1 = public+admin : on both the public and admin side
-// 2 = library      : only when include_plugin() or require_plugin() is called
-// 3 = admin        : only on the admin side
-$plugin['type'] = '1';
+// http://forum.textpattern.com/viewtopic.php?id=38434
+// -----------------------------------------------------------------------
+// | plugin type | public | admin (synchronous) | library | admin (ajax) |
+// -----------------------------------------------------------------------
+// | 0           | yes    |                     |         |              |
+// | 1           | yes    | yes                 |         |              |
+// | 2           |        |                     | yes     |              |
+// | 3           |        | yes                 |         |              |
+// | 4           |        | yes                 |         | yes          |
+// | 5           | yes    | yes                 |         | yes          |
+// -----------------------------------------------------------------------
+$plugin['type'] = '5';
 
 // 0 = Plugin help is in Textile format, no raw HTML allowed (default).
 // 1 = Plugin help is in raw HTML. Not recommended.
