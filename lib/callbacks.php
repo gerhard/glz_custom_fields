@@ -102,21 +102,7 @@ function glz_custom_fields_css_js() {
   // here come our custom stylesheetz
   $css = '<link rel="stylesheet" type="text/css" media="all" href="http://'.$prefs['siteurl'].'/plugins/glz_custom_fields/glz_custom_fields.css">'.n;
   // and here come our javascriptz
-  // only add livestats if user enabled them
-  $js = !$prefs['livestats'] ? '' : <<<EOF
-<script type="text/javascript">
-    var GoSquared={};
-    GoSquared.acct = "GSN-697480-U";
-    (function(w){
-        function gs(){
-            w._gstc_lt=+(new Date); var d=document;
-            var g = d.createElement("script"); g.type = "text/javascript"; g.async = true; g.src = "//d1l6p2sc9645hc.cloudfront.net/tracker.js";
-            var s = d.getElementsByTagName("script")[0]; s.parentNode.insertBefore(g, s);
-        }
-        w.addEventListener?w.addEventListener("load",gs,false):w.attachEvent("onload",gs);
-    })(window);
-</script>
-EOF;
+  $js = '';
   if ( $date_picker ) {
     $css .= '<link rel="stylesheet" type="text/css" media="all" href="'.$prefs['datepicker_url'].'/datePicker.css" />'.n;
     foreach (array('date.js', 'datePicker.js') as $file) {
@@ -234,8 +220,7 @@ function glz_custom_fields_install() {
     'timepicker_end_time'   => "23:30",
     'timepicker_step'       => 30,
     'timepicker_show_24'    => true,
-    'custom_scripts_path'   => $prefs['path_to_site']."/plugins/glz_custom_fields",
-    'livestats'             => ""
+    'custom_scripts_path'   => $prefs['path_to_site']."/plugins/glz_custom_fields"
   );
   glz_custom_fields_MySQL("update_plugin_preferences", $arr_plugin_preferences);
 
@@ -253,9 +238,9 @@ function glz_custom_fields_install() {
   if( !getRow("SELECT name FROM `".PFX."txp_section` WHERE name='search'") ) {
     safe_query("
       INSERT INTO
-        `".PFX."txp_section` (`name`, `page`, `css`, `is_default`, `in_rss`, `on_frontpage`, `searchable`, `title`)
+        `".PFX."txp_section` (`name`, `page`, `css`, `in_rss`, `on_frontpage`, `searchable`, `title`)
       VALUES
-        ('search', 'default', 'default', '0', '0', '0', '0', 'Search')
+        ('search', 'default', 'default', '0', '0', '0', 'Search')
     ");
     // add a notice that search section has bee created
     $glz_notice[] = glz_custom_fields_gTxt("search_section_created");

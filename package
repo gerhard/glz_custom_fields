@@ -1,35 +1,42 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-if [ ! $1 ]; then
-  echo "Must specify a version number"
+if [[ -z "$1" ]]
+then
+  echo "The first argument must be the version that will be packaged"
   exit 1
 fi
 
-VERSION=$1
-CODE=glz_custom_fields-$VERSION.gz.txt
-ARCHIVES=(tgz zip)
-FILES=(CHANGELOG.md INSTALL.md $CODE glz_custom_fields)
+version="$1"
+export PLUGIN_VERSION="$version"
+
+code="glz_custom_fields-$version"
+archives=(tgz zip)
+files=(CHANGELOG.md INSTALL.md $code glz_custom_fields)
 
 # prepare plugin code...
-#
-php glz_custom_fields.php > releases/$CODE
-
-cd releases
-
+php glz_custom_fields.php > "releases/$code" &&
+cd releases &&
 # re/package plugin
-#
-for archive in ${ARCHIVES[*]}
+for archive in ${archives[@]}
 do
-  plugin="glz_custom_fields-$VERSION.$archive"
-  [ -e $plugin ] && rm $plugin
+  plugin="glz_custom_fields-$version.$archive"
+  if [[ -e $plugin ]]
+  then
+    rm $plugin
+  fi
 
   case $archive in
-  tgz ) echo -e "\nCreating $plugin ..."
-    tar zcvf $plugin --exclude="*un~" --exclude="*DS_Store" ${FILES[*]} ;;
-  zip ) echo -e "\nCreating $plugin ..."
-    zip -r $plugin $CODE ${FILES[*]} -x \*un~ \*DS_Store
-  esac
-done
-
+    (tgz)
+      echo -e "\n----> Creating $plugin"
+      tar zcvf $plugin --exclude="*un~" --exclude="*DS_Store" ${files[@]}
+    ;;
+    (zip)
+      echo -e "\n ----> Creating $plugin"
+      zip -r $plugin $code ${files[*]} -x \*un~ \*DS_Store
+    esac
+done &&
 # cleanup
-rm $CODE
+rm $code &&
+echo -e "\nglz_custom_fields $version successfully packaged\n"
+
+unset PLUGIN_VERSION

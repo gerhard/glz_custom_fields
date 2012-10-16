@@ -178,16 +178,17 @@ function glz_custom_fields() {
 
   // the table with all custom fields follows
   echo
-    n.'<table cellspacing="0" class="glz_custom_fields stripeMe">'.n.
-    ' <thead>'.n.
-    '   <tr>'.n.
-    '     <td>Position</td>'.n.
-    '     <td>Name</td>'.n.
-    '     <td>Type</td>'.n.
-    '     <td>&nbsp;</td>'.n.
-    '   </tr>'.n.
-    ' </thead>'.n.
-    ' <tbody>'.n;
+    n.'<div class="listtables">'.n.
+    '  <table class="txp-list glz_custom_fields">'.n.
+    '    <thead>'.n.
+    '      <tr>'.n.
+    '        <th>Position</th>'.n.
+    '        <th>Name</th>'.n.
+    '        <th>Type</th>'.n.
+    '        <th>&nbsp;</th>'.n.
+    '      </tr>'.n.
+    '    </thead>'.n.
+    '    <tbody>'.n;
 
   // looping through all our custom fields to build the table
   $i = 0;
@@ -206,19 +207,20 @@ function glz_custom_fields() {
     $edit = glz_form_buttons("edit", "Edit", $custom, htmlspecialchars($custom_set['name']), $custom_set['type'], $custom_set['position']);
 
     echo
-    '   <tr>'.n.
-    '     <td class="custom_set_position">'.$custom_set['position'].'</td>'.n.
-    '     <td class="custom_set_name">'.$custom_set['name'].'</td>'.n.
-    '     <td class="type">'.(($custom_set['name']) ? glz_custom_fields_gTxt($custom_set['type']) : '').'</td>'.n.
-    '     <td class="events">'.$reset_delete.sp.$edit.'</td>'.n.
-    '   </tr>'.n;
+    '      <tr>'.n.
+    '        <td class="custom_set_position">'.$custom_set['position'].'</td>'.n.
+    '        <td class="custom_set_name">'.$custom_set['name'].'</td>'.n.
+    '        <td class="type">'.(($custom_set['name']) ? glz_custom_fields_gTxt($custom_set['type']) : '').'</td>'.n.
+    '        <td class="events">'.$reset_delete.sp.$edit.'</td>'.n.
+    '      </tr>'.n;
 
     $i++;
   }
 
   echo
-    ' </tbody>'.n.
-    '</table>'.n;
+    '    </tbody>'.n.
+    '  </table>'.n;
+    '</div>'.n;
 
   // the form where custom fields are being added/edited
   $legend = gps('edit') ?
@@ -269,11 +271,11 @@ function glz_custom_fields() {
     $values = '';
 
   $action = gps('edit') ?
-    '<input name="save" value="Save" type="submit" class="publish" />' :
-    '<input name="add_new" value="Add new" type="submit" class="publish" />';
+    '<input name="save" value="Save" type="submit" class="submit" />' :
+    '<input name="add_new" value="Add new" type="submit" class="submit" />';
   // this needs to be different for a script
   $value = ( isset($custom_set_type) && $custom_set_type == "custom-script" ) ?
-    '<input name="value" id="value" value="'.$values.'" class="left"/><span class="right"><em>Relative path from your website\'s public folder</em></span>' :
+    '<input type="text" name="value" id="value" value="'.$values.'" class="left"/><span class="right"><em>Relative path from your website\'s public folder</em></span>' :
     '<textarea name="value" id="value" class="left">'.$values.'</textarea><span class="right"><em>Each value on a separate line</em> <br /><em>One {default} value allowed</em></span>';
 
   // ok, all is set, let's build the form
@@ -285,7 +287,7 @@ function glz_custom_fields() {
     ' <legend>'.$legend.'</legend>'.n.
     ' <p class="clearfix">
         <label for="custom_set_name" class="left">Name:</label>
-        <input name="custom_set_name" value="'.htmlspecialchars($custom_name).'" id="custom_set_name" class="left" />
+        <input type="text" name="custom_set_name" value="'.htmlspecialchars($custom_name).'" id="custom_set_name" class="left" />
         <span class="right"><em>Only word characters allowed</em></span>
       </p>'.n.
     ' <p class="clearfix">
@@ -296,7 +298,7 @@ function glz_custom_fields() {
       </p>'.n.
     ' <p class="clearfix">
         <label for="custom_set_position" class="left">Position:</label>
-        <input name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_position" class="left" />
+        <input type="text" name="custom_set_position" value="'.htmlspecialchars($custom_set_position).'" id="custom_set_position" class="left" />
         <span class="right"><em>Automatically assigned if blank</em></span>
       </p>'.n.
     ' <p class="clearfix">
@@ -339,16 +341,6 @@ function glz_custom_fields_preferences() {
   $custom_scripts_path_error = ( @fopen($current_preferences['custom_scripts_path'], "r") ) ?
     '' :
     '<br /><em class="red">Folder does not exist, please create it.</em>';
-  $arr_livestats = array(
-    'Yes' => "enabled",
-    'No'  => ""
-  );
-  $livestats = '<select name="glz_custom_fields_prefs[livestats]" id="glz_custom_fields_prefs_livestats">';
-  foreach ( $arr_livestats as $title => $value ) {
-    $selected = ($current_preferences['livestats'] == $value) ? ' selected="selected"' : '';
-    $livestats .= "<option value=\"$value\"$selected>$title</option>";
-  }
-  $livestats .= "</select>";
 
   // jquery.datePicker
   $datepicker_url_error = ( @fopen($current_preferences['datepicker_url']."/datePicker.js", "r") ) ?
@@ -402,10 +394,6 @@ function glz_custom_fields_preferences() {
     <tr>
       <th scope="row"><label for="glz_custom_fields_prefs_custom_scripts_path">Custom scripts path</th>
       <td><input type="text" name="glz_custom_fields_prefs[custom_scripts_path]" id="glz_custom_fields_prefs_custom_scripts_path" value="{$current_preferences['custom_scripts_path']}" />{$custom_scripts_path_error}</td>
-    </tr>
-    <tr>
-      <th scope="row"><label for="glz_custom_fields_prefs_livestats">Contribute to livestats?</th>
-      <td>{$livestats}<br /><a href="http://map.cf.gerhardlazu.com">glz_custom_fields world map</a></td>
     </tr>
 
     <tr class="heading">

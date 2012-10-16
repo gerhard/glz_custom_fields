@@ -4,15 +4,16 @@
 // run this file at the command line to produce a plugin for distribution:
 // $ php abc_myplugin.php > abc_myplugin-0.1.txt
 
-# $plugin['name']       = "glz_custom_fields";
+$version = isset($_ENV["PLUGIN_VERSION"]) ? $_ENV["PLUGIN_VERSION"] : "1.4.0";
+
 $plugin['code_file']    = realpath('glz_custom_fields_code.php');
 $plugin['help_file']    = realpath('glz_custom_fields_help.html');
-$plugin['version']      = "1.3.0";
+$plugin['version']      = $version;
 $plugin['description']  = "Unlimited, super special custom fields.";
 $plugin['author']       = "Gerhard Lazu";
 $plugin['author_uri']   = "http://gerhardlazu.com";
 $plugin['contributors'] = "Randy Levine, Sam Weiss, Luca Botti, Manfre, Vladimir Siljkovic, Julian Reisenberger, Steve Dickinson, Stef Dawson, Jean-Pol Dupont";
-$plugin['compatibility'] = "4.4.1";
+$plugin['compatibility'] = "4.5.1";
 
 // Plugin load order:
 // The default value of 5 would fit most plugins, while for instance comment spam evaluators or URL redirectors
@@ -21,11 +22,18 @@ $plugin['compatibility'] = "4.4.1";
 $plugin['order'] = '9';
 
 // Plugin 'type' defines where the plugin is loaded
-// 0 = public       : only on the public side of the website (default)
-// 1 = public+admin : on both the public and admin side
-// 2 = library      : only when include_plugin() or require_plugin() is called
-// 3 = admin        : only on the admin side
-$plugin['type'] = '1';
+// http://forum.textpattern.com/viewtopic.php?id=38434
+// -----------------------------------------------------------------------
+// | plugin type | public | admin (synchronous) | library | admin (ajax) |
+// -----------------------------------------------------------------------
+// | 0           | yes    |                     |         |              |
+// | 1           | yes    | yes                 |         |              |
+// | 2           |        |                     | yes     |              |
+// | 3           |        | yes                 |         |              |
+// | 4           |        | yes                 |         | yes          |
+// | 5           | yes    | yes                 |         | yes          |
+// -----------------------------------------------------------------------
+$plugin['type'] = '5';
 
 // 0 = Plugin help is in Textile format, no raw HTML allowed (default).
 // 1 = Plugin help is in raw HTML. Not recommended.
