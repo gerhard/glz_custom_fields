@@ -1,113 +1,25 @@
-<style type="text/css" media="screen,projection">
-  #glz_custom_fields_help {
-    margin: 0 auto;
-    font-family: Verdana,"Lucida Grande",sans-serif;
-    padding: 15px;
-    background-color: #F7F7F7;
-    border: 1px dotted #EBEBEB;
-    width: 700px;
-    color: #333;
-    font-size: 12px;
-    line-height:15px;
-  }
-  #glz_custom_fields_help p, #glz_custom_fields_help ul, #glz_custom_fields_help ol, #glz_custom_fields_help dl {
-    font-size: 12px;
-    line-height: 15px;
-    margin-bottom: 15px;
-  }
-  #glz_custom_fields_help ul {
-    padding-left: 15px;
-    list-style: square;
-  }
-  #glz_custom_fields_help ol {
-    padding-left: 20px;
-  }
-  #glz_custom_fields_help a, #glz_custom_fields_help a.visited {
-    color: #FF7B00;
-    text-decoration: none;
-    padding-bottom: 1px;
-    border-bottom: 1px dotted #FF7B00;
-  }
-  #glz_custom_fields_help a:hover {
-    color: #FFF;
-    background-color: #FF7B00;
-    border-bottom: 1px dotted #FF7B00;
-  }
-  #glz_custom_fields_help h1 {
-    font-family: Georgia,Times,Serif;
-    font-size: 24px;
-    font-weight: normal;
-    text-decoration: none;
-    line-height: 30px;
-    margin-bottom: 15px;
-    color: #333;
-    letter-spacing: -1px;
-  }
-  #glz_custom_fields_help h2 {
-    font-family: Georgia,Times,Serif;
-    color: #FFF;
-    font-size: 18px;
-    font-weight: normal;
-    line-height: 30px;
-    margin-bottom: 15px;
-    background-color: #C1C4C3;
-    padding-left: 15px;
-  }
-  #glz_custom_fields_help strong {
-
-  }
-  #glz_custom_fields_help code {
-    line-height: 16px;
-    font-style: italic;
-    font-family: Monaco,"Courier New", Courier, monospace;
-    font-size-adjust: none;
-    font-stretch: normal;
-    font-variant: normal;
-    font-weight: normal;
-    font-size: 12px;
-    color: #000;
-  }
-  #glz_custom_fields_help code.txp {
-    background-color: #FFF6A9;
-    font-family: Monaco,"Courier New", Courier, monospace;
-    line-height: 30px;
-    font-style: normal;
-    padding: 2px 0;
-    color: #000;
-  }
-</style>
-
-<div id="glz_custom_fields_help">
-  <h1>glz_custom_fields, limitless pimped custom fields</h1>
-
-  <p><strong>If you want to submit bug reports and feature requests, please visit <a href="http://github.com/gerhard/glz_custom_fields_public" title="glz_custom_fields on GitHub">glz_custom_fields of GitHub</a></strong>. <br />There is also a handy section on <a href="http://wiki.github.com/gerhard/glz_custom_fields_public/" title="glz_custom_fields wiki">glz_custom_fields tips and tricks</a>.</p>
-
-  <h2>Time &amp; Date Pickers</h2>
-  <p>They are pretty straightforward to use, no explanation needed. To set the required Javascript and styling properly, please refer to the <strong>INSTALL</strong> file that came with this plugin.</p>
-
-  <h2>Custom Scripts</h2>
-  <p>This is a rather complex and long sought for piece of functionality, please refer to the <strong>my_image.php</strong> file which contains inline explanations on how they should be used. The file came with the plugin, in the scripts/glz_custom_fields folder.</p>
-
-  <h2>Default values</h2>
-  <p>You can now define a single default value by adding curly brackets around a value like this <code>{default value}</code>. Support for multiple ones will be implemented at some point.</p>
-
-  <h2>Ranges</h2>
-  <p>If you want to define ranges, create a new custom field with the following name e.g. <code>Price range &amp;pound;(after)</code></p>
-  <ul>
-  <li><code>range</code> - this is really important and <strong>must</strong> be present for the range to work correctly</li>
-  <li><code>&amp;pound;</code> - don't use straight symbols (like &euro; or &pound;) but entity ones e.g. &amp;pound; &amp; &amp;euro; $ and &amp;cent are valid symbols.</li>
+<h1>glz_custom_fields, unlimited custom fields</h1>
+<p>This plugin provides unlimited custom fields in Textpattern. You can create custom fields as selects, multi-selects, checkboxes, radio buttons and textareas - as well as the default text input fields. Predefine values can be set for custom fields and you can select a single default value (selects, multi-selects, checkboxes and radio buttons only).</p>
+<p><strong>If you want to submit bug reports and feature requests, please visit <a href="http://github.com/gerhard/glz_custom_fields" title="glz_custom_fields on GitHub">glz_custom_fields on GitHub</a></strong>. There is also a handy section on <a href="http://wiki.github.com/gerhard/glz_custom_fields/" title="glz_custom_fields wiki">glz_custom_fields tips and tricks</a>.</p>
+<h2>Time and date pickers</h2>
+<p>Time and date pickers are pretty straightforward to use. To set the required JavaScript and styling properly, please refer to the <span class="information">INSTALL</span> file that came with this plugin.</p>
+<h2>Custom scripts</h2>
+<p>This is a rather complex and long sought-for piece of functionality, please refer to the <span class="information">my_image.php</span> file which contains inline explanations on how they should be used. The file came with the plugin, in the <span class="information">scripts/glz_custom_fields</span> folder.</p>
+<h2>Default values</h2>
+<p>You can now define a single default value by adding curly brackets around a value like so: <code>{default value}</code>.</p>
+<h2>Ranges</h2>
+<p>If you want to define ranges, create a new custom field with the following name e.g. <code>Price range &amp;pound;(after)</code>.</p>
+<ul>
+  <li><code>range</code> - this is really important and <strong class="warning">must</strong> be present for the range to work correctly.</li>
+  <li><code>&amp;pound;</code> - don't use straight symbols (like <code>&euro;</code> or <code>&pound;</code>), instead use entity ones e.g. <code>&amp;euro;</code> and <code>&amp;pound;</code> are valid symbols.</li>
   <li><code>(after)</code> - don't leave any spaces after e.g. $ and (after). This basically says where to add the measuring unit (be it a currency or something like m<sup>3</sup> etc.) - <code>(before)</code> is default.</li>
-  </ul>
-
-  <p>Ranges are defined 10-20, 21-30 etc. (no measuring units - they get pulled from the custom set name).</p>
-
-  <h2>Support</h2>
-  <p>If anything goes wrong or you discover a bug:</p>
-  <ol>
-    <li>submit it on <a href="http://github.com/gerhard/glz_custom_fields_public/issues" title="glz_custom_fields_public issues">GitHub</a></li>
-    <li>look for help in the forum, <a href="http://forum.textpattern.com/viewtopic.php?id=23996">glz_custom_fields thread</a></li>
-    <li>ping me via <a href="http://www.twitter.com/gerhardlazu">Twitter</a>. I'm using it around the clock, it's great for short messages!</li>
-    <li>drop a line to <a href="mailto:gerhard@lazu.co.uk?Subject:glz_custom_fields needs your attention">gerhard@lazu.co.uk</a> (sometimes things can get really hectic on my end, please be patient)</li>
-  </ol>
-  <p>If you have lost your glz_custom_fields copy, get another one from <a href="http://groups.google.com/group/glz_custom_fields">glz_custom_fields Google Group</a>. This is a private group, only people that have donated have access to it. I would appreciate if you would post queries on the public Textpattern forum, I want to avoid having to follow 2 places for support issues. Thanks!</p>
-</div>
+</ul>
+<p>Ranges are defined 10-20, 21-30 etc. (no measuring units - they get pulled from the custom set name).</p>
+<h2>Support</h2>
+<p>If anything goes wrong or you discover a bug:</p>
+<ol>
+  <li>report an issue on <a href="http://github.com/gerhard/glz_custom_fields/issues" title="glz_custom_fields_public issues" rel="external">GitHub</a>.</li>
+  <li>look for help in the Textpatterb forum, <a href="http://forum.textpattern.com/viewtopic.php?id=23996" rel="external">glz_custom_fields thread</a>.</li>
+  <li>ping me via <a href="http://www.twitter.com/gerhardlazu" rel="external">Twitter</a>. I'm using it around the clock, it's great for short messages!</li>
+  <li>drop a line to <a href="mailto:gerhard@lazu.co.uk?Subject:glz_custom_fields needs your attention" rel="external">gerhard@lazu.co.uk</a> (sometimes things can get really hectic on my end, please be patient).</li>
+</ol>

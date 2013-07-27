@@ -1,3 +1,0 @@
-[submodule "txp_plugin_template"]
-	path = .txp_plugin_template
-	url = git@github.com:gerhard/txp_plugin_template.git

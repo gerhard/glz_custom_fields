@@ -1,0 +1,8 @@
+"Extending Textpattern":http://textbook.textpattern.net/wiki/index.php?title=Extending_Textpattern
+
+"Plugin Tutorial":http://thresholdstate.com/articles/3975/anatomy-of-a-textpattern-plugin-part-1
+
+"Mailinglist for plugin devs":http://lists.textpattern.com/
+
+"Developer resources (further links, tools and help)":http://forum.textpattern.com/viewtopic.php?id=9881
+
